@@ -1,10 +1,3 @@
-//
-//  BBWindowManager.swift
-//  BatteryBoi
-//
-//  Created by Joe Barbour on 8/5/23.
-//
-
 import Cocoa
 import Combine
 import CoreGraphics

@@ -1,10 +1,3 @@
-//
-//  BBAnimationManager.swift
-//  BatteryBoi
-//
-//  Created by Joe Barbour on 9/8/23.
-//
-
 import Foundation
 import SwiftUI
 
