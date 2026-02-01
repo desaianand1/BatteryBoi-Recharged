@@ -6,7 +6,6 @@
 //
 
 import AppKit
-import Combine
 import Foundation
 import Sparkle
 
@@ -56,12 +55,22 @@ enum UpdateStateType {
 final class UpdateManager: NSObject, SPUUpdaterDelegate {
     static let shared = UpdateManager()
 
+    /// Task for resetting state to idle after completion/failure.
+    /// Cancels previous task to prevent race conditions.
+    private var stateResetTask: Task<Void, Never>?
+
     var state: UpdateStateType = .completed {
         didSet {
             if state == .completed || state == .failed {
-                Task { @MainActor [weak self] in
-                    try? await Task.sleep(for: .seconds(5))
-                    self?.state = .idle
+                // Cancel any existing reset task to prevent race conditions
+                stateResetTask?.cancel()
+                stateResetTask = Task { @MainActor [weak self] in
+                    do {
+                        try await Task.sleep(for: .seconds(5))
+                        self?.state = .idle
+                    } catch {
+                        // Task was cancelled, don't update state
+                    }
                 }
             }
         }
@@ -98,8 +107,7 @@ final class UpdateManager: NSObject, SPUUpdaterDelegate {
     }
 
     deinit {
-        self.updates.forEach { $0.cancel() }
-
+        stateResetTask?.cancel()
     }
 
     func updateCheck() {
