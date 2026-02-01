@@ -59,12 +59,14 @@ final class UpdateManager: NSObject, SPUUpdaterDelegate {
     var state: UpdateStateType = .completed {
         didSet {
             if state == .completed || state == .failed {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+                Task { @MainActor [weak self] in
+                    try? await Task.sleep(for: .seconds(5))
                     self?.state = .idle
                 }
             }
         }
     }
+
     var available: UpdatePayloadObject?
     var checked: Date?
 

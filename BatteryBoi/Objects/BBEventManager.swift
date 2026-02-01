@@ -46,9 +46,9 @@ final class EventManager {
 
         }.store(in: &updates)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(10.0))
             self.eventAuthorizeStatus()
-
         }
 
     }

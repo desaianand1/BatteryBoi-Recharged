@@ -41,7 +41,8 @@ final class AppManager {
 
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(2))
             if self.appDistribution() == .direct {
                 self.profile = self.appProfile(force: false)
             }
