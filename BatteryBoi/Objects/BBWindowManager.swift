@@ -51,12 +51,43 @@ enum WindowPosition: String {
 
 @Observable
 @MainActor
-final class WindowManager {
+final class WindowManager: WindowServiceProtocol {
     static let shared = WindowManager()
 
     private var updates = Set<AnyCancellable>()
     private var triggered: Int = 0
     private var notifiedThresholds: Set<Int> = []
+    private var notifiedBluetoothThresholds: [String: Set<Int>] = [:]
+    private var globalMouseMonitor: Any?
+
+    // MARK: - WindowServiceProtocol Publishers
+
+    var statePublisher: AnyPublisher<HUDState, Never> {
+        $state.eraseToAnyPublisher()
+    }
+
+    var hoverPublisher: AnyPublisher<Bool, Never> {
+        $hover.eraseToAnyPublisher()
+    }
+
+    // MARK: - WindowServiceProtocol Methods
+
+    func setState(_ state: HUDState, animated: Bool) {
+        windowSetState(state, animated: animated)
+    }
+
+    func isVisible(_ type: HUDAlertTypes) -> Bool {
+        windowIsVisible(type)
+    }
+
+    func open(_ type: HUDAlertTypes, device: BluetoothObject?) {
+        windowOpen(type, device: device)
+    }
+
+    func calculateFrame(moved: NSRect?) -> NSRect {
+        windowHandleFrame(moved: moved)
+    }
+
     private var screen: CGSize {
         if let activeScreen = NSScreen.screens.first(where: {
             NSMouseInRect(NSEvent.mouseLocation, $0.frame, false)
@@ -72,6 +103,7 @@ final class WindowManager {
             handleStateChange(state)
         }
     }
+
     var position: WindowPosition = .topMiddle
     var opacity: CGFloat = 1.0
 
@@ -151,12 +183,34 @@ final class WindowManager {
             let connected = BluetoothManager.shared.list.filter { $0.connected == .connected }
 
             for device in connected {
-                switch device.battery.general {
-                case 25: self.windowOpen(.percentTwentyFive, device: device)
-                case 10: self.windowOpen(.percentTen, device: device)
-                case 5: self.windowOpen(.percentFive, device: device)
-                case 1: self.windowOpen(.percentOne, device: device)
-                default: break
+                guard let percent = device.battery.general else { continue }
+                let deviceId = device.address
+
+                // Initialize threshold tracking for this device if needed
+                if self.notifiedBluetoothThresholds[deviceId] == nil {
+                    self.notifiedBluetoothThresholds[deviceId] = []
+                }
+
+                let thresholds: [(Int, HUDAlertTypes)] = [
+                    (25, .percentTwentyFive),
+                    (10, .percentTen),
+                    (5, .percentFive),
+                    (1, .percentOne),
+                ]
+
+                for (threshold, alertType) in thresholds {
+                    if percent <= threshold,
+                       !(self.notifiedBluetoothThresholds[deviceId]?.contains(threshold) ?? false)
+                    {
+                        self.notifiedBluetoothThresholds[deviceId]?.insert(threshold)
+                        self.windowOpen(alertType, device: device)
+                        break
+                    }
+                }
+
+                // Reset thresholds if device battery goes above 30%
+                if percent > 30 {
+                    self.notifiedBluetoothThresholds[deviceId]?.removeAll()
                 }
 
             }
@@ -207,22 +261,26 @@ final class WindowManager {
 
         }.store(in: &updates)
 
-        NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseUp, .rightMouseUp]) { _ in
+        globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [
+            .leftMouseUp,
+            .rightMouseUp,
+        ]) { [weak self] _ in
+            guard let self else { return }
             if NSRunningApplication.current == NSWorkspace.shared.frontmostApplication {
-                if self.state == .revealed || self.state == .progress {
-                    self.windowSetState(.detailed)
+                if state == .revealed || state == .progress {
+                    windowSetState(.detailed)
 
                 }
 
             } else {
                 if SettingsManager.shared.enabledPinned == .disabled {
-                    if self.state.visible == true {
-                        self.windowSetState(.dismissed)
+                    if state.visible == true {
+                        windowSetState(.dismissed)
 
                     }
 
                 } else {
-                    self.windowSetState(.revealed)
+                    windowSetState(.revealed)
 
                 }
 
@@ -234,17 +292,27 @@ final class WindowManager {
 
     }
 
+    deinit {
+        if let monitor = globalMouseMonitor {
+            NSEvent.removeMonitor(monitor)
+        }
+        updates.forEach { $0.cancel() }
+    }
+
     private func handleStateChange(_ state: HUDState) {
         if state == .dismissed {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(0.8))
                 Self.shared.windowClose()
             }
         } else if state == .progress {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(0.2))
                 self.windowSetState(.revealed)
             }
         } else if state == .revealed, AppManager.shared.alert?.timeout == false {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(1))
                 self.windowSetState(.detailed)
             }
         }
