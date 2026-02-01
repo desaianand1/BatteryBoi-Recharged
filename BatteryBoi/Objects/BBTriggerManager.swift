@@ -1,43 +1,43 @@
 //
-//  BBTriggerClass.swift
+//  BBTriggerManager.swift
 //  BatteryBoi
 //
 //  Created by Joe Barbour on 9/1/23.
 //
 
-import Foundation
 import Combine
+import Foundation
 
 class TriggerClass {
-    static var shared = TriggerClass()
-    
+    static var shared = Self()
+
     private var updates = Set<AnyCancellable>()
 
     init() {
-        BatteryManager.shared.$charging.dropFirst().removeDuplicates().sink { charging in
-            
+        BatteryManager.shared.$charging.dropFirst().removeDuplicates().sink { _ in
+
         }.store(in: &updates)
 
     }
-    
+
     deinit {
         self.updates.forEach { $0.cancel() }
-        
+
     }
-    
-    public func triggerPercent(_ percent:Double) {
+
+    func triggerPercent(_: Double) {
         // TBC
-        
+
     }
-    
-    public func triggerState(_ state:HUDAlertTypes, device:BluetoothObject) {
+
+    func triggerState(_ state: HUDAlertTypes, device _: BluetoothObject) {
         if state.trigger == false {
             fatalError("This is not a Trigger State")
-            
+
         }
-        
+
         // TBC
-        
+
     }
-    
+
 }

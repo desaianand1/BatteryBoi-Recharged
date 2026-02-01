@@ -1,69 +1,67 @@
 //
-//  Extensions.swift
+//  BBExtensions.swift
 //  BatteryBoi
 //
 //  Created by Joe Barbour on 8/6/23.
 //
 
+import Combine
 import Foundation
 import SwiftUI
-import Combine
 
 struct ViewScrollMask: ViewModifier {
-    @State var padding:CGFloat
-    
-    @Binding var scroll:CGPoint
+    @State var padding: CGFloat
+
+    @Binding var scroll: CGPoint
 
     func body(content: Content) -> some View {
         content.mask(
             GeometryReader { geo in
-                HStack(spacing:0) {
+                HStack(spacing: 0) {
                     LinearGradient(gradient: Gradient(colors: [
                         .black.opacity(opacity(for: scroll.x)),
                         .black.opacity(1),
                     ]), startPoint: .leading, endPoint: .trailing).frame(width: padding)
-                    
-                    Rectangle().fill(.black).frame(width:geo.size.width - padding)
-                
+
+                    Rectangle().fill(.black).frame(width: geo.size.width - padding)
+
                 }
-                
-            }
-            
+
+            },
+
         )
-        
+
     }
-    
-    public func opacity(for offset: CGFloat) -> Double {
+
+    func opacity(for offset: CGFloat) -> Double {
         let start: CGFloat = 0.0
         let end: CGFloat = -8.0
-               
+
         if offset >= start {
             return 1.0
-            
-        }
-        else if offset <= end {
+
+        } else if offset <= end {
             return 0.0
-            
-        }
-        else {
+
+        } else {
             return Double(1.0 + (offset / 8.0))
-            
+
         }
-        
+
     }
-    
+
 }
 
 struct ViewMarkdown: View {
-    @Binding var text:String
-    
-    @State private var components = Array<String>()
+    @Binding var text: String
 
-    init(_ content:Binding<String>) {
-        self._text = content
-        
+    @State private var components = [String]()
+
+    init(_ content: Binding<String>) {
+        _text = content
+
     }
-    
+
     var body: some View {
         HStack(spacing: 0) {
             if components.count == 1 {
@@ -72,189 +70,184 @@ struct ViewMarkdown: View {
                     .foregroundColor(Color("BatterySubtitle"))
                     .lineLimit(3)
 
-            }
-            else {
-                ForEach(0..<components.count, id: \.self) { number in
+            } else {
+                ForEach(0 ..< components.count, id: \.self) { number in
                     if number.isMultiple(of: 2) {
                         Text(components[number])
                             .font(.system(size: 12, weight: .regular))
                             .foregroundColor(Color("BatterySubtitle"))
                             .lineLimit(1)
 
-                    }
-                    else {
+                    } else {
                         Text(components[number])
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(Color("BatteryTitle").opacity(0.9))
                             .lineLimit(1)
 
                     }
-                    
+
                 }
-                
+
             }
-            
-        }
-        .onChange(of: self.text) { newValue in
-            self.components = newValue.components(separatedBy: "**")
 
         }
-        
+        .onChange(of: text) { newValue in
+            components = newValue.components(separatedBy: "**")
+
+        }
+
     }
-    
+
 }
 
 struct ViewTextStyle: ViewModifier {
-    @State var size:CGFloat
-    
+    @State var size: CGFloat
+
     func body(content: Content) -> some View {
         if #available(iOS 14.0, macOS 13.0, watchOS 7.0, tvOS 14.0, *) {
-            content.font(.system(size: self.size, weight: .bold)).lineLimit(1).tracking(-0.4)
-            
-        }
-        else {
-            content.font(.system(size: self.size, weight: .bold)).lineLimit(1)
+            content.font(.system(size: size, weight: .bold)).lineLimit(1).tracking(-0.4)
+
+        } else {
+            content.font(.system(size: size, weight: .bold)).lineLimit(1)
 
         }
-        
+
     }
-    
+
 }
 
-extension String {
-    public func append(_ string:String, seporator:String) -> String {
-        return "\(self)\(seporator)\(string)"
-        
+public extension String {
+    func append(_ string: String, seporator: String) -> String {
+        "\(self)\(seporator)\(string)"
+
     }
-    
-    public func width(_ font: NSFont) -> CGFloat {
+
+    func width(_ font: NSFont) -> CGFloat {
         let attribute = NSAttributedString(string: self, attributes: [NSAttributedString.Key.font: font])
-        
+
         return attribute.size().width
-        
+
     }
-    
-    public func localise(_ params: [CVarArg]? = nil, comment:String? = nil) -> String {
+
+    func localise(_ params: [CVarArg]? = nil, comment: String? = nil) -> String {
         var key = self
         var output = NSLocalizedString(self, tableName: "LocalizableMain", comment: comment ?? "")
 
-        if let number = params?.first(where: { $0 is Int}) as? Int {
+        if let number = params?.first(where: { $0 is Int }) as? Int {
             switch number {
-                case 1 : key = "\(key)_Single"
-                default : key = "\(key)_Plural"
-
+            case 1: key = "\(key)_Single"
+            default: key = "\(key)_Plural"
             }
-            
+
         }
-        
+
         if output == self {
             output = NSLocalizedString(key, tableName: "LocalizableMain", comment: comment ?? "")
 
         }
-        
-        if let params = params {
+
+        if let params {
             return String(format: output, arguments: params)
 
         }
-        
+
         return output
 
     }
 }
 
-extension Array<String> {
-    public func index(_ index:Int, fallback:String? = nil) -> String? {
-        if self.indices.contains(index) {
+public extension [String] {
+    func index(_ index: Int, fallback: String? = nil) -> String? {
+        if indices.contains(index) {
             return self[index]
-            
+
         }
-       
+
         return fallback
 
     }
-    
+
 }
 
-extension Date {
-    public func string(_ format:String) -> String {
+public extension Date {
+    func string(_ format: String) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = format
         formatter.locale = Locale.current
-        
+
         return formatter.string(from: self)
-        
+
     }
-    
-    public var formatted:String {
+
+    var formatted: String {
         let components = Calendar.current.dateComponents([.day, .hour, .minute, .second], from: self, to: Date())
         if let days = components.day, days > 1 {
             return "TimestampMinuteDaysLabel".localise([days])
 
         }
-        
+
         if let hours = components.hour, hours > 1 {
             return "TimestampHourFullLabel".localise([hours])
-            
+
         }
-        
+
         return "TimestampNowLabel".localise()
-            
+
     }
-    
-    public var now:Bool {
+
+    var now: Bool {
         if let seconds = Calendar.current.dateComponents([.second], from: self, to: Date()).second {
             if seconds < 60 {
                 return true
-                
+
             }
-            
+
         }
 
         return false
-        
+
     }
-    
-    public var time:String {
+
+    var time: String {
         let locale = NSLocale.current
         let formatter = DateFormatter.dateFormat(fromTemplate: "j", options: 0, locale: locale)
-        
-        if let formatter = formatter {
+
+        if let formatter {
             if formatter.contains("a") == true {
-                return self.string("hh:mm a")
-                
-            }
-            else {
-                return self.string("HH:mm")
+                return string("hh:mm a")
+
+            } else {
+                return string("HH:mm")
 
             }
-            
+
         }
-        
+
         return "AlertDeviceUnknownTitle".localise()
 
     }
-    
+
 }
 
 extension View {
-    func inverse<M: View>(_ mask: M) -> some View {
+    func inverse(_ mask: some View) -> some View {
         let inversed = mask
             .foregroundColor(.black)
             .background(Color.white)
             .compositingGroup()
             .luminanceToAlpha()
-        
+
         return self.mask(inversed)
-        
-    }
-    
-    func mask(_ padding:CGFloat = 10, scroll:Binding<CGPoint>) -> some View {
-        self.modifier(ViewScrollMask(padding: padding, scroll: scroll))
 
     }
-    
-    func style(_ font:CGFloat) -> some View {
-        self.modifier(ViewTextStyle(size: font))
+
+    func mask(_ padding: CGFloat = 10, scroll: Binding<CGPoint>) -> some View {
+        modifier(ViewScrollMask(padding: padding, scroll: scroll))
+
+    }
+
+    func style(_ font: CGFloat) -> some View {
+        modifier(ViewTextStyle(size: font))
 
     }
 
@@ -263,36 +256,35 @@ extension View {
 extension UserDefaults {
     static let changed = PassthroughSubject<SystemDefaultsKeys, Never>()
 
-    static var main:UserDefaults {
-        return UserDefaults()
-        
-    }
-    
-    static var list:Array<SystemDefaultsKeys> {
-        return UserDefaults.main.dictionaryRepresentation().keys.compactMap({ SystemDefaultsKeys(rawValue:$0) })
-        
+    static var main: UserDefaults {
+        UserDefaults()
+
     }
 
-    static func save(_ key:SystemDefaultsKeys, value:Any?) {
-        self.save(string: key.rawValue, value: value)
-        
+    static var list: [SystemDefaultsKeys] {
+        UserDefaults.main.dictionaryRepresentation().keys.compactMap { SystemDefaultsKeys(rawValue: $0) }
+
     }
-    
-    static func save(string key:String, value:Any?) {
-        if let value = value {
+
+    static func save(_ key: SystemDefaultsKeys, value: Any?) {
+        save(string: key.rawValue, value: value)
+
+    }
+
+    static func save(string key: String, value: Any?) {
+        if let value {
             main.set(Date(), forKey: "\(key)_timestamp")
             main.set(value, forKey: key)
             main.synchronize()
-            
+
             if let system = SystemDefaultsKeys(rawValue: key) {
                 changed.send(system)
 
             }
 
             print("\n\n💾 Saved \(value) to '\(key)'\n\n")
-            
-        }
-        else {
+
+        } else {
             main.removeObject(forKey: key)
             main.synchronize()
 
@@ -302,35 +294,37 @@ extension UserDefaults {
             }
 
         }
-        
+
     }
-    
-    static func timestamp(_ key:SystemDefaultsKeys) -> Date? {
+
+    static func timestamp(_ key: SystemDefaultsKeys) -> Date? {
         if let timetamp = UserDefaults.main.object(forKey: "\(key.rawValue)_timestamp") as? Date {
             return timetamp
         }
-        
+
         return nil
-        
+
     }
-    
+
 }
 
 extension CodingUserInfoKey {
+    // swiftlint:disable:next force_unwrapping
     static let device = CodingUserInfoKey(rawValue: "device")!
+    // swiftlint:disable:next force_unwrapping
     static let connected = CodingUserInfoKey(rawValue: "connected")!
 
 }
 
 extension NSWindow: SystemMainWindow {
     var canBecomeKeyWindow: Bool {
-        return true
-        
+        true
+
     }
-    
+
 }
 
 protocol SystemMainWindow {
     var canBecomeKeyWindow: Bool { get }
-    
+
 }

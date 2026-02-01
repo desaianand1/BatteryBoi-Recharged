@@ -10,10 +10,10 @@ import SwiftUI
 struct AboutContainer: View {
     var body: some View {
         VStack {
-            ScrollView() {
+            ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     Text("AboutTitle".localise())
-                    
+
                 }
                 .foregroundColor(Color("BatteryTitle"))
                 .font(.system(size: 26, weight: .bold))
@@ -43,5 +43,5 @@ struct AboutContainer: View {
         .padding(10)
 
     }
-    
+
 }

@@ -16,6 +16,10 @@ disabled_rules:
   - line_length
   - cyclomatic_complexity
   - nesting
+  - large_tuple
+  - todo
+  - opening_brace # Conflicts with SwiftFormat's wrapMultilineStatementBraces
+  - statement_position # Conflicts with SwiftFormat's wrap rules
 
 opt_in_rules:
   - empty_count

@@ -28,6 +28,11 @@ tasks:
     cmds:
       - swiftlint lint --strict BatteryBoi/
 
+  lint:fix:
+    desc: Run SwiftLint autocorrect
+    cmds:
+      - swiftlint --fix BatteryBoi/
+
   format:
     desc: Run SwiftFormat (fixes files)
     cmds:
@@ -38,6 +43,11 @@ tasks:
     cmds:
       - swiftformat --lint BatteryBoi/
 
+  fix:
+    desc: Run SwiftFormat & SwiftLint to fix all files
+    cmds:
+      - task: format
+      - task: lint:fix
   build:
     desc: Build debug (no code signing)
     cmds:

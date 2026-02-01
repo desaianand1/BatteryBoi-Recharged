@@ -5,30 +5,30 @@
 //  Created by Joe Barbour on 8/25/23.
 //
 
-import Foundation
 import AppKit
-import Sparkle
 import Combine
+import Foundation
+import Sparkle
 
-struct UpdateVersionObject:Codable {
-    var formatted:String
-    var numerical:Double
-    
+struct UpdateVersionObject: Codable {
+    var formatted: String
+    var numerical: Double
+
 }
 
-struct UpdatePayloadObject:Equatable {
-    static func == (lhs: UpdatePayloadObject, rhs: UpdatePayloadObject) -> Bool {
-        return lhs.id == rhs.id
-        
+struct UpdatePayloadObject: Equatable {
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.id == rhs.id
+
     }
-    
-    var id:String
-    var name:String
-    var version:UpdateVersionObject
-    var binary:String?
-    var cached:Bool?
-    var ignore:Bool = false
-    
+
+    var id: String
+    var name: String
+    var version: UpdateVersionObject
+    var binary: String?
+    var cached: Bool?
+    var ignore: Bool = false
+
 }
 
 enum UpdateStateType {
@@ -37,91 +37,101 @@ enum UpdateStateType {
     case updating
     case failed
     case completed
-    
-    public func subtitle(_ last:Date?, version:String? = nil) -> String {
-        switch self {
-            case .idle : return "UpdateStatusIdleLabel".localise([last?.formatted ?? "TimestampNeverLabel".localise()])
-            case .checking : return "UpdateStatusCheckingLabel".localise()
-            case .updating : return "UpdateStatusNewLabel".localise([version ?? ""])
-            case .failed : return "UpdateStatusEmptyLabel".localise()
-            case .completed : return "UpdateStatusEmptyLabel".localise()
 
+    func subtitle(_ last: Date?, version: String? = nil) -> String {
+        switch self {
+        case .idle: "UpdateStatusIdleLabel".localise([last?.formatted ?? "TimestampNeverLabel".localise()])
+        case .checking: "UpdateStatusCheckingLabel".localise()
+        case .updating: "UpdateStatusNewLabel".localise([version ?? ""])
+        case .failed: "UpdateStatusEmptyLabel".localise()
+        case .completed: "UpdateStatusEmptyLabel".localise()
         }
-        
+
     }
-    
+
 }
 
-class UpdateManager: NSObject,SPUUpdaterDelegate,ObservableObject {
+class UpdateManager: NSObject, SPUUpdaterDelegate, ObservableObject {
     static var shared = UpdateManager()
-    
-    @Published var state:UpdateStateType = .completed
-    @Published var available:UpdatePayloadObject?
-    @Published var checked:Date?
+
+    @Published var state: UpdateStateType = .completed
+    @Published var available: UpdatePayloadObject?
+    @Published var checked: Date?
 
     private let driver = SPUStandardUserDriver(hostBundle: Bundle.main, delegate: nil)
 
     private var updates = Set<AnyCancellable>()
-    private var updater:SPUUpdater?
-    
+    private var updater: SPUUpdater?
+
     override init() {
         super.init()
-        
-        self.updater = SPUUpdater(hostBundle: Bundle.main, applicationBundle: Bundle.main, userDriver: self.driver, delegate: self)
-        self.updater?.automaticallyChecksForUpdates = true
-        self.updater?.automaticallyDownloadsUpdates = true
-        self.updater?.updateCheckInterval = 60.0 * 60.0 * 12
-        
+
+        updater = SPUUpdater(
+            hostBundle: Bundle.main,
+            applicationBundle: Bundle.main,
+            userDriver: driver,
+            delegate: self,
+        )
+        updater?.automaticallyChecksForUpdates = true
+        updater?.automaticallyDownloadsUpdates = true
+        updater?.updateCheckInterval = 60.0 * 60.0 * 12
+
         do {
-            try self.updater?.start()
-            
-        }
-        catch {
-            
-        }
-        
-        self.$state.delay(for: 5, scheduler: RunLoop.main).sink() { newValue in
+            try updater?.start()
+
+        } catch {}
+
+        $state.delay(for: 5, scheduler: RunLoop.main).sink { newValue in
             if newValue == .completed || newValue == .failed {
                 self.state = .idle
-                
+
             }
-            
+
         }.store(in: &updates)
-        
-        self.checked = self.updater?.lastUpdateCheckDate
+
+        checked = updater?.lastUpdateCheckDate
 
     }
-    
+
     deinit {
         self.updates.forEach { $0.cancel() }
-        
-    }
-    
-    public func updateCheck() {
-        self.updater?.checkForUpdatesInBackground()
-        self.state = .checking
 
     }
-    
-    func updater(_ updater: SPUUpdater, willInstallUpdateOnQuit item: SUAppcastItem, immediateInstallationBlock immediateInstallHandler: @escaping () -> Void) -> Bool {
+
+    func updateCheck() {
+        updater?.checkForUpdatesInBackground()
+        state = .checking
+
+    }
+
+    func updater(
+        _: SPUUpdater,
+        willInstallUpdateOnQuit _: SUAppcastItem,
+        immediateInstallationBlock immediateInstallHandler: @escaping () -> Void,
+    ) -> Bool {
         immediateInstallHandler()
         return true
-        
-    }
-    
-    func updater(_ updater: SPUUpdater, shouldPostponeRelaunchForUpdate item: SUAppcastItem, untilInvokingBlock installHandler: @escaping () -> Void) -> Bool {
-        return false
-        
-    }
-    
-    func updaterShouldDownloadReleaseNotes(_ updater: SPUUpdater) -> Bool {
-        return true
-        
+
     }
 
-    func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
+    func updater(
+        _: SPUUpdater,
+        shouldPostponeRelaunchForUpdate _: SUAppcastItem,
+        untilInvokingBlock _: @escaping () -> Void,
+    ) -> Bool {
+        false
+
+    }
+
+    func updaterShouldDownloadReleaseNotes(_: SPUUpdater) -> Bool {
+        true
+
+    }
+
+    func updater(_: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
         guard let title = item.title,
-              let id = item.propertiesDictionary["id"] as? String else {
+              let id = item.propertiesDictionary["id"] as? String
+        else {
             DispatchQueue.main.async {
                 self.state = .failed
                 self.checked = self.updater?.lastUpdateCheckDate
@@ -131,7 +141,7 @@ class UpdateManager: NSObject,SPUUpdaterDelegate,ObservableObject {
         }
 
         let build = item.propertiesDictionary["sparkle:shortVersionString"] as? Double ?? 0.0
-        let version:UpdateVersionObject = .init(formatted: title, numerical: build)
+        let version: UpdateVersionObject = .init(formatted: title, numerical: build)
 
         DispatchQueue.main.async {
             self.available = .init(id: id, name: title, version: version)
@@ -141,139 +151,118 @@ class UpdateManager: NSObject,SPUUpdaterDelegate,ObservableObject {
         }
 
     }
-    
-    func updater(_ updater: SPUUpdater, failedToDownloadUpdate item: SUAppcastItem, error: Error) {
+
+    func updater(_: SPUUpdater, failedToDownloadUpdate _: SUAppcastItem, error: Error) {
         print("update could not get update", error)
 
     }
-    
-    func updater(_ updater: SPUUpdater, failedToDownloadAppcastWithError error: Error) {
+
+    func updater(_: SPUUpdater, failedToDownloadAppcastWithError error: Error) {
         // Handle the case when the appcast fails to download
         print("update could not get appcast", error)
-        
+
     }
-    
-    func updaterDidNotFindUpdate(_ updater: SPUUpdater) {
-        print("✅ Version \(String(describing: Bundle.main.infoDictionary?["CFBundleShortVersionString"])) is the Latest")
-        
+
+    func updaterDidNotFindUpdate(_: SPUUpdater) {
+        print(
+            "✅ Version \(String(describing: Bundle.main.infoDictionary?["CFBundleShortVersionString"])) is the Latest",
+        )
+
         DispatchQueue.main.async {
             self.available = nil
             self.state = .completed
-            
+
         }
 
     }
-    
-    func updater(_ updater: SPUUpdater, willShowModalAlert alert: NSAlert) {
-        
-    }
-    
-    func updater(_ updater: SPUUpdater, didAbortWithError error: Error) {
+
+    func updater(_: SPUUpdater, willShowModalAlert _: NSAlert) {}
+
+    func updater(_: SPUUpdater, didAbortWithError error: Error) {
         if let error = error as NSError? {
             if error.code == 4005 {
-                //WindowManager.shared.windowOpenWebsite(.update, view: .main)
-                
-                self.state = .completed
-                
+                // WindowManager.shared.windowOpenWebsite(.update, view: .main)
+
+                state = .completed
+
             }
-            
+
         }
 
     }
-        
-    public var updateVersion:String {
+
+    var updateVersion: String {
         get {
             if let version = UserDefaults.main.object(forKey: SystemDefaultsKeys.versionCurrent.rawValue) as? String {
-                return version;
+                return version
+
+            } else {
+                self.updateVersion = (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0"
 
             }
-            else {
-                self.updateVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as! String
-                
-            }
-            
-            return Bundle.main.infoDictionary?["CFBundleShortVersionString"] as! String
-            
+
+            return (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0"
+
         }
-        
+
         set {
-            UserDefaults.save(.versionCurrent, value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as! String)
-            
+            UserDefaults.save(
+                .versionCurrent,
+                value: (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? newValue,
+            )
+
         }
-        
+
     }
-    
+
 }
 
-@objc class UpdateDriver: NSObject, SPUUserDriver {
-    func show(_ request: SPUUpdatePermissionRequest) async -> SUUpdatePermissionResponse {
-        return SUUpdatePermissionResponse(automaticUpdateChecks: true, sendSystemProfile: true)
+@objc
+class UpdateDriver: NSObject, SPUUserDriver {
+    func show(_: SPUUpdatePermissionRequest) async -> SUUpdatePermissionResponse {
+        SUUpdatePermissionResponse(automaticUpdateChecks: true, sendSystemProfile: true)
 
     }
-    
-    func showUserInitiatedUpdateCheck(cancellation: @escaping () -> Void) {
+
+    func showUserInitiatedUpdateCheck(cancellation _: @escaping () -> Void) {
         // Ideally we should show progress but do nothing for now
     }
 
-    func showUpdateFound(with appcastItem: SUAppcastItem, state: SPUUserUpdateState) async -> SPUUserUpdateChoice {
-        return .install
-        
+    func showUpdateFound(with _: SUAppcastItem, state _: SPUUserUpdateState) async -> SPUUserUpdateChoice {
+        .install
+
     }
-    
-    func showUpdateReleaseNotes(with downloadData: SPUDownloadData) {
-        
+
+    func showUpdateReleaseNotes(with _: SPUDownloadData) {}
+
+    func showUpdateReleaseNotesFailedToDownloadWithError(_: Error) {}
+
+    func showUpdateNotFoundWithError(_: Error, acknowledgement _: @escaping () -> Void) {}
+
+    func showUpdaterError(_ error: Error, acknowledgement _: @escaping () -> Void) {
+        print("error", error)
     }
-    
-    func showUpdateReleaseNotesFailedToDownloadWithError(_ error: Error) {
-        
-    }
-    
-    func showUpdateNotFoundWithError(_ error: Error, acknowledgement: @escaping () -> Void) {
-        
-    }
-    
-    func showUpdaterError(_ error: Error, acknowledgement: @escaping () -> Void) {
-        print("error" ,error)
-    }
-    
-    func showDownloadInitiated(cancellation: @escaping () -> Void) {
-        
-    }
-    
-    func showDownloadDidReceiveExpectedContentLength(_ expectedContentLength: UInt64) {
-        
-    }
-    
-    func showDownloadDidReceiveData(ofLength length: UInt64) {
-        
-    }
-    
-    func showDownloadDidStartExtractingUpdate() {
-        
-    }
-    
-    func showExtractionReceivedProgress(_ progress: Double) {
-        
-    }
-    
+
+    func showDownloadInitiated(cancellation _: @escaping () -> Void) {}
+
+    func showDownloadDidReceiveExpectedContentLength(_: UInt64) {}
+
+    func showDownloadDidReceiveData(ofLength _: UInt64) {}
+
+    func showDownloadDidStartExtractingUpdate() {}
+
+    func showExtractionReceivedProgress(_: Double) {}
+
     func showReadyToInstallAndRelaunch() async -> SPUUserUpdateChoice {
-        return .install
-        
+        .install
+
     }
-    
-    func showInstallingUpdate(withApplicationTerminated applicationTerminated: Bool, retryTerminatingApplication: @escaping () -> Void) {
-        
-    }
-    
-    func showUpdateInstalledAndRelaunched(_ relaunched: Bool, acknowledgement: @escaping () -> Void) {
-        
-    }
-    
-    func showUpdateInFocus() {
-        
-    }
-    
-    func dismissUpdateInstallation() {
-        
-    }
+
+    func showInstallingUpdate(withApplicationTerminated _: Bool, retryTerminatingApplication _: @escaping () -> Void) {}
+
+    func showUpdateInstalledAndRelaunched(_: Bool, acknowledgement _: @escaping () -> Void) {}
+
+    func showUpdateInFocus() {}
+
+    func dismissUpdateInstallation() {}
 }

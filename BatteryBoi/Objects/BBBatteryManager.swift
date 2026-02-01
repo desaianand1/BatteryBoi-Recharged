@@ -1,12 +1,12 @@
 //
-//  BatteryManager.swift
+//  BBBatteryManager.swift
 //  BatteryBoi
 //
 //  Created by Joe Barbour on 8/4/23.
 //
 
-import Foundation
 import Combine
+import Foundation
 import IOKit.ps
 import IOKit.pwr_mgt
 
@@ -32,21 +32,20 @@ enum BatteryCondition: String {
 }
 
 struct BatteryCycleObject {
-    var numerical:Int
-    var formatted:String
+    var numerical: Int
+    var formatted: String
 
-    init(_ count:Int) {
-        self.numerical = count
+    init(_ count: Int) {
+        numerical = count
 
         if count > 999 {
             let divisor = pow(10.0, Double(1))
             let string = ((Double(count) / 1000.0) * divisor).rounded() / divisor
 
-            self.formatted = "\(string)k"
+            formatted = "\(string)k"
 
-        }
-        else {
-            self.formatted = "\(Int(count))"
+        } else {
+            formatted = "\(Int(count))"
 
         }
 
@@ -55,12 +54,12 @@ struct BatteryCycleObject {
 }
 
 struct BatteryMetricsObject {
-    var cycles:BatteryCycleObject
-    var heath:BatteryCondition
+    var cycles: BatteryCycleObject
+    var heath: BatteryCondition
 
-    init(cycles:String, health:String) {
+    init(cycles: String, health: String) {
         self.cycles = BatteryCycleObject(Int(cycles) ?? 0)
-        self.heath = BatteryCondition(rawValue: health) ?? .optimal
+        heath = BatteryCondition(rawValue: health) ?? .optimal
 
     }
 
@@ -71,12 +70,11 @@ enum BatteryModeType {
     case efficient
     case unavailable
 
-    var flag:Bool {
+    var flag: Bool {
         switch self {
-            case .normal : return false
-            case .efficient : return true
-            case .unavailable : return false
-
+        case .normal: false
+        case .efficient: true
+        case .unavailable: false
         }
 
     }
@@ -87,31 +85,27 @@ enum BatteryChargingState {
     case charging
     case battery
 
-    public var charging:Bool {
+    var charging: Bool {
         switch self {
-            case .charging : return true
-            case .battery : return false
-
+        case .charging: true
+        case .battery: false
         }
 
     }
 
-    public func progress(_ percent:Double, width:CGFloat) -> CGFloat {
+    func progress(_ percent: Double, width: CGFloat) -> CGFloat {
         if self == .charging {
-            return min(100 * (width - 2.6), (width - 2.6))
+            min(100 * (width - 2.6), width - 2.6)
 
-        }
-        else {
-            if percent > 0 && percent < 10 {
-                return min(CGFloat(10 / 100) * (width - 2.6), (width - 2.6))
+        } else {
+            if percent > 0, percent < 10 {
+                min(CGFloat(10 / 100) * (width - 2.6), width - 2.6)
 
-            }
-            else if percent >= 90 && percent < 100 {
-                return min(CGFloat(90 / 100) * (width - 2.6), (width - 2.6))
+            } else if percent >= 90, percent < 100 {
+                min(CGFloat(90 / 100) * (width - 2.6), width - 2.6)
 
-            }
-            else {
-                return min(CGFloat(percent / 100) * (width - 2.6), (width - 2.6))
+            } else {
+                min(CGFloat(percent / 100) * (width - 2.6), width - 2.6)
 
             }
 
@@ -121,39 +115,38 @@ enum BatteryChargingState {
 
 }
 
-struct BatteryCharging:Equatable {
-    var state:BatteryChargingState
-    var started:Date?
-    var ended:Date?
+struct BatteryCharging: Equatable {
+    var state: BatteryChargingState
+    var started: Date?
+    var ended: Date?
 
-    init(_ charging:BatteryChargingState) {
-        self.state = charging
+    init(_ charging: BatteryChargingState) {
+        state = charging
 
         switch charging {
-            case .charging : self.started = Date()
-            case .battery : self.ended = Date()
-
+        case .charging: started = Date()
+        case .battery: ended = Date()
         }
 
     }
 
 }
 
-struct BatteryRemaining:Equatable {
-    static func == (lhs: BatteryRemaining, rhs: BatteryRemaining) -> Bool {
-        return lhs.date == rhs.date
+struct BatteryRemaining: Equatable {
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.date == rhs.date
 
     }
 
-    var date:Date
-    var hours:Int? = nil
-    var minutes:Int? = nil
-    var formatted:String?
+    var date: Date
+    var hours: Int?
+    var minutes: Int?
+    var formatted: String?
 
-    init(hour: Int, minute:Int) {
-        self.hours = hour
-        self.minutes = minute
-        self.date = Date(timeIntervalSinceNow: 60*2)
+    init(hour: Int, minute: Int) {
+        hours = hour
+        minutes = minute
+        date = Date(timeIntervalSinceNow: 60 * 2)
 
         var components = DateComponents()
         components.hour = hour
@@ -163,20 +156,17 @@ struct BatteryRemaining:Equatable {
             let units = Calendar.current.dateComponents([.minute, .hour], from: Date(), to: date)
 
             if let hours = units.hour, let minutes = units.minute {
-                if hours == 0 && minutes == 0 {
-                    self.formatted = "AlertDeviceCalculatingTitle".localise()
+                if hours == 0, minutes == 0 {
+                    formatted = "AlertDeviceCalculatingTitle".localise()
 
-                }
-                else if hours != 0 && minutes != 0 {
-                    self.formatted = "\("TimestampHourFullLabel".localise([hours]))  \("TimestampMinuteFullLabel".localise([minutes]))"
+                } else if hours != 0, minutes != 0 {
+                    formatted = "\("TimestampHourFullLabel".localise([hours]))  \("TimestampMinuteFullLabel".localise([minutes]))"
 
-                }
-                else if hours == 0 {
-                    self.formatted = "TimestampMinuteFullLabel".localise([minutes])
+                } else if hours == 0 {
+                    formatted = "TimestampMinuteFullLabel".localise([minutes])
 
-                }
-                else if minute == 0 {
-                    self.formatted = "TimestampHourFullLabel".localise([hour])
+                } else if minute == 0 {
+                    formatted = "TimestampHourFullLabel".localise([hour])
 
                 }
 
@@ -191,30 +181,30 @@ struct BatteryRemaining:Equatable {
 }
 
 struct BatteryEstimateObject {
-    var timestamp:Date
-    var percent:Double
+    var timestamp: Date
+    var percent: Double
 
     init(_ percent: Double) {
-        self.timestamp = Date()
+        timestamp = Date()
         self.percent = percent
 
     }
 
 }
 
-class BatteryManager:ObservableObject {
-    static var shared = BatteryManager()
+class BatteryManager: ObservableObject {
+    static var shared = Self()
 
-    @Published var charging:BatteryCharging = .init(.battery)
-    @Published var percentage:Double = 100
-    @Published var remaining:BatteryRemaining? = nil
-    @Published var mode:Bool = false
-    @Published var saver:BatteryModeType = .unavailable
-    @Published var rate:BatteryEstimateObject? = nil
-    @Published var metrics:BatteryMetricsObject? = nil
-    @Published var thermal:BatteryThemalState = .optimal
+    @Published var charging: BatteryCharging = .init(.battery)
+    @Published var percentage: Double = 100
+    @Published var remaining: BatteryRemaining?
+    @Published var mode: Bool = false
+    @Published var saver: BatteryModeType = .unavailable
+    @Published var rate: BatteryEstimateObject?
+    @Published var metrics: BatteryMetricsObject?
+    @Published var thermal: BatteryThemalState = .optimal
 
-    private var counter:Int? = 0
+    private var counter: Int?
     private var updates = Set<AnyCancellable>()
     private var fallbackTimer: Timer?
 
@@ -254,7 +244,7 @@ class BatteryManager:ObservableObject {
 
         }.store(in: &updates)
 
-        self.powerStatus(true)
+        powerStatus(true)
 
     }
 
@@ -264,7 +254,7 @@ class BatteryManager:ObservableObject {
 
     }
 
-    public func powerForceRefresh() {
+    func powerForceRefresh() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             self.powerStatus(true)
 
@@ -300,12 +290,12 @@ class BatteryManager:ObservableObject {
 
     }
 
-    private func powerStatus(_ force:Bool = false) {
+    private func powerStatus(_ force: Bool = false) {
         if force == true {
-            self.percentage = self.powerPercentage
+            percentage = powerPercentage
 
-            if self.powerCharging != self.charging.state {
-                self.charging = .init(self.powerCharging)
+            if powerCharging != charging.state {
+                charging = .init(powerCharging)
 
             }
 
@@ -313,38 +303,34 @@ class BatteryManager:ObservableObject {
 
     }
 
-    private var powerCharging:BatteryChargingState {
+    private var powerCharging: BatteryChargingState {
         let snapshot = IOPSCopyPowerSourcesInfo().takeRetainedValue()
         let source = IOPSGetProvidingPowerSourceType(snapshot).takeRetainedValue()
 
         switch source as String == kIOPSACPowerValue {
-            case true : return .charging
-            case false : return .battery
-
+        case true: return .charging
+        case false: return .battery
         }
 
     }
 
-    private var powerPercentage:Double {
+    private var powerPercentage: Double {
         let snapshot = IOPSCopyPowerSourcesInfo().takeRetainedValue()
         let sources = IOPSCopyPowerSourcesList(snapshot).takeRetainedValue() as Array
         for source in sources {
-            if let description = IOPSGetPowerSourceDescription(snapshot, source).takeUnretainedValue() as? [String: Any] {
-
-                if description["Type"] as? String == kIOPSInternalBatteryType {
-                    return description[kIOPSCurrentCapacityKey] as? Double ?? 0.0
-
-                }
-
+            if let description = IOPSGetPowerSourceDescription(snapshot, source)
+                .takeUnretainedValue() as? [String: Any],
+                description["Type"] as? String == kIOPSInternalBatteryType
+            {
+                return description[kIOPSCurrentCapacityKey] as? Double ?? 0.0
             }
-
         }
 
         return 100.0
 
     }
 
-    private var powerRemaining:BatteryRemaining? {
+    private var powerRemaining: BatteryRemaining? {
         let process = Process()
         process.launchPath = "/bin/sh"
         process.arguments = ["-c", "pmset -g batt | grep -o '[0-9]\\{1,2\\}:[0-9]\\{2\\}'"]
@@ -355,16 +341,18 @@ class BatteryManager:ObservableObject {
 
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
 
-        if let output = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines).components(separatedBy: ":") {
-            if let hour = output.map({ Int($0)}).first, let min = output.map({ Int($0)}).last {
-                if let hour = hour, let minute = min {
-                    self.powerDepetionAverage =  (Double(hour) * 60.0 * 60.0) + (Double(minute) * 60.0)
+        if let output = String(data: data, encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .components(separatedBy: ":")
+        {
+            if let hour = output.map({ Int($0) }).first, let min = output.map({ Int($0) }).last {
+                if let hour, let minute = min {
+                    powerDepetionAverage = (Double(hour) * 60.0 * 60.0) + (Double(minute) * 60.0)
 
                     return .init(hour: hour, minute: minute)
 
-                }
-                else if let rate = self.powerDepetionAverage {
-                    let date = Date().addingTimeInterval(rate * self.percentage)
+                } else if let rate = powerDepetionAverage {
+                    let date = Date().addingTimeInterval(rate * percentage)
                     let components = Calendar.current.dateComponents([.hour, .minute], from: Date(), to: date)
 
                     return .init(hour: components.hour ?? 0, minute: components.minute ?? 0)
@@ -381,15 +369,15 @@ class BatteryManager:ObservableObject {
 
     }
 
-    public var powerUntilFull:Date? {
+    var powerUntilFull: Date? {
         guard percentage < 100 else { return nil }
         guard charging.state == .charging else { return nil }
 
         var seconds = 180.0
-        let remainder = 100 - self.percentage
+        let remainder = 100 - percentage
 
-        if let exists = self.rate {
-            if self.percentage > exists.percent {
+        if let exists = rate {
+            if percentage > exists.percent {
                 seconds = Date().timeIntervalSince(exists.timestamp)
 
                 UserDefaults.save(.batteryUntilFull, value: seconds)
@@ -398,35 +386,33 @@ class BatteryManager:ObservableObject {
 
         }
 
-        self.rate = .init(percentage)
+        rate = .init(percentage)
 
         return Date(timeIntervalSinceNow: Double(seconds) * Double(remainder))
 
     }
 
-    private var powerDepetionAverage:Double? {
+    private var powerDepetionAverage: Double? {
         get {
-            if let averages = UserDefaults.main.object(forKey: SystemDefaultsKeys.batteryDepletionRate.rawValue) as? Array<Double> {
-
-                if averages.count > 0 {
-                    return averages.reduce(0.0, +) / Double(averages.count)
-
-                }
-
+            if let averages = UserDefaults.main
+                .object(forKey: SystemDefaultsKeys.batteryDepletionRate.rawValue) as? [Double],
+                !averages.isEmpty
+            {
+                return averages.reduce(0.0, +) / Double(averages.count)
             }
-
             return nil
 
         }
 
         set {
             if let seconds = newValue {
-                let averages = UserDefaults.main.object(forKey: SystemDefaultsKeys.batteryDepletionRate.rawValue) as? Array<Double> ?? Array<Double>()
+                let averages = UserDefaults.main
+                    .object(forKey: SystemDefaultsKeys.batteryDepletionRate.rawValue) as? [Double] ?? [Double]()
 
-                if averages.contains(seconds / self.percentage) == false && self.charging.state == .battery {
-                    if (seconds / self.percentage) > 0.0 {
+                if averages.contains(seconds / percentage) == false, charging.state == .battery {
+                    if (seconds / percentage) > 0.0 {
                         var list = Array(averages.suffix(15))
-                        list.append(seconds / self.percentage)
+                        list.append(seconds / percentage)
 
                         UserDefaults.save(.batteryDepletionRate, value: list)
 
@@ -440,7 +426,7 @@ class BatteryManager:ObservableObject {
 
     }
 
-    private var powerSaveModeStatus:BatteryModeType {
+    private var powerSaveModeStatus: BatteryModeType {
         let task = Process()
         task.launchPath = "/usr/bin/env"
         task.arguments = ["bash", "-c", "pmset -g | grep lowpowermode"]
@@ -458,8 +444,7 @@ class BatteryManager:ObservableObject {
                 if output.contains("1") == true {
                     return .efficient
 
-                }
-                else if output.contains("0") == true {
+                } else if output.contains("0") == true {
                     return .normal
 
                 }
@@ -472,11 +457,11 @@ class BatteryManager:ObservableObject {
 
     }
 
-    public func powerSaveMode() {
-        if self.saver != .unavailable {
-            let command = "do shell script \"pmset -c lowpowermode \(self.saver.flag ? 0 : 1)\" with administrator privileges"
+    func powerSaveMode() {
+        if saver != .unavailable {
+            let command = "do shell script \"pmset -c lowpowermode \(saver.flag ? 0 : 1)\" with administrator privileges"
 
-            if let script = NSAppleScript(source:command) {
+            if let script = NSAppleScript(source: command) {
                 var error: NSDictionary?
                 script.executeAndReturnError(&error)
 
@@ -496,14 +481,15 @@ class BatteryManager:ObservableObject {
             let output = try await ProcessRunner.shared.run(
                 executable: "/usr/bin/env",
                 arguments: ["pmset", "-g", "therm"],
-                timeout: .seconds(10)
+                timeout: .seconds(10),
             )
 
-            let cores = await self.fetchCPUCores()
+            let cores = await fetchCPUCores()
             var isSuboptimal = false
 
             if let match = output.range(of: "CPU_Scheduler_Limit\\s+=\\s+(\\d+)", options: .regularExpression) {
-                let value = Int(output[match].components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ?? 0
+                let value = Int(output[match].components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ??
+                    0
 
                 if value < 100 {
                     isSuboptimal = true
@@ -513,7 +499,8 @@ class BatteryManager:ObservableObject {
             }
 
             if let match = output.range(of: "CPU_Available_CPUs\\s+=\\s+(\\d+)", options: .regularExpression) {
-                let value = Int(output[match].components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ?? 0
+                let value = Int(output[match].components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ??
+                    0
 
                 if value < cores {
                     isSuboptimal = true
@@ -523,7 +510,8 @@ class BatteryManager:ObservableObject {
             }
 
             if let match = output.range(of: "CPU_Speed_Limit\\s+=\\s+(\\d+)", options: .regularExpression) {
-                let value = Int(output[match].components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ?? 0
+                let value = Int(output[match].components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ??
+                    0
 
                 if value < 100 {
                     isSuboptimal = true
@@ -547,7 +535,7 @@ class BatteryManager:ObservableObject {
             let output = try await ProcessRunner.shared.run(
                 executable: "/usr/bin/env",
                 arguments: ["sysctl", "-n", "hw.physicalcpu"],
-                timeout: .seconds(5)
+                timeout: .seconds(5),
             )
             return Int(output) ?? 1
         } catch {
@@ -555,8 +543,7 @@ class BatteryManager:ObservableObject {
         }
     }
 
-
-    private var powerProfilerDetails:BatteryMetricsObject? {
+    private var powerProfilerDetails: BatteryMetricsObject? {
         let process = Process()
         process.launchPath = "/usr/bin/env"
         process.arguments = ["system_profiler", "SPPowerDataType"]
@@ -585,7 +572,7 @@ class BatteryManager:ObservableObject {
 
                 }
 
-                if let cycles = cycles, let heath = heath {
+                if let cycles, let heath {
                     return .init(cycles: cycles, health: heath)
 
                 }
@@ -598,7 +585,7 @@ class BatteryManager:ObservableObject {
 
     }
 
-    private var powerCPUCores:Int {
+    private var powerCPUCores: Int {
         let process = Process()
         process.launchPath = "/usr/bin/env"
         process.arguments = ["sysctl", "-n", "hw.physicalcpu"]
@@ -611,7 +598,8 @@ class BatteryManager:ObservableObject {
 
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         if let output = String(data: data, encoding: .utf8),
-           let cores = Int(output.trimmingCharacters(in: .whitespacesAndNewlines)) {
+           let cores = Int(output.trimmingCharacters(in: .whitespacesAndNewlines))
+        {
             return cores
 
         }
@@ -625,10 +613,9 @@ class BatteryManager:ObservableObject {
         process.launchPath = "/bin/sh"
 
         switch type {
-            case .current: process.arguments = ["-c", "ioreg -l | grep CurrentCapacity | awk '{print $5}'"]
-            case .max: process.arguments = ["-c", "ioreg -l | grep MaxCapacity | awk '{print $5}'"]
-            case .voltage: process.arguments = ["-c", "ioreg -l | grep Voltage | awk '{print $5}'"]
-
+        case .current: process.arguments = ["-c", "ioreg -l | grep CurrentCapacity | awk '{print $5}'"]
+        case .max: process.arguments = ["-c", "ioreg -l | grep MaxCapacity | awk '{print $5}'"]
+        case .voltage: process.arguments = ["-c", "ioreg -l | grep Voltage | awk '{print $5}'"]
         }
 
         let pipe = Pipe()
@@ -645,8 +632,8 @@ class BatteryManager:ObservableObject {
 
     }
 
-    public func powerHourWattage() -> Double? {
-        if let mAh = self.powerWattage(.max), let mV = self.powerWattage(.voltage) {
+    func powerHourWattage() -> Double? {
+        if let mAh = powerWattage(.max), let mV = powerWattage(.voltage) {
             return (Double(mAh) / 1000.0) * (Double(mV) / 1000.0)
 
         }
@@ -654,8 +641,6 @@ class BatteryManager:ObservableObject {
         return nil
 
     }
-
-
 
 //    func setSMCByte(key: String, value: UInt8) {
 //           do {

@@ -5,17 +5,17 @@
 //  Created by Joe Barbour on 8/28/23.
 //
 
-import Foundation
 import Combine
 import CoreData
+import Foundation
 
 struct StatsIcon {
-    var name:String
-    var system:Bool
+    var name: String
+    var system: Bool
 
 }
 
-enum StatsStateType:String {
+enum StatsStateType: String {
     case charging
     case depleted
     case connected
@@ -24,26 +24,25 @@ enum StatsStateType:String {
 }
 
 struct StatsDisplayObject {
-    var standard:String?
-    var overlay:String?
+    var standard: String?
+    var overlay: String?
 
 }
 
 struct StatsContainerObject {
-    var container:NSPersistentCloudKitContainer?
-    var directory:URL?
-    var parent:URL?
+    var container: NSPersistentCloudKitContainer?
+    var directory: URL?
+    var parent: URL?
 
 }
 
+class StatsManager: ObservableObject {
+    static var shared = Self()
 
-class StatsManager:ObservableObject {
-    static var shared = StatsManager()
-
-    @Published var display:String?
-    @Published var overlay:String?
-    @Published var title:String
-    @Published var subtitle:String
+    @Published var display: String?
+    @Published var overlay: String?
+    @Published var title: String
+    @Published var subtitle: String
 
     private var updates = Set<AnyCancellable>()
 
@@ -63,18 +62,16 @@ class StatsManager:ObservableObject {
                 let file = parent.appendingPathComponent("\(object).sqlite")
                 directory = file
                 container.persistentStoreDescriptions = [
-                    NSPersistentStoreDescription(url: file)
+                    NSPersistentStoreDescription(url: file),
                 ]
 
                 subdirectory = parent
-            }
-            catch {
+            } catch {
                 print("Error creating or setting SQLite store URL: \(error)")
 
             }
 
-        }
-        else {
+        } else {
             print("Error retrieving Application Support directory URL.")
 
         }
@@ -83,20 +80,19 @@ class StatsManager:ObservableObject {
             description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
             description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
 
-        }
-        else {
+        } else {
             print("Error: No persistent store description found.")
         }
 
-        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
-            if let error = error {
+        container.loadPersistentStores(completionHandler: { storeDescription, error in
+            if let error {
                 print("Error loading persistent stores: \(error)")
 
             }
 
             if let path = directory {
                 directory = storeDescription.url
-                print("directory" ,directory ?? "")
+                print("directory", directory ?? "")
 
             }
 
@@ -109,9 +105,9 @@ class StatsManager:ObservableObject {
     }()
 
     init() {
-        self.display = nil
-        self.title = ""
-        self.subtitle = ""
+        display = nil
+        title = ""
+        subtitle = ""
 
         UserDefaults.changed.receive(on: DispatchQueue.main).sink { key in
             if key == .enabledDisplay {
@@ -122,7 +118,7 @@ class StatsManager:ObservableObject {
 
         }.store(in: &updates)
 
-        AppManager.shared.$alert.receive(on: DispatchQueue.main).sink() { newValue in
+        AppManager.shared.$alert.receive(on: DispatchQueue.main).sink { _ in
             self.display = self.statsDisplay
             self.overlay = self.statsOverlay
             self.title = self.statsTitle
@@ -130,7 +126,7 @@ class StatsManager:ObservableObject {
 
         }.store(in: &updates)
 
-        BatteryManager.shared.$charging.receive(on: DispatchQueue.main).sink() { newValue in
+        BatteryManager.shared.$charging.receive(on: DispatchQueue.main).sink { newValue in
             self.display = self.statsDisplay
             self.overlay = self.statsOverlay
             self.title = self.statsTitle
@@ -138,16 +134,15 @@ class StatsManager:ObservableObject {
 
             DispatchQueue.global(qos: .background).async {
                 switch newValue.state {
-                    case .battery : self.statsStore(.disconnected, device: nil)
-                    case .charging : self.statsStore(.connected, device: nil)
-
+                case .battery: self.statsStore(.disconnected, device: nil)
+                case .charging: self.statsStore(.connected, device: nil)
                 }
 
             }
 
         }.store(in: &updates)
 
-        BatteryManager.shared.$percentage.receive(on: DispatchQueue.main).sink() { newValue in
+        BatteryManager.shared.$percentage.receive(on: DispatchQueue.main).sink { _ in
             self.display = self.statsDisplay
             self.overlay = self.statsOverlay
             self.title = self.statsTitle
@@ -155,16 +150,15 @@ class StatsManager:ObservableObject {
 
             DispatchQueue.global(qos: .background).async {
                 switch BatteryManager.shared.charging.state {
-                    case .battery : self.statsStore(.depleted, device: nil)
-                    case .charging : self.statsStore(.charging, device: nil)
-
+                case .battery: self.statsStore(.depleted, device: nil)
+                case .charging: self.statsStore(.charging, device: nil)
                 }
 
             }
 
         }.store(in: &updates)
 
-        BatteryManager.shared.$saver.receive(on: DispatchQueue.main).sink() { newValue in
+        BatteryManager.shared.$saver.receive(on: DispatchQueue.main).sink { _ in
             self.display = self.statsDisplay
             self.overlay = self.statsOverlay
             self.title = self.statsTitle
@@ -172,7 +166,7 @@ class StatsManager:ObservableObject {
 
         }.store(in: &updates)
 
-        BatteryManager.shared.$thermal.receive(on: DispatchQueue.main).sink() { newValue in
+        BatteryManager.shared.$thermal.receive(on: DispatchQueue.main).sink { _ in
             self.display = self.statsDisplay
             self.overlay = self.statsOverlay
             self.title = self.statsTitle
@@ -180,7 +174,7 @@ class StatsManager:ObservableObject {
 
         }.store(in: &updates)
 
-        BluetoothManager.shared.$connected.removeDuplicates().receive(on: DispatchQueue.main).sink() { newValue in
+        BluetoothManager.shared.$connected.removeDuplicates().receive(on: DispatchQueue.main).sink { newValue in
             self.overlay = self.statsOverlay
             self.title = self.statsTitle
             self.subtitle = self.statsSubtitle
@@ -195,7 +189,7 @@ class StatsManager:ObservableObject {
 
         }.store(in: &updates)
 
-        AppManager.shared.$device.receive(on: DispatchQueue.main).sink() { newValue in
+        AppManager.shared.$device.receive(on: DispatchQueue.main).sink { _ in
             self.title = self.statsTitle
             self.subtitle = self.statsSubtitle
 
@@ -216,7 +210,7 @@ class StatsManager:ObservableObject {
 
     }
 
-    private var statsDisplay:String? {
+    private var statsDisplay: String? {
         let display = SettingsManager.shared.enabledDisplay(false)
         let state = BatteryManager.shared.charging.state
 
@@ -226,17 +220,14 @@ class StatsManager:ObservableObject {
 
             }
 
-        }
-        else {
+        } else {
             if display == .empty {
                 return nil
 
-            }
-            else if SettingsManager.shared.enabledDisplay() == .countdown {
-                return self.statsCountdown
+            } else if SettingsManager.shared.enabledDisplay() == .countdown {
+                return statsCountdown
 
-            }
-            else if SettingsManager.shared.enabledDisplay() == .cycle {
+            } else if SettingsManager.shared.enabledDisplay() == .cycle {
                 if let cycle = BatteryManager.shared.metrics?.cycles.formatted {
                     return cycle
 
@@ -250,24 +241,21 @@ class StatsManager:ObservableObject {
 
     }
 
-    private var statsOverlay:String? {
+    private var statsOverlay: String? {
         let state = BatteryManager.shared.charging.state
 
         if state == .charging {
             return nil
 
-        }
-        else {
+        } else {
             if SettingsManager.shared.enabledDisplay() == .countdown {
                 return "\(Int(BatteryManager.shared.percentage))"
 
-            }
-            else if SettingsManager.shared.enabledDisplay() == .empty {
+            } else if SettingsManager.shared.enabledDisplay() == .empty {
                 return "\(Int(BatteryManager.shared.percentage))"
 
-            }
-            else {
-                return self.statsCountdown
+            } else {
+                return statsCountdown
 
             }
 
@@ -275,17 +263,15 @@ class StatsManager:ObservableObject {
 
     }
 
-    private var statsCountdown:String? {
+    private var statsCountdown: String? {
         if let remaining = BatteryManager.shared.remaining, let hour = remaining.hours, let minute = remaining.minutes {
-            if hour > 0 && minute > 0 {
-               return "+\(hour)\("TimestampHourAbbriviatedLabel".localise())"
+            if hour > 0, minute > 0 {
+                return "+\(hour)\("TimestampHourAbbriviatedLabel".localise())"
 
-            }
-            else if hour > 0 && minute == 0 {
+            } else if hour > 0, minute == 0 {
                 return "\(hour)\("TimestampHourAbbriviatedLabel".localise())"
 
-            }
-            else if hour == 0 && minute > 0 {
+            } else if hour == 0, minute > 0 {
                 return "\(minute)\("TimestampMinuteAbbriviatedLabel".localise())"
 
             }
@@ -296,34 +282,31 @@ class StatsManager:ObservableObject {
 
     }
 
-    private var statsTitle:String {
+    private var statsTitle: String {
         if let device = AppManager.shared.device {
             switch AppManager.shared.alert {
-                case .deviceConnected:return "AlertDeviceConnectedTitle".localise()
-                case .deviceRemoved:return "AlertDeviceDisconnectedTitle".localise()
-                default : return device.device ?? device.type.type.name
-
+            case .deviceConnected: return "AlertDeviceConnectedTitle".localise()
+            case .deviceRemoved: return "AlertDeviceDisconnectedTitle".localise()
+            default: return device.device ?? device.type.type.name
             }
 
-        }
-        else {
+        } else {
             let percent = Int(BatteryManager.shared.percentage)
             let state = BatteryManager.shared.charging.state
 
             switch AppManager.shared.alert {
-                case .chargingComplete:return "AlertChargingCompleteTitle".localise()
-                case .chargingBegan:return "AlertChargingTitle".localise()
-                case .chargingStopped:return "AlertChargingStoppedTitle".localise()
-                case .percentFive:return "AlertSomePercentTitle".localise([percent])
-                case .percentTen:return "AlertSomePercentTitle".localise([percent])
-                case .percentTwentyFive:return "AlertSomePercentTitle".localise([percent])
-                case .percentOne:return "AlertOnePercentTitle".localise()
-                case .deviceConnected:return "AlertDeviceConnectedTitle".localise()
-                case .deviceRemoved:return "AlertDeviceDisconnectedTitle".localise()
-                case .deviceOverheating:return "AlertOverheatingTitle".localise()
-                case .userEvent:return "AlertLimitedTitle".localise()
-                default : break
-
+            case .chargingComplete: return "AlertChargingCompleteTitle".localise()
+            case .chargingBegan: return "AlertChargingTitle".localise()
+            case .chargingStopped: return "AlertChargingStoppedTitle".localise()
+            case .percentFive: return "AlertSomePercentTitle".localise([percent])
+            case .percentTen: return "AlertSomePercentTitle".localise([percent])
+            case .percentTwentyFive: return "AlertSomePercentTitle".localise([percent])
+            case .percentOne: return "AlertOnePercentTitle".localise()
+            case .deviceConnected: return "AlertDeviceConnectedTitle".localise()
+            case .deviceRemoved: return "AlertDeviceDisconnectedTitle".localise()
+            case .deviceOverheating: return "AlertOverheatingTitle".localise()
+            case .userEvent: return "AlertLimitedTitle".localise()
+            default: break
             }
 
             if state == .battery {
@@ -337,13 +320,12 @@ class StatsManager:ObservableObject {
 
     }
 
-    private var statsSubtitle:String {
+    private var statsSubtitle: String {
         if let device = AppManager.shared.device {
             switch AppManager.shared.alert {
-                case .deviceConnected:return device.device ?? device.type.type.name
-                case .deviceRemoved:return device.device ?? device.type.type.name
-                default : break
-
+            case .deviceConnected: return device.device ?? device.type.type.name
+            case .deviceRemoved: return device.device ?? device.type.type.name
+            default: break
             }
 
             if let battery = device.battery.percent {
@@ -353,33 +335,33 @@ class StatsManager:ObservableObject {
 
             return "BluetoothInvalidLabel".localise()
 
-        }
-        else {
+        } else {
             let state = BatteryManager.shared.charging.state
             let percent = Int(BatteryManager.shared.percentage)
             let remaining = BatteryManager.shared.remaining
             let full = BatteryManager.shared.powerUntilFull
-            let event = EventManager.shared.events.sorted(by: { $0.start > $1.start }).first
+            let event = EventManager.shared.events.max(by: { $0.start < $1.start })
 
             switch AppManager.shared.alert {
-                case .chargingComplete:return "AlertChargedSummary".localise()
-                case .chargingBegan:return "AlertStartedChargeSummary".localise([full?.time ?? "AlertDeviceUnknownTitle".localise()])
-                case .chargingStopped:return "AlertEstimateSummary".localise([remaining?.formatted ?? "AlertDeviceUnknownTitle".localise()])
-                case .percentFive:return "AlertPercentSummary".localise()
-                case .percentTen:return "AlertPercentSummary".localise()
-                case .percentTwentyFive:return "AlertPercentSummary".localise()
-                case .percentOne:return "AlertPercentSummary".localise()
-                case .userEvent:return "AlertLimitedSummary".localise([event?.name ?? "Unknown Event"])
-                case .deviceOverheating:return "AlertOverheatingSummary".localise()
-                default : break
-
+            case .chargingComplete: return "AlertChargedSummary".localise()
+            case .chargingBegan: return "AlertStartedChargeSummary"
+                .localise([full?.time ?? "AlertDeviceUnknownTitle".localise()])
+            case .chargingStopped: return "AlertEstimateSummary"
+                .localise([remaining?.formatted ?? "AlertDeviceUnknownTitle".localise()])
+            case .percentFive: return "AlertPercentSummary".localise()
+            case .percentTen: return "AlertPercentSummary".localise()
+            case .percentTwentyFive: return "AlertPercentSummary".localise()
+            case .percentOne: return "AlertPercentSummary".localise()
+            case .userEvent: return "AlertLimitedSummary".localise([event?.name ?? "Unknown Event"])
+            case .deviceOverheating: return "AlertOverheatingSummary".localise()
+            default: break
             }
 
             if state == .charging {
                 switch percent {
-                    case 100 : return "AlertChargedSummary".localise()
-                    default : return "AlertStartedChargeSummary".localise([full?.time ?? "AlertDeviceUnknownTitle".localise()])
-
+                case 100: return "AlertChargedSummary".localise()
+                default: return "AlertStartedChargeSummary"
+                    .localise([full?.time ?? "AlertDeviceUnknownTitle".localise()])
                 }
 
             }
@@ -390,17 +372,15 @@ class StatsManager:ObservableObject {
 
     }
 
-    public var statsIcon:StatsIcon {
+    var statsIcon: StatsIcon {
         if let device = AppManager.shared.device {
-            return .init(name: device.type.icon, system: true)
+            .init(name: device.type.icon, system: true)
 
-        }
-        else {
+        } else {
             switch AppManager.shared.alert {
-                case .deviceOverheating : return .init(name: "OverheatIcon", system: false)
-                case .userEvent : return .init(name: "EventIcon", system: false)
-                default : return .init(name: "ChargingIcon", system: false)
-
+            case .deviceOverheating: .init(name: "OverheatIcon", system: false)
+            case .userEvent: .init(name: "EventIcon", system: false)
+            default: .init(name: "ChargingIcon", system: false)
             }
 
         }
@@ -408,7 +388,7 @@ class StatsManager:ObservableObject {
     }
 
     private func statsContext() -> NSManagedObjectContext? {
-        if let container = StatsManager.container.container {
+        if let container = Self.container.container {
             let context = container.newBackgroundContext()
             context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
 
@@ -420,23 +400,28 @@ class StatsManager:ObservableObject {
 
     }
 
-    private func statsStore(_ state:StatsStateType, device:BluetoothObject?) {
-        if let context = self.statsContext() {
+    private func statsStore(_ state: StatsStateType, device: BluetoothObject?) {
+        if let context = statsContext() {
             context.performAndWait {
                 let expiry = Date().addingTimeInterval(-2 * 60)
-                var charge:Int64 = 100
+                var charge: Int64 = 100
                 if let percent = device {
                     charge = Int64(percent.battery.percent ?? 100)
 
-                }
-                else {
+                } else {
                     charge = Int64(BatteryManager.shared.percentage)
 
                 }
 
                 let fetch = Activity.fetchRequest() as NSFetchRequest<Activity>
                 fetch.includesPendingChanges = true
-                fetch.predicate = NSPredicate(format: "state == %@ && device == %@ && charge == %d &&  timestamp > %@" ,state.rawValue, device?.address ?? "" ,charge ,expiry as NSDate)
+                fetch.predicate = NSPredicate(
+                    format: "state == %@ && device == %@ && charge == %d &&  timestamp > %@",
+                    state.rawValue,
+                    device?.address ?? "",
+                    charge,
+                    expiry as NSDate,
+                )
 
                 do {
                     if try context.fetch(fetch).first == nil {
@@ -450,9 +435,8 @@ class StatsManager:ObservableObject {
 
                     }
 
-                }
-                catch {
-                    print("Error" ,error)
+                } catch {
+                    print("Error", error)
 
                 }
 
@@ -463,7 +447,7 @@ class StatsManager:ObservableObject {
     }
 
     private func statsWattageStore() {
-        if let context = self.statsContext() {
+        if let context = statsContext() {
             context.performAndWait {
                 let calendar = Calendar.current
                 let components = calendar.dateComponents([.year, .month, .day, .hour], from: Date())
@@ -471,7 +455,7 @@ class StatsManager:ObservableObject {
                 if let hour = calendar.date(from: components) {
                     let fetch = Wattage.fetchRequest() as NSFetchRequest<Wattage>
                     fetch.includesPendingChanges = true
-                    fetch.predicate = NSPredicate(format: "timestamp == %@" ,hour as CVarArg)
+                    fetch.predicate = NSPredicate(format: "timestamp == %@", hour as CVarArg)
 
                     do {
                         if try context.fetch(fetch).first == nil {
@@ -484,10 +468,7 @@ class StatsManager:ObservableObject {
 
                         }
 
-                    }
-                    catch {
-
-                    }
+                    } catch {}
 
                 }
 

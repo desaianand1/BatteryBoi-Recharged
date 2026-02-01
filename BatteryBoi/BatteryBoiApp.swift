@@ -5,10 +5,10 @@
 //  Created by Joe Barbour on 8/4/23.
 //
 
-import SwiftUI
-import Sparkle
 import Combine
 import Foundation
+import Sparkle
+import SwiftUI
 
 public enum SystemDistribution {
     case direct
@@ -16,13 +16,13 @@ public enum SystemDistribution {
 
 }
 
-public struct SystemProfileObject:Codable {
-    var id:String
-    var display:String
+public struct SystemProfileObject: Codable {
+    var id: String
+    var display: String
 
 }
 
-public enum SystemMenuView:String {
+public enum SystemMenuView: String {
     case settings
     case stats
     case devices
@@ -30,18 +30,18 @@ public enum SystemMenuView:String {
 }
 
 public struct SystemAppUsage {
-    var day:Int
-    var timestamp:Date
+    var day: Int
+    var timestamp: Date
 
 }
 
-public enum SystemSoundEffects:String {
+public enum SystemSoundEffects: String {
     case high = "highnote"
     case low = "lownote"
 
-    public func play(_ force:Bool = false) {
+    public func play(_ force: Bool = false) {
         if SettingsManager.shared.enabledSoundEffects == .enabled || force == true {
-            NSSound(named: self.rawValue)?.play()
+            NSSound(named: rawValue)?.play()
 
         }
 
@@ -49,7 +49,7 @@ public enum SystemSoundEffects:String {
 
 }
 
-enum SystemDeviceTypes:String,Codable {
+enum SystemDeviceTypes: String, Codable {
     case macbook
     case macbookPro
     case macbookAir
@@ -59,58 +59,54 @@ enum SystemDeviceTypes:String,Codable {
     case macStudio
     case unknown
 
-    var name:String {
+    var name: String {
         if let name = Host.current().localizedName {
-            return name
+            name
 
-        }
-        else {
+        } else {
             switch self {
-                case .macbook: return "Macbook"
-                case .macbookPro: return "Macbook Pro"
-                case .macbookAir: return "Macbook Air"
-                case .imac: return "iMac"
-                case .macMini: return "Mac Mini"
-                case .macPro: return "Mac Pro"
-                case .macStudio: return "Mac Pro"
-                case .unknown: return "AlertDeviceUnknownTitle".localise()
-
+            case .macbook: "Macbook"
+            case .macbookPro: "Macbook Pro"
+            case .macbookAir: "Macbook Air"
+            case .imac: "iMac"
+            case .macMini: "Mac Mini"
+            case .macPro: "Mac Pro"
+            case .macStudio: "Mac Pro"
+            case .unknown: "AlertDeviceUnknownTitle".localise()
             }
 
         }
 
     }
 
-    var battery:Bool {
+    var battery: Bool {
         switch self {
-            case .macbook: return true
-            case .macbookPro: return true
-            case .macbookAir: return true
-            case .imac: return false
-            case .macMini: return false
-            case .macPro: return false
-            case .macStudio: return false
-            case .unknown: return false
-
+        case .macbook: true
+        case .macbookPro: true
+        case .macbookAir: true
+        case .imac: false
+        case .macMini: false
+        case .macPro: false
+        case .macStudio: false
+        case .unknown: false
         }
 
     }
 
-    var icon:String {
+    var icon: String {
         switch self {
-            case .imac: return "desktopcomputer"
-            case .macMini: return "macmini"
-            case .macPro: return "macpro.gen3"
-            case .macStudio: return "macstudio"
-            default : return "laptopcomputer"
-
+        case .imac: "desktopcomputer"
+        case .macMini: "macmini"
+        case .macPro: "macpro.gen3"
+        case .macStudio: "macstudio"
+        default: "laptopcomputer"
         }
 
     }
 
 }
 
-enum SystemEvents:String {
+enum SystemEvents: String {
     case fatalError = "fatal.error"
     case userInstalled = "user.installed"
     case userUpdated = "user.updated"
@@ -151,35 +147,30 @@ enum SystemDefaultsKeys: String {
     case profileChecked = "sd_profiles_checked"
     case profilePayload = "sd_profiles_payload"
 
-    var name:String {
+    var name: String {
         switch self {
-            case .enabledAnalytics:return "Analytics"
-            case .enabledLogin:return "Launch at Login"
-            case .enabledEstimate:return "Battery Time Estimate"
-            case .enabledBluetooth:return "Bluetooth"
-            case .enabledStyle:return "Icon Style"
-            case .enabledDisplay:return "Icon Display Text"
-            case .enabledTheme:return "Theme"
-            case .enabledSoundEffects:return "SFX"
-            case .enabledChargeEighty:return "Show complete at 80%"
-            case .enabledProgressState:return "Show Progress"
-            case .enabledPinned:return "Pinned"
-
-            case .batteryUntilFull:return "Seconds until Charged"
-            case .batteryLastCharged:return "Seconds until Charged"
-            case .batteryDepletionRate:return "Battery Depletion Rate"
-            case .batteryWindowPosition:return "Battery Window Positio"
-
-            case .versionInstalled:return "Installed on"
-            case .versionCurrent:return "Active Version"
-            case .versionIdenfiyer:return "App ID"
-
-            case .usageDay:return "sd_usage_days"
-            case .usageTimestamp:return "sd_usage_timestamp"
-
-            case .profileChecked:return "Profile Validated"
-            case .profilePayload:return "Profile Payload"
-
+        case .enabledAnalytics: "Analytics"
+        case .enabledLogin: "Launch at Login"
+        case .enabledEstimate: "Battery Time Estimate"
+        case .enabledBluetooth: "Bluetooth"
+        case .enabledStyle: "Icon Style"
+        case .enabledDisplay: "Icon Display Text"
+        case .enabledTheme: "Theme"
+        case .enabledSoundEffects: "SFX"
+        case .enabledChargeEighty: "Show complete at 80%"
+        case .enabledProgressState: "Show Progress"
+        case .enabledPinned: "Pinned"
+        case .batteryUntilFull: "Seconds until Charged"
+        case .batteryLastCharged: "Seconds until Charged"
+        case .batteryDepletionRate: "Battery Depletion Rate"
+        case .batteryWindowPosition: "Battery Window Positio"
+        case .versionInstalled: "Installed on"
+        case .versionCurrent: "Active Version"
+        case .versionIdenfiyer: "App ID"
+        case .usageDay: "sd_usage_days"
+        case .usageTimestamp: "sd_usage_timestamp"
+        case .profileChecked: "Profile Validated"
+        case .profilePayload: "Profile Payload"
         }
 
     }
@@ -195,31 +186,24 @@ struct BatteryBoiApp: App {
             EmptyView()
 
         }
-        .handlesExternalEvents(matching: Set(arrayLiteral: "*"))
+        .handlesExternalEvents(matching: ["*"])
 
     }
 
 }
 
-class CustomView: NSView {
-    override func draw(_ dirtyRect: NSRect) {
-        super.draw(dirtyRect)
-        // Draw or add your custom elements here
-
-    }
-
-}
+class CustomView: NSView {}
 
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDelegate, ObservableObject {
     static var shared = AppDelegate()
 
-    public var status:NSStatusItem? = nil
-    public var hosting:NSHostingView = NSHostingView(rootView: MenuContainer())
-    public var updates = Set<AnyCancellable>()
+    var status: NSStatusItem?
+    var hosting: NSHostingView = .init(rootView: MenuContainer())
+    var updates = Set<AnyCancellable>()
 
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        self.status = NSStatusBar.system.statusItem(withLength: 45)
-        self.hosting.frame.size = NSSize(width: 45, height: 22)
+    func applicationDidFinishLaunching(_: Notification) {
+        status = NSStatusBar.system.statusItem(withLength: 45)
+        hosting.frame.size = NSSize(width: 45, height: 22)
 
         if let window = NSApplication.shared.windows.first {
             window.close()
@@ -241,9 +225,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
             SettingsManager.shared.$display.sink { type in
                 switch type {
-                    case .hidden : self.applicationMenuBarIcon(false)
-                    default : self.applicationMenuBarIcon(true)
-
+                case .hidden: self.applicationMenuBarIcon(false)
+                default: self.applicationMenuBarIcon(true)
                 }
 
             }.store(in: &self.updates)
@@ -258,19 +241,39 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
         }
 
-        NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(applicationHandleURLEvent(event:reply:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
+        NSAppleEventManager.shared().setEventHandler(
+            self,
+            andSelector: #selector(applicationHandleURLEvent(event:reply:)),
+            forEventClass: AEEventClass(kInternetEventClass),
+            andEventID: AEEventID(kAEGetURL),
+        )
 
-        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(applicationDidWakeNotification(_:)), name: NSWorkspace.didWakeNotification, object: nil)
-        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(applicationDidSleepNotification(_:)), name: NSWorkspace.screensDidSleepNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(applicationFocusDidMove(notification:)), name: NSWindow.didMoveNotification, object:nil)
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
+            selector: #selector(applicationDidWakeNotification(_:)),
+            name: NSWorkspace.didWakeNotification,
+            object: nil,
+        )
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
+            selector: #selector(applicationDidSleepNotification(_:)),
+            name: NSWorkspace.screensDidSleepNotification,
+            object: nil,
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(applicationFocusDidMove(notification:)),
+            name: NSWindow.didMoveNotification,
+            object: nil,
+        )
 
     }
 
-    private func applicationMenuBarIcon(_ visible:Bool) {
+    private func applicationMenuBarIcon(_ visible: Bool) {
         if visible == true {
-            if let button = self.status?.button {
+            if let button = status?.button {
                 button.title = ""
-                button.addSubview(self.hosting)
+                button.addSubview(hosting)
                 button.action = #selector(applicationStatusBarButtonClicked(sender:))
                 button.target = self
 
@@ -278,9 +281,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
             }
 
-        }
-        else {
-            if let button = self.status?.button {
+        } else {
+            if let button = status?.button {
                 button.subviews.forEach { $0.removeFromSuperview() }
 
             }
@@ -289,38 +291,42 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
     }
 
-    @objc func applicationStatusBarButtonClicked(sender: NSStatusBarButton) {
+    @objc
+    func applicationStatusBarButtonClicked(sender _: NSStatusBarButton) {
         if WindowManager.shared.windowIsVisible(.userInitiated) == false {
             WindowManager.shared.windowOpen(.userInitiated, device: nil)
 
-        }
-        else {
+        } else {
             WindowManager.shared.windowSetState(.dismissed)
 
         }
 
     }
 
-    @objc func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+    @objc
+    func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows _: Bool) -> Bool {
         WindowManager.shared.windowOpen(.userInitiated, device: nil)
 
         return false
 
     }
 
-    @objc func applicationHandleURLEvent(event: NSAppleEventDescriptor, reply: NSAppleEventDescriptor) {
+    @objc
+    func applicationHandleURLEvent(event _: NSAppleEventDescriptor, reply _: NSAppleEventDescriptor) {
 
-//        if let path = event.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))?.stringValue?.components(separatedBy: "://").last {
+//        if let path = event.paramDescriptor(forKeyword:
+//        AEKeyword(keyDirectObject))?.stringValue?.components(separatedBy: "://").last {
 //
 //        }
 
     }
 
-    @objc func applicationFocusDidMove(notification:NSNotification) {
+    @objc
+    func applicationFocusDidMove(notification: NSNotification) {
         if let window = notification.object as? NSWindow {
             if window.title == "modalwindow" {
                 NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseUp]) { _ in
-                    window.animator().alphaValue = 1.0;
+                    window.animator().alphaValue = 1.0
                     window.animator().setFrame(WindowManager.shared.windowHandleFrame(), display: true, animate: true)
 
                 }
@@ -333,13 +339,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
     }
 
-    @objc private func applicationDidWakeNotification(_ notification: Notification) {
+    @objc
+    private func applicationDidWakeNotification(_: Notification) {
         BatteryManager.shared.powerForceRefresh()
 
     }
 
-    @objc private func applicationDidSleepNotification(_ notification: Notification) {
-
-    }
+    @objc
+    private func applicationDidSleepNotification(_: Notification) {}
 
 }

@@ -8,16 +8,16 @@
 import SwiftUI
 
 struct UpdatePromptView: View {
-    @EnvironmentObject var update:UpdateManager
+    @EnvironmentObject var update: UpdateManager
 
     var body: some View {
-        if self.update.available != nil {
+        if update.available != nil {
             HStack(alignment: .top, spacing: 3) {
                 Circle()
                     .fill(Color("BatteryEfficient"))
                     .frame(width: 5, height: 5)
-                    .offset(y:5)
-                
+                    .offset(y: 5)
+
                 Text("UpdateStatusNewLabel".localise())
 
             }
@@ -28,23 +28,21 @@ struct UpdatePromptView: View {
             .padding(.top, 10)
             .onHover { hover in
                 switch hover {
-                    case true : NSCursor.pointingHand.push()
-                    default : NSCursor.pop()
-                    
+                case true: NSCursor.pointingHand.push()
+                default: NSCursor.pop()
                 }
-                
+
             }
             .onTapGesture {
                 SettingsManager.shared.settingsAction(.init(.appInstallUpdate))
 
             }
-            
-        }
-        else {
+
+        } else {
             EmptyView()
-            
+
         }
-        
+
     }
-    
+
 }

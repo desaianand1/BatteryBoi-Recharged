@@ -5,37 +5,37 @@
 //  Created by Joe Barbour on 8/9/23.
 //
 
-import Foundation
 import Combine
+import Foundation
 import Sparkle
 import SwiftUI
 
-class AppManager:ObservableObject {
+class AppManager: ObservableObject {
     static var shared = AppManager()
 
     @Published var counter = 0
-    @Published var device:BluetoothObject? = nil
-    @Published var alert:HUDAlertTypes? = nil
-    @Published var menu:SystemMenuView = .devices
-    @Published var profile:SystemProfileObject? = nil
+    @Published var device: BluetoothObject?
+    @Published var alert: HUDAlertTypes?
+    @Published var menu: SystemMenuView = .devices
+    @Published var profile: SystemProfileObject?
 
     private var updates = Set<AnyCancellable>()
     private var timer: AnyCancellable?
 
     init() {
-        self.timer = Timer.publish(every: 1.0, on: .main, in: .common).autoconnect().sink { [weak self] _ in
+        timer = Timer.publish(every: 1.0, on: .main, in: .common).autoconnect().sink { [weak self] _ in
 
-            guard let self = self else {
+            guard let self else {
                 return
 
             }
 
-            if self.counter > 999 {
-                self.appUsageTracker()
+            if counter > 999 {
+                appUsageTracker()
 
             }
 
-            self.counter += 1
+            counter += 1
 
         }
 
@@ -50,7 +50,7 @@ class AppManager:ObservableObject {
 
         }
 
-        self.timer?.store(in: &updates)
+        timer?.store(in: &updates)
 
     }
 
@@ -60,39 +60,35 @@ class AppManager:ObservableObject {
 
     }
 
-    public func appToggleMenu(_ animate:Bool) {
+    func appToggleMenu(_ animate: Bool) {
         if animate {
             withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.7, blendDuration: 1.0)) {
                 switch self.menu {
-                    case .devices : self.menu = .settings
-                    default : self.menu = .devices
-
+                case .devices: self.menu = .settings
+                default: self.menu = .devices
                 }
             }
 
-        }
-        else {
-            switch self.menu {
-                case .devices : self.menu = .settings
-                default : self.menu = .devices
-
+        } else {
+            switch menu {
+            case .devices: menu = .settings
+            default: menu = .devices
             }
 
         }
 
     }
 
-    public func appTimer(_ multiple: Int) -> AnyPublisher<Int, Never> {
-        self.$counter.filter { $0 % multiple == 0 }.eraseToAnyPublisher()
+    func appTimer(_ multiple: Int) -> AnyPublisher<Int, Never> {
+        $counter.filter { $0 % multiple == 0 }.eraseToAnyPublisher()
 
     }
 
-    public var appInstalled:Date {
+    var appInstalled: Date {
         if let date = UserDefaults.main.object(forKey: SystemDefaultsKeys.versionInstalled.rawValue) as? Date {
             return date
 
-        }
-        else {
+        } else {
             UserDefaults.save(.versionInstalled, value: Date())
             return Date()
 
@@ -100,36 +96,35 @@ class AppManager:ObservableObject {
 
     }
 
-    public func appUsageTracker() {
+    func appUsageTracker() {
         var calendar = Calendar.current
-        calendar.timeZone = TimeZone(identifier: "America/Los_Angeles")!
+        calendar.timeZone = TimeZone(identifier: "America/Los_Angeles") ?? .current
 
-        if let latest = self.appUsage {
+        if let latest = appUsage {
             let last = calendar.dateComponents([.year, .month, .day], from: latest.timestamp)
             let current = calendar.dateComponents([.year, .month, .day], from: Date())
 
             if let lastDate = calendar.date(from: last), let currentDate = calendar.date(from: current) {
                 if currentDate > lastDate {
-                    self.appUsage = .init(day: latest.day + 1, timestamp: Date())
+                    appUsage = .init(day: latest.day + 1, timestamp: Date())
 
                 }
 
             }
 
-        }
-        else {
-            self.appUsage = .init(day: 1, timestamp: Date())
+        } else {
+            appUsage = .init(day: 1, timestamp: Date())
 
         }
 
     }
 
-    public var appUsage:SystemAppUsage? {
+    var appUsage: SystemAppUsage? {
         get {
             let days = UserDefaults.main.object(forKey: SystemDefaultsKeys.usageDay.rawValue) as? Int
             let timestamp = UserDefaults.main.object(forKey: SystemDefaultsKeys.usageTimestamp.rawValue) as? Date
 
-            if let days = days, let timestamp = timestamp {
+            if let days, let timestamp {
                 return .init(day: days, timestamp: timestamp)
 
             }
@@ -139,7 +134,7 @@ class AppManager:ObservableObject {
         }
 
         set {
-            if let newValue = newValue {
+            if let newValue {
                 UserDefaults.save(.usageDay, value: newValue.day)
                 UserDefaults.save(.usageTimestamp, value: newValue.timestamp)
             }
@@ -148,12 +143,11 @@ class AppManager:ObservableObject {
 
     }
 
-    public var appIdentifyer:String {
+    var appIdentifyer: String {
         if let id = UserDefaults.main.object(forKey: SystemDefaultsKeys.versionIdenfiyer.rawValue) as? String {
             return id
 
-        }
-        else {
+        } else {
             let id = "\(Locale.current.regionCode?.uppercased() ?? "US")-\(UUID().uuidString)"
 
             UserDefaults.save(.versionIdenfiyer, value: id)
@@ -164,22 +158,31 @@ class AppManager:ObservableObject {
 
     }
 
-    public var appDeviceType:SystemDeviceTypes {
+    var appDeviceType: SystemDeviceTypes {
         let platform = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
 
-        if let model = IORegistryEntryCreateCFProperty(platform, "model" as CFString, kCFAllocatorDefault, 0).takeRetainedValue() as? Data {
-            if let type = String(data: model, encoding: .utf8)?.cString(using: .utf8) {
-                if String(cString: type).lowercased().contains("macbookpro") { return .macbookPro }
-                else if String(cString: type).lowercased().contains("macbookair") { return .macbookAir }
-                else if String(cString: type).lowercased().contains("macbook") { return .macbook }
-                else if String(cString: type).lowercased().contains("imac") { return .imac }
-                else if String(cString: type).lowercased().contains("macmini") { return .macMini }
-                else if String(cString: type).lowercased().contains("macstudio") { return .macStudio }
-                else if String(cString: type).lowercased().contains("macpro") { return .macPro }
-                else { return .unknown }
-
+        if let model = IORegistryEntryCreateCFProperty(platform, "model" as CFString, kCFAllocatorDefault, 0)
+            .takeRetainedValue() as? Data,
+            let type = String(data: model, encoding: .utf8)?.cString(using: .utf8)
+        {
+            let typeString = String(cString: type).lowercased()
+            if typeString.contains("macbookpro") {
+                return .macbookPro
+            } else if typeString.contains("macbookair") {
+                return .macbookAir
+            } else if typeString.contains("macbook") {
+                return .macbook
+            } else if typeString.contains("imac") {
+                return .imac
+            } else if typeString.contains("macmini") {
+                return .macMini
+            } else if typeString.contains("macstudio") {
+                return .macStudio
+            } else if typeString.contains("macpro") {
+                return .macPro
+            } else {
+                return .unknown
             }
-
         }
 
         IOObjectRelease(platform)
@@ -188,16 +191,15 @@ class AppManager:ObservableObject {
 
     }
 
-    private func appProfile(force:Bool = false) -> SystemProfileObject? {
+    private func appProfile(force _: Bool = false) -> SystemProfileObject? {
         if let payload = UserDefaults.main.object(forKey: SystemDefaultsKeys.profilePayload.rawValue) as? String {
 
-            if let object =  try? JSONDecoder().decode([SystemProfileObject].self, from: Data(payload.utf8)) {
+            if let object = try? JSONDecoder().decode([SystemProfileObject].self, from: Data(payload.utf8)) {
                 return object.first
 
             }
 
-        }
-        else {
+        } else {
             if FileManager.default.fileExists(atPath: "/usr/bin/python3") {
                 if let script = Bundle.main.path(forResource: "BBProfileScript", ofType: "py") {
                     let process = Process()
@@ -213,12 +215,17 @@ class AppManager:ObservableObject {
 
                         let data = pipe.fileHandleForReading.readDataToEndOfFile()
 
-                        if let output = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) {
+                        if let output = String(data: data, encoding: .utf8)?
+                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                        {
 
                             UserDefaults.save(.profilePayload, value: output)
                             UserDefaults.save(.profileChecked, value: Date())
 
-                            if let object = try? JSONDecoder().decode([SystemProfileObject].self, from: Data(output.utf8)) {
+                            if let object = try? JSONDecoder().decode(
+                                [SystemProfileObject].self,
+                                from: Data(output.utf8),
+                            ) {
                                 if let id = object.first?.id, let display = object.first?.display {
                                     return SystemProfileObject(id: id, display: display)
                                 }
@@ -227,8 +234,7 @@ class AppManager:ObservableObject {
 
                         }
 
-                    }
-                    catch {
+                    } catch {
                         print("Profile Error: ", error)
 
                     }
@@ -243,7 +249,7 @@ class AppManager:ObservableObject {
 
     }
 
-    public func appDistribution() -> SystemDistribution {
+    func appDistribution() -> SystemDistribution {
         let task = Process()
         task.launchPath = "/usr/bin/codesign"
         task.arguments = ["-dv", "--verbose=4", Bundle.main.bundlePath]
@@ -260,7 +266,6 @@ class AppManager:ObservableObject {
                 return .appstore
 
             }
-
 
         }
 

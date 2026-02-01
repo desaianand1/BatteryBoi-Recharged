@@ -1,168 +1,156 @@
 //
-//  SettingsManager.swift
+//  BBSettingsManager.swift
 //  BatteryBoi
 //
 //  Created by Joe Barbour on 8/5/23.
 //
 
-import Foundation
-import Combine
 import AppKit
-import SwiftUI
+import Combine
+import Foundation
 import ServiceManagement
+import SwiftUI
 
-enum SettingsSoundEffects:String {
+enum SettingsSoundEffects: String {
     case enabled
     case disabled
 
-    var subtitle:String {
+    var subtitle: String {
         switch self {
-            case .enabled : "SettingsEnabledLabel".localise()
-            default : "SettingsDisabledLabel".localise()
-
+        case .enabled: "SettingsEnabledLabel".localise()
+        default: "SettingsDisabledLabel".localise()
         }
 
     }
 
-    var icon:String {
+    var icon: String {
         switch self {
-            case .enabled : "AudioIcon"
-            default : "MuteIcon"
-
+        case .enabled: "AudioIcon"
+        default: "MuteIcon"
         }
 
     }
 
 }
 
-enum SettingsPinned:String {
+enum SettingsPinned: String {
     case enabled
     case disabled
 
-    var subtitle:String {
+    var subtitle: String {
         switch self {
-            case .enabled : "SettingsEnabledLabel".localise()
-            default : "SettingsDisabledLabel".localise()
-
+        case .enabled: "SettingsEnabledLabel".localise()
+        default: "SettingsDisabledLabel".localise()
         }
 
     }
 
-    var icon:String {
+    var icon: String {
         switch self {
-            case .enabled : "AudioIcon"
-            default : "MuteIcon"
-
+        case .enabled: "AudioIcon"
+        default: "MuteIcon"
         }
 
     }
 
 }
 
-enum SettingsCharged:String {
+enum SettingsCharged: String {
     case enabled
     case disabled
 
-    var subtitle:String {
+    var subtitle: String {
         switch self {
-            case .enabled : "SettingsEnabledLabel".localise()
-            default : "SettingsDisabledLabel".localise()
-
+        case .enabled: "SettingsEnabledLabel".localise()
+        default: "SettingsDisabledLabel".localise()
         }
 
     }
 
-    var icon:String {
+    var icon: String {
         switch self {
-            case .enabled : "AudioIcon"
-            default : "MuteIcon"
-
+        case .enabled: "AudioIcon"
+        default: "MuteIcon"
         }
 
     }
 
 }
 
-
-enum SettingsBeta:String {
+enum SettingsBeta: String {
     case enabled
     case disabled
 
-    var subtitle:String {
+    var subtitle: String {
         switch self {
-            case .enabled : "SettingsEnabledLabel".localise()
-            default : "SettingsDisabledLabel".localise()
-
+        case .enabled: "SettingsEnabledLabel".localise()
+        default: "SettingsDisabledLabel".localise()
         }
 
     }
 
-    var icon:String {
+    var icon: String {
         switch self {
-            case .enabled : "AudioIcon"
-            default : "MuteIcon"
-
+        case .enabled: "AudioIcon"
+        default: "MuteIcon"
         }
 
     }
 
 }
 
-enum SettingsDisplayType:String {
+enum SettingsDisplayType: String {
     case countdown
     case empty
     case percent
     case cycle
     case hidden
 
-    var type:String {
+    var type: String {
         switch self {
-            case .countdown : return "SettingsDisplayEstimateLabel".localise()
-            case .percent : return "SettingsDisplayPercentLabel".localise()
-            case .empty : return "SettingsDisplayNoneLabel".localise()
-            case .cycle : return "SettingsDisplayCycleLabel".localise()
-            case .hidden : return "SettingsDisplayHiddenLabel".localise()
-
+        case .countdown: "SettingsDisplayEstimateLabel".localise()
+        case .percent: "SettingsDisplayPercentLabel".localise()
+        case .empty: "SettingsDisplayNoneLabel".localise()
+        case .cycle: "SettingsDisplayCycleLabel".localise()
+        case .hidden: "SettingsDisplayHiddenLabel".localise()
         }
 
     }
 
-    var icon:String {
+    var icon: String {
         switch self {
-            case .countdown : return "TimeIcon"
-            case .percent : return "PercentIcon"
-            case .cycle : return "CycleIcon"
-            case .empty : return "EmptyIcon"
-            case .hidden : return "EmptyIcon"
-
+        case .countdown: "TimeIcon"
+        case .percent: "PercentIcon"
+        case .cycle: "CycleIcon"
+        case .empty: "EmptyIcon"
+        case .hidden: "EmptyIcon"
         }
 
     }
 
 }
 
-struct SettingsActionObject:Hashable {
-    var type:SettingsActionType
-    var title:String
+struct SettingsActionObject: Hashable {
+    var type: SettingsActionType
+    var title: String
 
-    init(_ type:SettingsActionType) {
+    init(_ type: SettingsActionType) {
         switch type {
-            case .appWebsite : self.title = "SettingsWebsiteLabel".localise()
-            case .appQuit : self.title = "SettingsQuitLabel".localise()
-            case .appDevices : self.title = "SettingsDevicesLabel".localise()
-            case .appSettings : self.title = "SettingsSettingsLabel".localise()
-            case .appEfficencyMode : self.title = "SettingsEfficiencyLabel".localise()
-            case .appBeta : self.title = "SettingsPrereleasesLabel".localise()
-            case .appRate : self.title = "SettingsRateLabel".localise()
-            case .appUpdateCheck : self.title = "SettingsCheckUpdatesLabel".localise()
-            case .appInstallUpdate : self.title = "SettingsNewUpdateLabel".localise()
-            case .appPinned : self.title = "SettingsPinnedLabel".localise()
-            case .customiseTheme : self.title = "SettingsThemeLabel".localise()
-            case .customiseDisplay : self.title = "SettingsDisplayLabel".localise()
-            case .customiseNotifications : self.title = "SettingsDisplayPercentLabel".localise()
-            case .customiseSoundEffects : self.title = "SettingsSoundEffectsLabel".localise()
-            case .customiseCharge : self.title = "SettingsEightyLabel".localise()
-
+        case .appWebsite: title = "SettingsWebsiteLabel".localise()
+        case .appQuit: title = "SettingsQuitLabel".localise()
+        case .appDevices: title = "SettingsDevicesLabel".localise()
+        case .appSettings: title = "SettingsSettingsLabel".localise()
+        case .appEfficencyMode: title = "SettingsEfficiencyLabel".localise()
+        case .appBeta: title = "SettingsPrereleasesLabel".localise()
+        case .appRate: title = "SettingsRateLabel".localise()
+        case .appUpdateCheck: title = "SettingsCheckUpdatesLabel".localise()
+        case .appInstallUpdate: title = "SettingsNewUpdateLabel".localise()
+        case .appPinned: title = "SettingsPinnedLabel".localise()
+        case .customiseTheme: title = "SettingsThemeLabel".localise()
+        case .customiseDisplay: title = "SettingsDisplayLabel".localise()
+        case .customiseNotifications: title = "SettingsDisplayPercentLabel".localise()
+        case .customiseSoundEffects: title = "SettingsSoundEffectsLabel".localise()
+        case .customiseCharge: title = "SettingsEightyLabel".localise()
         }
 
         self.type = type
@@ -188,113 +176,107 @@ enum SettingsActionType {
     case customiseNotifications
     case customiseCharge
 
-    var icon:String {
+    var icon: String {
         switch self {
-            case .appEfficencyMode : return "EfficiencyIcon"
-            case .appUpdateCheck : return "CycleIcon"
-            case .appInstallUpdate : return "CycleIcon"
-            case .appWebsite : return "WebsiteIcon"
-            case .appBeta : return "WebsiteIcon"
-            case .appQuit : return "WebsiteIcon"
-            case .appDevices : return "WebsiteIcon"
-            case .appSettings : return "WebsiteIcon"
-            case .appPinned : return "WebsiteIcon"
-            case .appRate : return "RateIcon"
-            case .customiseDisplay : return "PercentIcon"
-            case .customiseTheme : return "PercentIcon"
-            case .customiseNotifications : return "PercentIcon"
-            case .customiseSoundEffects : return "PercentIcon"
-            case .customiseCharge : return "PercentIcon"
-
+        case .appEfficencyMode: "EfficiencyIcon"
+        case .appUpdateCheck: "CycleIcon"
+        case .appInstallUpdate: "CycleIcon"
+        case .appWebsite: "WebsiteIcon"
+        case .appBeta: "WebsiteIcon"
+        case .appQuit: "WebsiteIcon"
+        case .appDevices: "WebsiteIcon"
+        case .appSettings: "WebsiteIcon"
+        case .appPinned: "WebsiteIcon"
+        case .appRate: "RateIcon"
+        case .customiseDisplay: "PercentIcon"
+        case .customiseTheme: "PercentIcon"
+        case .customiseNotifications: "PercentIcon"
+        case .customiseSoundEffects: "PercentIcon"
+        case .customiseCharge: "PercentIcon"
         }
 
     }
 
 }
 
-enum SettingsTheme:Int {
+enum SettingsTheme: Int {
     case system
     case light
     case dark
 
-    var string:String {
+    var string: String {
         switch self {
-            case .light : return "light"
-            case .dark : return "dark"
-            default : return "system"
-
+        case .light: "light"
+        case .dark: "dark"
+        default: "system"
         }
 
     }
 
 }
 
-enum SettingsStateValue:String {
+enum SettingsStateValue: String {
     case enabled
     case disabled
     case undetermined
     case restricted
 
-    var enabled:Bool {
+    var enabled: Bool {
         switch self {
-            case .disabled : return false
-            default : return true
-
+        case .disabled: false
+        default: true
         }
 
     }
 
-    var boolean:Bool {
+    var boolean: Bool {
         switch self {
-            case .enabled : return true
-            default : return false
-
+        case .enabled: true
+        default: false
         }
 
     }
 
-    var title:String {
+    var title: String {
         switch self {
-            case .enabled : return "Enabled"
-            case .disabled : return "Disabled"
-            case .undetermined : return "Not Set"
-            case .restricted : return "Restricted"
-
+        case .enabled: "Enabled"
+        case .disabled: "Disabled"
+        case .undetermined: "Not Set"
+        case .restricted: "Restricted"
         }
 
     }
 
 }
 
-class SettingsManager:ObservableObject {
-    static var shared = SettingsManager()
+class SettingsManager: ObservableObject {
+    static var shared = Self()
 
-    @Published var menu:[SettingsActionObject] = []
-    @Published var display:SettingsDisplayType = .countdown
-    @Published var sfx:SettingsSoundEffects = .enabled
-    @Published var theme:SettingsTheme = .dark
-    @Published var pinned:SettingsPinned = .disabled
-    @Published var charge:SettingsCharged = .disabled
+    @Published var menu: [SettingsActionObject] = []
+    @Published var display: SettingsDisplayType = .countdown
+    @Published var sfx: SettingsSoundEffects = .enabled
+    @Published var theme: SettingsTheme = .dark
+    @Published var pinned: SettingsPinned = .disabled
+    @Published var charge: SettingsCharged = .disabled
 
     private var updates = Set<AnyCancellable>()
 
     init() {
-        self.menu = self.settingsMenu
-        self.display = self.enabledDisplay(false)
-        self.theme = self.enabledTheme
-        self.sfx = self.enabledSoundEffects
-        self.pinned = self.enabledPinned
-        self.charge = self.enabledChargeEighty
+        menu = settingsMenu
+        display = enabledDisplay(false)
+        theme = enabledTheme
+        sfx = enabledSoundEffects
+        pinned = enabledPinned
+        charge = enabledChargeEighty
 
         UserDefaults.changed.receive(on: DispatchQueue.main).sink { key in
             switch key {
-                case .enabledDisplay : self.display = self.enabledDisplay(false)
-                case .enabledTheme : self.theme = self.enabledTheme
-                case .enabledSoundEffects : self.sfx = self.enabledSoundEffects
-                case .enabledPinned : self.pinned = self.enabledPinned
-                case .enabledChargeEighty : self.charge = self.enabledChargeEighty
-                default : break
-
+            case .enabledDisplay: self.display = self.enabledDisplay(false)
+            case .enabledTheme: self.theme = self.enabledTheme
+            case .enabledSoundEffects: self.sfx = self.enabledSoundEffects
+            case .enabledPinned: self.pinned = self.enabledPinned
+            case .enabledChargeEighty: self.charge = self.enabledChargeEighty
+            default: break
             }
 
         }.store(in: &updates)
@@ -306,18 +288,16 @@ class SettingsManager:ObservableObject {
 
     }
 
-    public var enabledAutoLaunch:SettingsStateValue {
+    var enabledAutoLaunch: SettingsStateValue {
         get {
             if #available(macOS 13.0, *) {
                 if UserDefaults.main.object(forKey: SystemDefaultsKeys.enabledLogin.rawValue) == nil {
                     return .undetermined
 
-                }
-                else {
+                } else {
                     switch SMAppService.mainApp.status == .enabled {
-                        case true : return .enabled
-                        case false : return .disabled
-
+                    case true: return .enabled
+                    case false: return .disabled
                     }
 
                 }
@@ -334,12 +314,11 @@ class SettingsManager:ObservableObject {
                     do {
                         if newValue == .disabled {
                             if SMAppService.mainApp.status == .enabled {
-                               try SMAppService.mainApp.unregister()
+                                try SMAppService.mainApp.unregister()
 
-                           }
+                            }
 
-                        }
-                        else {
+                        } else {
                             if SMAppService.mainApp.status != .enabled {
                                 try SMAppService.mainApp.register()
 
@@ -349,8 +328,7 @@ class SettingsManager:ObservableObject {
 
                         UserDefaults.save(.enabledLogin, value: newValue.enabled)
 
-                    }
-                    catch {
+                    } catch {
                         print("Settings error: \(error.localizedDescription)")
                     }
 
@@ -362,8 +340,8 @@ class SettingsManager:ObservableObject {
 
     }
 
-    public func enabledDisplay(_ toggle:Bool = false) -> SettingsDisplayType {
-        var output:SettingsDisplayType = .percent
+    func enabledDisplay(_ toggle: Bool = false) -> SettingsDisplayType {
+        var output: SettingsDisplayType = .percent
 
         if let type = UserDefaults.main.string(forKey: SystemDefaultsKeys.enabledDisplay.rawValue) {
             output = SettingsDisplayType(rawValue: type) ?? .percent
@@ -372,12 +350,11 @@ class SettingsManager:ObservableObject {
 
         if toggle {
             switch output {
-                case .countdown : output = .percent
-                case .percent : output = .empty
-                case .empty : output = .cycle
-                case .cycle : output = .hidden
-                default : output = .countdown
-
+            case .countdown: output = .percent
+            case .percent: output = .empty
+            case .empty: output = .cycle
+            case .cycle: output = .hidden
+            default: output = .countdown
             }
 
             UserDefaults.save(.enabledDisplay, value: output.rawValue)
@@ -385,16 +362,15 @@ class SettingsManager:ObservableObject {
         }
 
         switch output {
-            case .hidden : NSApp.setActivationPolicy(.regular)
-            default : NSApp.setActivationPolicy(.accessory)
-
+        case .hidden: NSApp.setActivationPolicy(.regular)
+        default: NSApp.setActivationPolicy(.accessory)
         }
 
         return output
 
     }
 
-    public var enabledStyle:BatteryStyle {
+    var enabledStyle: BatteryStyle {
         get {
             if let style = UserDefaults.main.string(forKey: SystemDefaultsKeys.enabledStyle.rawValue) {
                 return BatteryStyle(rawValue: style) ?? .chunky
@@ -415,7 +391,7 @@ class SettingsManager:ObservableObject {
 
     }
 
-    public var enabledTheme:SettingsTheme {
+    var enabledTheme: SettingsTheme {
         get {
             if let value = UserDefaults.main.object(forKey: SystemDefaultsKeys.enabledTheme.rawValue) as? Int {
                 if let theme = SettingsTheme(rawValue: value) {
@@ -423,8 +399,7 @@ class SettingsManager:ObservableObject {
                         NSApp.appearance = NSAppearance(named: .aqua)
                         return .light
 
-                    }
-                    else if theme == .dark {
+                    } else if theme == .dark {
                         NSApp.appearance = NSAppearance(named: .darkAqua)
                         return .dark
 
@@ -432,13 +407,11 @@ class SettingsManager:ObservableObject {
 
                 }
 
-            }
-            else {
+            } else {
                 if (UserDefaults.standard.string(forKey: "AppleInterfaceStyle") ?? "Light") == "Light" {
                     return .light
 
-                }
-                else {
+                } else {
                     return .dark
 
                 }
@@ -451,13 +424,11 @@ class SettingsManager:ObservableObject {
 
         set {
             if newValue == .dark { NSApp.appearance = NSAppearance(named: .darkAqua) }
-            else if newValue == .light { NSApp.appearance = NSAppearance(named: .aqua) }
-            else {
+            else if newValue == .light { NSApp.appearance = NSAppearance(named: .aqua) } else {
                 if (UserDefaults.standard.string(forKey: "AppleInterfaceStyle") ?? "Light") == "Light" {
                     NSApp.appearance = NSAppearance(named: .aqua)
 
-                }
-                else {
+                } else {
                     NSApp.appearance = NSAppearance(named: .darkAqua)
 
                 }
@@ -470,7 +441,7 @@ class SettingsManager:ObservableObject {
 
     }
 
-    public var enabledChargeEighty:SettingsCharged {
+    var enabledChargeEighty: SettingsCharged {
         get {
             if let key = UserDefaults.main.object(forKey: SystemDefaultsKeys.enabledChargeEighty.rawValue) as? String {
                 return SettingsCharged(rawValue: key) ?? .disabled
@@ -488,14 +459,13 @@ class SettingsManager:ObservableObject {
 
     }
 
-    public var enabledProgressBar:Bool {
+    var enabledProgressBar: Bool {
         get {
             if UserDefaults.main.object(forKey: SystemDefaultsKeys.enabledProgressState.rawValue) == nil {
-                return false
+                false
 
-            }
-            else {
-                return UserDefaults.main.bool(forKey: SystemDefaultsKeys.enabledProgressState.rawValue)
+            } else {
+                UserDefaults.main.bool(forKey: SystemDefaultsKeys.enabledProgressState.rawValue)
 
             }
 
@@ -508,7 +478,7 @@ class SettingsManager:ObservableObject {
 
     }
 
-    public var enabledPinned:SettingsPinned {
+    var enabledPinned: SettingsPinned {
         get {
             if let key = UserDefaults.main.object(forKey: SystemDefaultsKeys.enabledPinned.rawValue) as? String {
                 return SettingsPinned(rawValue: key) ?? .disabled
@@ -526,7 +496,7 @@ class SettingsManager:ObservableObject {
 
     }
 
-    public var enabledSoundEffects:SettingsSoundEffects {
+    var enabledSoundEffects: SettingsSoundEffects {
         get {
             if let key = UserDefaults.main.object(forKey: SystemDefaultsKeys.enabledSoundEffects.rawValue) as? String {
                 return SettingsSoundEffects(rawValue: key) ?? .enabled
@@ -538,7 +508,7 @@ class SettingsManager:ObservableObject {
         }
 
         set {
-            if self.enabledSoundEffects == .disabled && newValue == .enabled {
+            if self.enabledSoundEffects == .disabled, newValue == .enabled {
                 SystemSoundEffects.high.play(true)
 
             }
@@ -549,19 +519,17 @@ class SettingsManager:ObservableObject {
 
     }
 
-    public var enabledBluetoothStatus:SettingsStateValue {
+    var enabledBluetoothStatus: SettingsStateValue {
         get {
             if UserDefaults.main.object(forKey: SystemDefaultsKeys.enabledBluetooth.rawValue) == nil {
-                return .undetermined
+                .undetermined
 
-            }
-            else {
-                //let devices = IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice]
+            } else {
+                // let devices = IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice]
 
                 switch UserDefaults.main.bool(forKey: SystemDefaultsKeys.enabledBluetooth.rawValue) {
-                    case true : return .enabled
-                    case false : return .disabled
-
+                case true: .enabled
+                case false: .disabled
                 }
 
             }
@@ -578,91 +546,80 @@ class SettingsManager:ObservableObject {
 
     }
 
-    public func settingsAction(_ action:SettingsActionObject) {
+    func settingsAction(_ action: SettingsActionObject) {
         if action.type == .appWebsite {
             // Try Buy Me a Coffee first, then Ko-fi
             if let urlString = Bundle.main.infoDictionary?["DONATE_BUYMEACOFFEE_URL"] as? String,
                !urlString.isEmpty,
-               let url = URL(string: urlString) {
+               let url = URL(string: urlString)
+            {
                 NSWorkspace.shared.open(url)
             } else if let urlString = Bundle.main.infoDictionary?["DONATE_KOFI_URL"] as? String,
                       !urlString.isEmpty,
-                      let url = URL(string: urlString) {
+                      let url = URL(string: urlString)
+            {
                 NSWorkspace.shared.open(url)
             } else if let urlString = Bundle.main.infoDictionary?["GITHUB_REPO_URL"] as? String,
                       !urlString.isEmpty,
-                      let url = URL(string: urlString) {
+                      let url = URL(string: urlString)
+            {
                 // Fallback to GitHub repo
                 NSWorkspace.shared.open(url)
             }
-        }
-        else if action.type == .appRate {
+        } else if action.type == .appRate {
             // Open GitHub repo for starring/feedback
             if let urlString = Bundle.main.infoDictionary?["GITHUB_REPO_URL"] as? String,
                !urlString.isEmpty,
-               let url = URL(string: urlString) {
+               let url = URL(string: urlString)
+            {
                 NSWorkspace.shared.open(url)
             }
-        }
-        else if action.type == .appQuit {
+        } else if action.type == .appQuit {
             WindowManager.shared.state = .dismissed
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                 NSApp.terminate(self)
             }
-        }
-        else if action.type == .appInstallUpdate {
+        } else if action.type == .appInstallUpdate {
             if UpdateManager.shared.available != nil {
                 // Trigger Sparkle update
                 UpdateManager.shared.updateCheck()
             }
-        }
-        else if action.type == .appUpdateCheck {
+        } else if action.type == .appUpdateCheck {
             UpdateManager.shared.updateCheck()
-        }
-        else if action.type == .appEfficencyMode {
+        } else if action.type == .appEfficencyMode {
             DispatchQueue.main.async {
                 BatteryManager.shared.powerSaveMode()
 
             }
 
-        }
-        else if action.type == .appBeta {
-
-        }
-        else if action.type == .appPinned {
-            switch self.enabledPinned {
-                case .enabled : self.enabledPinned = .disabled
-                case .disabled : self.enabledPinned = .enabled
-
+        } else if action.type == .appBeta {} else if action.type == .appPinned {
+            switch enabledPinned {
+            case .enabled: enabledPinned = .disabled
+            case .disabled: enabledPinned = .enabled
             }
 
-        }
-        else if action.type == .customiseDisplay {
-            _ = self.enabledDisplay(true)
+        } else if action.type == .customiseDisplay {
+            _ = enabledDisplay(true)
 
-        }
-        else if action.type == .customiseSoundEffects {
-            switch self.enabledSoundEffects {
-                case .enabled : self.enabledSoundEffects = .disabled
-                case .disabled : self.enabledSoundEffects = .enabled
-
+        } else if action.type == .customiseSoundEffects {
+            switch enabledSoundEffects {
+            case .enabled: enabledSoundEffects = .disabled
+            case .disabled: enabledSoundEffects = .enabled
             }
 
-        }
-        else if action.type == .customiseCharge {
-            switch self.enabledChargeEighty {
-                case .enabled : self.enabledChargeEighty = .disabled
-                case .disabled : self.enabledChargeEighty = .enabled
-
+        } else if action.type == .customiseCharge {
+            switch enabledChargeEighty {
+            case .enabled: enabledChargeEighty = .disabled
+            case .disabled: enabledChargeEighty = .enabled
             }
 
         }
 
     }
 
-    private var settingsMenu:[SettingsActionObject] {
-        var output = Array<SettingsActionObject>()
+    private var settingsMenu: [SettingsActionObject] {
+        var output = [SettingsActionObject]()
 
 //        if #available(macOS 12.0, *) {
 //            output.append(.init(.appEfficencyMode))

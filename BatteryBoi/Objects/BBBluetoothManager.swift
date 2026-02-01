@@ -5,12 +5,12 @@
 //  Created by Joe Barbour on 8/22/23.
 //
 
-import Foundation
+import Cocoa
 import Combine
+import CoreBluetooth
+import Foundation
 import IOBluetooth
 import IOKit.ps
-import Cocoa
-import CoreBluetooth
 
 enum BluetoothConnectionState {
     case connected
@@ -36,13 +36,13 @@ enum BluetoothVendor: String {
 
 }
 
-enum BluetoothScriptType:String {
+enum BluetoothScriptType: String {
     case profiler = "BBProfilerList"
     case oreg = "BBIOREGList"
 
 }
 
-enum BluetoothDistanceType:Int {
+enum BluetoothDistanceType: Int {
     case proximate
     case near
     case far
@@ -51,22 +51,21 @@ enum BluetoothDistanceType:Int {
 }
 
 struct BluetoothDeviceObject {
-    var type:BluetoothDeviceType
-    var subtype:BluetoothDeviceSubtype?
-    var vendor:BluetoothVendor?
-    var icon:String
+    var type: BluetoothDeviceType
+    var subtype: BluetoothDeviceSubtype?
+    var vendor: BluetoothVendor?
+    var icon: String
 
-    init(_ type:String, subtype:String? = nil, vendor:String? = nil) {
+    init(_ type: String, subtype: String? = nil, vendor: String? = nil) {
         self.type = BluetoothDeviceType(rawValue: type.lowercased()) ?? .other
         self.subtype = BluetoothDeviceSubtype(rawValue: subtype ?? "")
         self.vendor = BluetoothVendor(rawValue: vendor ?? "")
 
         if let subtype = self.subtype {
-            self.icon = subtype.icon
+            icon = subtype.icon
 
-        }
-        else {
-            self.icon = self.type.icon
+        } else {
+            icon = self.type.icon
 
         }
 
@@ -81,95 +80,91 @@ enum BluetoothDeviceSubtype: String {
     case airpodsVersionOne = "0x2002"
     case unknown = ""
 
-    var icon:String {
+    var icon: String {
         switch self {
-            case .airpodsMax : return "headphones"
-            case .airpodsProVersionOne : return "airpods.gen3"
-            default : return "airpods"
-
+        case .airpodsMax: "headphones"
+        case .airpodsProVersionOne: "airpods.gen3"
+        default: "airpods"
         }
 
     }
 
 }
 
-enum BluetoothDeviceType:String,Decodable {
-    case mouse = "mouse"
-    case headphones = "headphones"
-    case gamepad = "gamepad"
-    case speaker = "speaker"
-    case keyboard = "keyboard"
-    case other = "other"
+enum BluetoothDeviceType: String, Decodable {
+    case mouse
+    case headphones
+    case gamepad
+    case speaker
+    case keyboard
+    case other
 
-    var name:String {
+    var name: String {
         switch self {
-            case .mouse:return "BluetoothDeviceMouseLabel".localise()
-            case .headphones:return "BluetoothDeviceHeadphonesLabel".localise()
-            case .gamepad:return "BluetoothDeviceGamepadLabel".localise()
-            case .speaker:return "BluetoothDeviceSpeakerLabel".localise()
-            case .keyboard:return "BluetoothDeviceKeyboardLabel".localise()
-            case .other:return "BluetoothDeviceOtherLabel".localise()
-
+        case .mouse: "BluetoothDeviceMouseLabel".localise()
+        case .headphones: "BluetoothDeviceHeadphonesLabel".localise()
+        case .gamepad: "BluetoothDeviceGamepadLabel".localise()
+        case .speaker: "BluetoothDeviceSpeakerLabel".localise()
+        case .keyboard: "BluetoothDeviceKeyboardLabel".localise()
+        case .other: "BluetoothDeviceOtherLabel".localise()
         }
 
     }
 
-    var icon:String {
+    var icon: String {
         switch self {
-            case .mouse:return "magicmouse.fill"
-            case .headphones:return "headphones"
-            case .gamepad:return "gamecontroller.fill"
-            case .speaker:return "hifispeaker.2.fill"
-            case .keyboard:return "keyboard.fill"
-            case .other:return ""
-
+        case .mouse: "magicmouse.fill"
+        case .headphones: "headphones"
+        case .gamepad: "gamecontroller.fill"
+        case .speaker: "hifispeaker.2.fill"
+        case .keyboard: "keyboard.fill"
+        case .other: ""
         }
 
     }
 
 }
 
-struct BluetoothBatteryObject:Decodable,Equatable {
-    var general:Double?
-    var left:Double?
-    var right:Double?
-    var percent:Double?
+struct BluetoothBatteryObject: Decodable, Equatable {
+    var general: Double?
+    var left: Double?
+    var right: Double?
+    var percent: Double?
 
-    public init(from decoder: Decoder) throws {
+    init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
 
-        self.general = nil
-        self.left = nil
-        self.right = nil
-        self.percent = nil
+        general = nil
+        left = nil
+        right = nil
+        percent = nil
 
         if let percent = try? values.decode(String.self, forKey: .general) {
             let stripped = percent.replacingOccurrences(of: "[^0-9]", with: "", options: .regularExpression)
 
-            self.general = Double(stripped)
+            general = Double(stripped)
 
         }
 
         if let percent = try? values.decode(String.self, forKey: .right) {
             let stripped = percent.replacingOccurrences(of: "[^0-9]", with: "", options: .regularExpression)
 
-            self.right = Double(stripped)
+            right = Double(stripped)
 
         }
 
         if let percent = try? values.decode(String.self, forKey: .left) {
             let stripped = percent.replacingOccurrences(of: "[^0-9]", with: "", options: .regularExpression)
 
-            self.left = Double(stripped)
+            left = Double(stripped)
 
         }
 
-        if self.left == nil && self.right == nil && self.general == nil {
-            self.percent = nil
+        if left == nil, right == nil, general == nil {
+            percent = nil
 
-        }
-        else if let min = [self.right, self.left, self.general].compactMap({ $0 }).min() {
-            self.percent = min
+        } else if let min = [right, left, general].compactMap(\.self).min() {
+            percent = min
 
         }
 
@@ -185,56 +180,57 @@ struct BluetoothBatteryObject:Decodable,Equatable {
 
 }
 
-struct BluetoothObject:Decodable,Equatable {
-    static func == (lhs: BluetoothObject, rhs: BluetoothObject) -> Bool {
-        return lhs.address == rhs.address && lhs.connected == rhs.connected && lhs.distance == rhs.distance
+struct BluetoothObject: Decodable, Equatable {
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.address == rhs.address && lhs.connected == rhs.connected && lhs.distance == rhs.distance
 
     }
 
     let address: String
     let firmware: String?
-    var battery:BluetoothBatteryObject
-    let type:BluetoothDeviceObject
-    var distance:BluetoothDistanceType
+    var battery: BluetoothBatteryObject
+    let type: BluetoothDeviceObject
+    var distance: BluetoothDistanceType
 
-    var updated:Date
+    var updated: Date
     var device: String?
     var connected: BluetoothState
 
-    public init(from decoder: Decoder) throws {
+    init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
 
-        self.battery = try! BluetoothBatteryObject(from: decoder)
-        self.address = try! values.decode(String.self, forKey: .address).lowercased().replacingOccurrences(of: ":", with: "-")
-        self.firmware = try? values.decode(String.self, forKey: .firmware)
-        self.connected = .disconnected
-        self.device = nil
-        self.updated = Date.distantPast
+        // swiftlint:disable:next force_try
+        battery = try! BluetoothBatteryObject(from: decoder)
+        // swiftlint:disable:next force_try
+        address = try! values.decode(String.self, forKey: .address).lowercased().replacingOccurrences(
+            of: ":",
+            with: "-",
+        )
+        firmware = try? values.decode(String.self, forKey: .firmware)
+        connected = .disconnected
+        device = nil
+        updated = Date.distantPast
 
         if let distance = try? values.decode(String.self, forKey: .rssi) {
             if let value = Double(distance) {
-                if value >= -50 && value <= -20 {
+                if value >= -50, value <= -20 {
                     self.distance = .proximate
 
-                }
-                else if value >= -70 && value < -50 {
+                } else if value >= -70, value < -50 {
                     self.distance = .near
 
-                }
-                else {
+                } else {
                     self.distance = .far
 
                 }
 
-            }
-            else {
+            } else {
                 self.distance = .unknown
 
             }
 
-        }
-        else {
-            self.distance = .unknown
+        } else {
+            distance = .unknown
 
         }
 
@@ -242,11 +238,10 @@ struct BluetoothObject:Decodable,Equatable {
             let subtype = try? values.decode(String.self, forKey: .product)
             let vendor = try? values.decode(String.self, forKey: .product)
 
-            self.type = BluetoothDeviceObject(type, subtype:subtype, vendor: vendor)
+            self.type = BluetoothDeviceObject(type, subtype: subtype, vendor: vendor)
 
-        }
-        else {
-            self.type = BluetoothDeviceObject("")
+        } else {
+            type = BluetoothDeviceObject("")
 
         }
 
@@ -266,36 +261,34 @@ struct BluetoothObject:Decodable,Equatable {
 
 typealias BluetoothObjectContainer = [String: BluetoothObject]
 
-enum BluetoothState:Int {
+enum BluetoothState: Int {
     case connected = 1
     case disconnected = 0
 
-    var status:String {
+    var status: String {
         switch self {
-            case .connected : return "Connected"
-            case .disconnected : return "Not Connected"
-
+        case .connected: "Connected"
+        case .disconnected: "Not Connected"
         }
 
     }
 
-    var boolean:Bool {
+    var boolean: Bool {
         switch self {
-            case .connected : return true
-            case .disconnected : return false
-
+        case .connected: true
+        case .disconnected: false
         }
 
     }
 
 }
 
-class BluetoothManager:ObservableObject {
-    static var shared = BluetoothManager()
+class BluetoothManager: ObservableObject {
+    static var shared = Self()
 
-    @Published var list = Array<BluetoothObject>()
-    @Published var connected = Array<BluetoothObject>()
-    @Published var icons = Array<String>()
+    @Published var list = [BluetoothObject]()
+    @Published var connected = [BluetoothObject]()
+    @Published var icons = [String]()
 
     private var updates = Set<AnyCancellable>()
     private var connectionNotification: IOBluetoothUserNotification?
@@ -311,7 +304,7 @@ class BluetoothManager:ObservableObject {
         }.store(in: &updates)
 
         AppManager.shared.$device.receive(on: DispatchQueue.global()).sink { device in
-            if let device = device {
+            if let device {
                 if device.connected == .disconnected {
                     _ = self.bluetoothUpdateConnetion(device, state: .connected)
 
@@ -322,8 +315,8 @@ class BluetoothManager:ObservableObject {
         }.store(in: &updates)
 
         $list.receive(on: DispatchQueue.main).sink { list in
-            self.connected = list.filter({ $0.connected == .connected })
-            self.icons = self.connected.map({ $0.type.icon })
+            self.connected = list.filter { $0.connected == .connected }
+            self.icons = self.connected.map(\.type.icon)
 
             for device in list {
                 print("\n\(device.device ?? "") (\(device.address)) - \(device.connected.status)")
@@ -337,9 +330,8 @@ class BluetoothManager:ObservableObject {
             await self.bluetoothList(.profiler)
 
             switch self.list.filter({ $0.connected == .connected }).count {
-                case 0 : AppManager.shared.menu = .settings
-                default : AppManager.shared.menu = .devices
-
+            case 0: AppManager.shared.menu = .settings
+            default: AppManager.shared.menu = .devices
             }
 
         }
@@ -353,20 +345,18 @@ class BluetoothManager:ObservableObject {
 
     }
 
-    public func bluetoothUpdateConnetion(_ device:BluetoothObject, state:BluetoothState) -> BluetoothConnectionState {
+    func bluetoothUpdateConnetion(_ device: BluetoothObject, state: BluetoothState) -> BluetoothConnectionState {
         if let device = IOBluetoothDevice(addressString: device.address) {
             if device.isConnected() {
                 if state == .connected {
                     return .connected
 
-                }
-                else {
+                } else {
                     let result = device.closeConnection()
                     if result == kIOReturnSuccess {
                         return .disconnected
 
-                    }
-                    else {
+                    } else {
                         print("Failed to disconnect from the device. Error: \(result)")
                         return .failed
 
@@ -374,15 +364,13 @@ class BluetoothManager:ObservableObject {
 
                 }
 
-            }
-            else {
+            } else {
                 if state == .connected {
                     let result = device.openConnection()
                     if result == kIOReturnSuccess {
                         return .connected
 
-                    }
-                    else {
+                    } else {
                         print("Failed to connect to the device. Error: \(result)")
                         return .failed
 
@@ -398,7 +386,7 @@ class BluetoothManager:ObservableObject {
 
     }
 
-    private func bluetoothList(_ type:BluetoothScriptType, initialize:Bool = false) async {
+    private func bluetoothList(_ type: BluetoothScriptType, initialize: Bool = false) async {
         guard FileManager.default.fileExists(atPath: "/usr/bin/python3") else {
             print("Python not found at /usr/bin/python3")
             return
@@ -413,19 +401,19 @@ class BluetoothManager:ObservableObject {
             let output = try await ProcessRunner.shared.run(
                 executable: "/usr/bin/python3",
                 arguments: [script],
-                timeout: .seconds(30)
+                timeout: .seconds(30),
             )
 
             guard let data = output.data(using: .utf8) else { return }
 
             let object = try JSONDecoder().decode([BluetoothObjectContainer].self, from: data)
-            let values = object.flatMap { $0.values }
+            let values = object.flatMap(\.values)
 
             await MainActor.run {
                 for item in IOBluetoothDevice.pairedDevices() {
                     if let device = item as? IOBluetoothDevice {
-                        if let index = values.firstIndex(where: {$0.address == device.addressString }) {
-                            let status:BluetoothState = device.isConnected() ? .connected : .disconnected
+                        if let index = values.firstIndex(where: { $0.address == device.addressString }) {
+                            let status: BluetoothState = device.isConnected() ? .connected : .disconnected
 
                             var updated = values[index]
                             updated.device = device.name
@@ -436,26 +424,26 @@ class BluetoothManager:ObservableObject {
 
                             }
 
-                            if let listIndex = self.list.firstIndex(where: {$0.address == device.addressString }) {
-                                if self.list[listIndex].battery.general != nil && updated.battery.general == nil  {
+                            if let listIndex = self.list.firstIndex(where: { $0.address == device.addressString }) {
+                                if self.list[listIndex].battery.general != nil, updated.battery.general == nil {
                                     updated.battery.general = self.list[listIndex].battery.general
                                     updated.updated = Date()
 
                                 }
 
-                                if self.list[listIndex].battery.left != nil && updated.battery.left == nil  {
+                                if self.list[listIndex].battery.left != nil, updated.battery.left == nil {
                                     updated.battery.left = self.list[listIndex].battery.left
                                     updated.updated = Date()
 
                                 }
 
-                                if self.list[listIndex].battery.right != nil && updated.battery.right == nil  {
+                                if self.list[listIndex].battery.right != nil, updated.battery.right == nil {
                                     updated.battery.right = self.list[listIndex].battery.right
                                     updated.updated = Date()
 
                                 }
 
-                                if self.list[listIndex].battery.percent != nil && updated.battery.percent == nil  {
+                                if self.list[listIndex].battery.percent != nil, updated.battery.percent == nil {
                                     updated.battery.percent = self.list[listIndex].battery.percent
                                     updated.updated = Date()
 
@@ -469,14 +457,16 @@ class BluetoothManager:ObservableObject {
 
                                 self.list[listIndex] = updated
 
-                            }
-                            else {
+                            } else {
                                 if updated.type.type != .other {
                                     self.list.append(updated)
 
                                 }
 
-                                if let notification = device.register(forDisconnectNotification: self, selector: #selector(self.bluetoothDeviceUpdated)) {
+                                if let notification = device.register(
+                                    forDisconnectNotification: self,
+                                    selector: #selector(self.bluetoothDeviceUpdated),
+                                ) {
                                     self.disconnectionNotifications.append(notification)
                                 }
 
@@ -489,25 +479,28 @@ class BluetoothManager:ObservableObject {
                 }
 
                 if initialize == true {
-                    self.connectionNotification = IOBluetoothDevice.register(forConnectNotifications: self, selector: #selector(self.bluetoothDeviceUpdated))
+                    self.connectionNotification = IOBluetoothDevice.register(
+                        forConnectNotifications: self,
+                        selector: #selector(self.bluetoothDeviceUpdated),
+                    )
 
                 }
             }
 
-        }
-        catch {
+        } catch {
             print("Bluetooth list error: \(error)")
 
         }
 
     }
 
-    @objc private func bluetoothDeviceUpdated() {
+    @objc
+    private func bluetoothDeviceUpdated() {
         for item in IOBluetoothDevice.pairedDevices() {
             if let device = item as? IOBluetoothDevice {
-                if let index = self.list.firstIndex(where: {$0.address == device.addressString }) {
+                if let index = list.firstIndex(where: { $0.address == device.addressString }) {
                     DispatchQueue.main.async {
-                        let status:BluetoothState = device.isConnected() ? .connected : .disconnected
+                        let status: BluetoothState = device.isConnected() ? .connected : .disconnected
                         var update = self.list[index]
 
                         if update.connected != status {

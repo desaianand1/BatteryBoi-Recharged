@@ -19,7 +19,7 @@ actor ProcessRunner {
     func run(
         executable: String,
         arguments: [String],
-        timeout: Duration = .seconds(30)
+        timeout: Duration = .seconds(30),
     ) async throws -> String {
         try await withThrowingTaskGroup(of: String.self) { group in
             group.addTask {

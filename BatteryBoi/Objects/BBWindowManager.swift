@@ -1,18 +1,18 @@
 //
-//  WindowManager.swift
+//  BBWindowManager.swift
 //  BatteryBoi
 //
 //  Created by Joe Barbour on 8/5/23.
 //
 
-import Foundation
 import Cocoa
-import SwiftUI
 import Combine
 import CoreGraphics
+import Foundation
+import SwiftUI
 
 struct WindowViewBlur: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSVisualEffectView {
+    func makeNSView(context _: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
 
         view.blendingMode = .behindWindow
@@ -20,45 +20,42 @@ struct WindowViewBlur: NSViewRepresentable {
         view.material = .underWindowBackground
 
         return view
-        
+
     }
 
-    func updateNSView(_ view: NSVisualEffectView, context: Context) {
-        
-    }
-    
+    func updateNSView(_: NSVisualEffectView, context _: Context) {}
+
 }
 
-enum WindowPosition:String {
+enum WindowPosition: String {
     case center
     case topLeft
     case topMiddle
     case topRight
     case bottomLeft
     case bottomRight
-    
-    var alignment:Alignment {
+
+    var alignment: Alignment {
         switch self {
-            case .center:return .center
-            case .topLeft:return .topLeading
-            case .topMiddle:return .top
-            case .topRight:return .topTrailing
-            case .bottomLeft:return .bottomLeading
-            case .bottomRight:return .bottomTrailing
-        
+        case .center: .center
+        case .topLeft: .topLeading
+        case .topMiddle: .top
+        case .topRight: .topTrailing
+        case .bottomLeft: .bottomLeading
+        case .bottomRight: .bottomTrailing
         }
-        
+
     }
-    
+
 }
 
 class WindowManager: ObservableObject {
-    static var shared = WindowManager()
-    
+    static var shared = Self()
+
     private var updates = Set<AnyCancellable>()
-    private var triggered:Int = 0;
+    private var triggered: Int = 0
     private var notifiedThresholds: Set<Int> = []
-    private var screen:CGSize {
+    private var screen: CGSize {
         if let activeScreen = NSScreen.screens.first(where: {
             NSMouseInRect(NSEvent.mouseLocation, $0.frame, false)
         }) ?? NSScreen.main {
@@ -66,11 +63,11 @@ class WindowManager: ObservableObject {
         }
         return CGSize(width: 1920, height: 1080)
     }
-    
-    @Published public var hover: Bool = false
-    @Published public var state: HUDState = .hidden
-    @Published public var position: WindowPosition = .topMiddle
-    @Published public var opacity: CGFloat = 1.0
+
+    @Published var hover: Bool = false
+    @Published var state: HUDState = .hidden
+    @Published var position: WindowPosition = .topMiddle
+    @Published var opacity: CGFloat = 1.0
 
     init() {
         BatteryManager.shared.$charging.dropFirst().removeDuplicates().sink { charging in
@@ -85,37 +82,34 @@ class WindowManager: ObservableObject {
             .debounce(for: .seconds(2), scheduler: RunLoop.main)
             .sink { charging in
                 switch charging.state {
-                    case .battery : self.windowOpen(.chargingStopped, device: nil)
-                    case .charging : self.windowOpen(.chargingBegan, device: nil)
-
+                case .battery: self.windowOpen(.chargingStopped, device: nil)
+                case .charging: self.windowOpen(.chargingBegan, device: nil)
                 }
 
             }.store(in: &updates)
-        
+
         BatteryManager.shared.$percentage.dropFirst().removeDuplicates().sink { percent in
             if BatteryManager.shared.charging.state == .battery {
                 let thresholds: [(Int, HUDAlertTypes)] = [
                     (25, .percentTwentyFive),
                     (10, .percentTen),
                     (5, .percentFive),
-                    (1, .percentOne)
+                    (1, .percentOne),
                 ]
 
                 for (threshold, alertType) in thresholds {
-                    if percent <= Double(threshold) && !self.notifiedThresholds.contains(threshold) {
+                    if percent <= Double(threshold), !self.notifiedThresholds.contains(threshold) {
                         self.notifiedThresholds.insert(threshold)
                         self.windowOpen(alertType, device: nil)
                         break
                     }
                 }
 
-            }
-            else {
-                if percent >= 100 && SettingsManager.shared.enabledChargeEighty == .disabled {
+            } else {
+                if percent >= 100, SettingsManager.shared.enabledChargeEighty == .disabled {
                     self.windowOpen(.chargingComplete, device: nil)
 
-                }
-                else if percent >= 80 && SettingsManager.shared.enabledChargeEighty == .enabled {
+                } else if percent >= 80, SettingsManager.shared.enabledChargeEighty == .enabled {
                     self.windowOpen(.chargingComplete, device: nil)
 
                 }
@@ -123,13 +117,13 @@ class WindowManager: ObservableObject {
             }
 
         }.store(in: &updates)
-        
+
         BatteryManager.shared.$thermal.dropFirst().removeDuplicates().sink { state in
             if state == .suboptimal {
                 self.windowOpen(.deviceOverheating, device: nil)
 
             }
-            
+
         }.store(in: &updates)
 
 //        BluetoothManager.shared.$connected.removeDuplicates().dropFirst(1).receive(on: DispatchQueue.main).sink() { items in
@@ -148,199 +142,192 @@ class WindowManager: ObservableObject {
 //        }.store(in: &updates)
 
         AppManager.shared.appTimer(60).dropFirst().receive(on: DispatchQueue.main).sink { _ in
-            let connected = BluetoothManager.shared.list.filter({ $0.connected == .connected })
+            let connected = BluetoothManager.shared.list.filter { $0.connected == .connected }
 
             for device in connected {
                 switch device.battery.general {
-                    case 25 : self.windowOpen(.percentTwentyFive, device: device)
-                    case 10 : self.windowOpen(.percentTen, device: device)
-                    case 5 : self.windowOpen(.percentFive, device: device)
-                    case 1 : self.windowOpen(.percentOne, device: device)
-                    default : break
-                    
+                case 25: self.windowOpen(.percentTwentyFive, device: device)
+                case 10: self.windowOpen(.percentTen, device: device)
+                case 5: self.windowOpen(.percentFive, device: device)
+                case 1: self.windowOpen(.percentOne, device: device)
+                default: break
                 }
 
             }
 
         }.store(in: &updates)
-        
-        AppManager.shared.$alert.removeDuplicates().delay(for: .seconds(5.0), scheduler: RunLoop.main).sink { type in
-            if AppManager.shared.alert?.timeout == true && self.state == .revealed {
+
+        AppManager.shared.$alert.removeDuplicates().delay(for: .seconds(5.0), scheduler: RunLoop.main).sink { _ in
+            if AppManager.shared.alert?.timeout == true, self.state == .revealed {
                 self.windowSetState(.dismissed)
-                
+
             }
 
         }.store(in: &updates)
 
-        AppManager.shared.$alert.removeDuplicates().delay(for: .seconds(10.0), scheduler: RunLoop.main).sink { type in
-            if AppManager.shared.alert?.timeout == false && self.state == .revealed {
+        AppManager.shared.$alert.removeDuplicates().delay(for: .seconds(10.0), scheduler: RunLoop.main).sink { _ in
+            if AppManager.shared.alert?.timeout == false, self.state == .revealed {
                 self.windowSetState(.dismissed)
-                
+
             }
 
         }.store(in: &updates)
-        
+
         AppManager.shared.appTimer(30).dropFirst().sink { _ in
             if BatteryManager.shared.charging.state == .battery {
-                if let now = EventManager.shared.events.sorted(by: { $0.start > $1.start }).first {
-                    if let minutes = Calendar.current.dateComponents([.minute], from: Date(), to: now.start).minute {                        
+                if let now = EventManager.shared.events.max(by: { $0.start < $1.start }) {
+                    if let minutes = Calendar.current.dateComponents([.minute], from: Date(), to: now.start).minute {
                         switch minutes {
-                            case 2 : self.windowOpen(.userEvent, device: nil)
-                            default : break
-
+                        case 2: self.windowOpen(.userEvent, device: nil)
+                        default: break
                         }
- 
+
                     }
-                    
+
                 }
-         
+
             }
-            
+
         }.store(in: &updates)
-                
+
         SettingsManager.shared.$pinned.sink { pinned in
             if pinned == .enabled {
                 withAnimation(Animation.easeOut) {
                     self.opacity = 1.0
 
                 }
-                
+
             }
-            
+
         }.store(in: &updates)
 
-        NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseUp, .rightMouseUp]) { event in
+        NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseUp, .rightMouseUp]) { _ in
             if NSRunningApplication.current == NSWorkspace.shared.frontmostApplication {
                 if self.state == .revealed || self.state == .progress {
                     self.windowSetState(.detailed)
-                    
+
                 }
-                
-            }
-            else {
+
+            } else {
                 if SettingsManager.shared.enabledPinned == .disabled {
                     if self.state.visible == true {
                         self.windowSetState(.dismissed)
-                        
+
                     }
 
-                }
-                else {
+                } else {
                     self.windowSetState(.revealed)
 
                 }
-                
+
             }
-            
+
         }
-        
+
         $state.sink { state in
             if state == .dismissed {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                    WindowManager.shared.windowClose()
-                    
+                    Self.shared.windowClose()
+
                 }
-                
-            }
-            else if state == .progress {
+
+            } else if state == .progress {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                     self.windowSetState(.revealed)
-                    
+
                 }
-                
-            }
-            else if state == .revealed && AppManager.shared.alert?.timeout == false {
+
+            } else if state == .revealed, AppManager.shared.alert?.timeout == false {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     self.windowSetState(.detailed)
-                    
+
                 }
-                
+
             }
-            
 
         }.store(in: &updates)
-        
-        self.position = self.windowLastPosition
-        
+
+        position = windowLastPosition
+
     }
-    
-    public func windowSetState(_ state:HUDState, animated:Bool = true) {
+
+    func windowSetState(_ state: HUDState, animated _: Bool = true) {
         if self.state != state {
             withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.7, blendDuration: 1.0)) {
                 self.state = state
-                
+
             }
-            
+
         }
-        
+
     }
-    
-    public func windowIsVisible(_ type:HUDAlertTypes) -> Bool {
-        if let window = self.windowExists(type) {
+
+    func windowIsVisible(_ type: HUDAlertTypes) -> Bool {
+        if let window = windowExists(type) {
             if CGFloat(window.alphaValue) > 0.5 {
                 return true
-                
+
             }
-            
+
         }
-        
+
         return false
-        
+
     }
-    
-    public func windowOpen(_ type:HUDAlertTypes, device:BluetoothObject?) {
-        if let window = self.windowExists(type) {
+
+    func windowOpen(_ type: HUDAlertTypes, device: BluetoothObject?) {
+        if let window = windowExists(type) {
             window.contentView = WindowHostingView(rootView: HUDParent(type, device: device))
-            
+
             DispatchQueue.main.async {
                 if window.canBecomeKeyWindow {
                     window.makeKeyAndOrderFront(nil)
                     window.alphaValue = 1.0
-                    
+
                     if AppManager.shared.alert == nil {
                         if let sfx = type.sfx {
                             sfx.play()
-                            
+
                         }
-                        
+
                     }
-                    
-                    if BluetoothManager.shared.connected.count > 0 {
+
+                    if !BluetoothManager.shared.connected.isEmpty {
                         AppManager.shared.menu = .devices
 
                     }
-                    
+
                     AppManager.shared.device = device
                     AppManager.shared.alert = type
-                    
+
                     self.windowSetState(.progress)
 
                 }
-                
-            }
-                
-        }
-        
-    }
-    
-    private func windowClose() {
-        if let window = NSApplication.shared.windows.filter({$0.title == "modalwindow"}).first {
-            if AppManager.shared.alert != nil {
-                AppManager.shared.alert = nil
-                AppManager.shared.device = nil
-                
-                self.state = .hidden
-                
-                window.alphaValue = 0.0
-                
+
             }
 
         }
-        
+
     }
-    
-    private func windowDefault(_ type:HUDAlertTypes) -> NSWindow? {
-        var window:NSWindow?
+
+    private func windowClose() {
+        if let window = NSApplication.shared.windows.first(where: { $0.title == "modalwindow" }) {
+            if AppManager.shared.alert != nil {
+                AppManager.shared.alert = nil
+                AppManager.shared.device = nil
+
+                state = .hidden
+
+                window.alphaValue = 0.0
+
+            }
+
+        }
+
+    }
+
+    private func windowDefault(_: HUDAlertTypes) -> NSWindow? {
+        var window: NSWindow?
         window = NSWindow()
         window?.styleMask = [.borderless, .miniaturizable]
         window?.level = .statusBar
@@ -349,162 +336,168 @@ class WindowManager: ObservableObject {
         window?.title = "modalwindow"
         window?.isMovableByWindowBackground = true
         window?.backgroundColor = .clear
-        window?.setFrame(self.windowHandleFrame(), display: true)
+        window?.setFrame(windowHandleFrame(), display: true)
         window?.titlebarAppearsTransparent = true
         window?.titleVisibility = .hidden
         window?.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         window?.toolbarStyle = .unifiedCompact
         window?.isReleasedWhenClosed = false
         window?.alphaValue = 0.0
-        
+
         return window
-        
+
     }
-    
+
     private func windowExists(_ type: HUDAlertTypes) -> NSWindow? {
-        if let window = NSApplication.shared.windows.filter({$0.title == "modalwindow"}).first {
-            return window
-            
+        if let window = NSApplication.shared.windows.first(where: { $0.title == "modalwindow" }) {
+            window
+        } else {
+            windowDefault(type)
         }
-        else {
-            return self.windowDefault(type)
-            
-        }
-        
     }
-    
-    public func windowHandleFrame(moved: NSRect? = nil) -> NSRect {
-        let windowWidth = self.screen.width / 3
-        let windowHeight = self.screen.height / 2
+
+    func windowHandleFrame(moved: NSRect? = nil) -> NSRect {
+        let windowWidth = screen.width / 3
+        let windowHeight = screen.height / 2
         let windowMargin: CGFloat = 40
-        
+
         let positionDefault = CGSize(width: 420, height: 220)
-        
+
         if triggered > 5 {
-            if let moved = moved {
-                _ = self.calculateWindowLastPosition(moved: moved, windowHeight: windowHeight, windowWidth: windowWidth, windowMargin: windowMargin)
-                
-                return NSMakeRect(moved.origin.x, moved.origin.y, moved.width, moved.height)
-                
+            if let moved {
+                _ = calculateWindowLastPosition(
+                    moved: moved,
+                    windowHeight: windowHeight,
+                    windowWidth: windowWidth,
+                    windowMargin: windowMargin,
+                )
+
+                return NSRect(x: moved.origin.x, y: moved.origin.y, width: moved.width, height: moved.height)
+
             }
-            
+
+        } else {
+            triggered += 1
+
         }
-        else {
-            self.triggered += 1
-            
-        }
-        
-        return calculateInitialPosition(mode: windowLastPosition, defaultSize: positionDefault, windowMargin: windowMargin)
-        
+
+        return calculateInitialPosition(
+            mode: windowLastPosition,
+            defaultSize: positionDefault,
+            windowMargin: windowMargin,
+        )
+
     }
-    
-    private var windowLastPosition:WindowPosition {
+
+    private var windowLastPosition: WindowPosition {
         get {
-            if let position = UserDefaults.main.object(forKey: SystemDefaultsKeys.batteryWindowPosition.rawValue) as? String {
-                withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.7, blendDuration:  0.5)) {
+            if let position = UserDefaults.main
+                .object(forKey: SystemDefaultsKeys.batteryWindowPosition.rawValue) as? String
+            {
+                withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.7, blendDuration: 0.5)) {
                     self.position = WindowPosition(rawValue: position) ?? .topMiddle
-                    
+
                 }
 
             }
 
-            return self.position
+            return position
 
         }
-        
+
         set {
             UserDefaults.save(.batteryWindowPosition, value: newValue.rawValue)
-           
+
         }
-                
+
     }
 
-    private func calculateWindowLastPosition(moved: NSRect, windowHeight: CGFloat, windowWidth: CGFloat, windowMargin: CGFloat) -> WindowPosition {
+    private func calculateWindowLastPosition(
+        moved: NSRect,
+        windowHeight: CGFloat,
+        windowWidth: CGFloat,
+        windowMargin: CGFloat,
+    ) -> WindowPosition {
         var positionTop: CGFloat
         var positionMode: WindowPosition
-        
+
         if moved.midY > windowHeight {
-            positionTop = self.screen.height - windowMargin
-            
-        } 
-        else {
+            positionTop = screen.height - windowMargin
+
+        } else {
             positionTop = windowMargin
-            
+
         }
-        
+
         if moved.midX < windowWidth {
             positionMode = (positionTop == windowMargin) ? .bottomLeft : .topLeft
-            
-        } 
-        else if moved.midX > windowWidth && moved.midX < (windowWidth * 2) {
+
+        } else if moved.midX > windowWidth, moved.midX < (windowWidth * 2) {
             positionMode = (positionTop == windowMargin) ? .center : .topMiddle
-            
-        } 
-        else if moved.midX > (windowWidth * 2) {
+
+        } else if moved.midX > (windowWidth * 2) {
             positionMode = (positionTop == windowMargin) ? .bottomRight : .topRight
-            
-        } 
-        else {
+
+        } else {
             positionMode = .center
-            
+
         }
-        
-        self.windowLastPosition = positionMode
-        
+
+        windowLastPosition = positionMode
+
         return positionMode
-        
+
     }
 
     private func calculateInitialPosition(mode: WindowPosition, defaultSize: CGSize, windowMargin: CGFloat) -> NSRect {
         var positionLeft: CGFloat = windowMargin
         var positionTop: CGFloat = windowMargin
-        
+
         switch mode {
         case .center:
-            positionLeft = (self.screen.width / 2) - (defaultSize.width / 2)
-            positionTop = (self.screen.height / 2) - (defaultSize.height / 2)
-            
+            positionLeft = (screen.width / 2) - (defaultSize.width / 2)
+            positionTop = (screen.height / 2) - (defaultSize.height / 2)
+
         case .topLeft, .bottomLeft:
             positionLeft = windowMargin
-            positionTop = (mode == .topLeft) ? self.screen.height - (defaultSize.height + windowMargin) : windowMargin
-            
+            positionTop = (mode == .topLeft) ? screen.height - (defaultSize.height + windowMargin) : windowMargin
+
         case .topMiddle:
-            positionLeft = (self.screen.width / 2) - (defaultSize.width / 2)
-            positionTop = self.screen.height - (defaultSize.height + windowMargin)
-            
+            positionLeft = (screen.width / 2) - (defaultSize.width / 2)
+            positionTop = screen.height - (defaultSize.height + windowMargin)
+
         case .topRight, .bottomRight:
-            positionLeft = self.screen.width - (defaultSize.width + windowMargin)
-            positionTop = (mode == .topRight) ? self.screen.height - (defaultSize.height + windowMargin) : windowMargin
+            positionLeft = screen.width - (defaultSize.width + windowMargin)
+            positionTop = (mode == .topRight) ? screen.height - (defaultSize.height + windowMargin) : windowMargin
         }
-        
-        return NSMakeRect(positionLeft, positionTop, defaultSize.width, defaultSize.height)
-        
+
+        return NSRect(x: positionLeft, y: positionTop, width: defaultSize.width, height: defaultSize.height)
+
     }
 
 }
 
-class WindowHostingView<Content>: NSHostingView<Content> where Content: View {
+class WindowHostingView<Content: View>: NSHostingView<Content> {
     override func scrollWheel(with event: NSEvent) {
         super.scrollWheel(with: event)
-        
+
         if SettingsManager.shared.enabledPinned == .enabled {
             withAnimation(Animation.easeOut) {
                 if WindowManager.shared.state == .revealed {
-                    if event.deltaY < 0 && WindowManager.shared.opacity > 0.4 {
+                    if event.deltaY < 0, WindowManager.shared.opacity > 0.4 {
                         WindowManager.shared.opacity += (event.deltaY / 100)
-                        
-                    }
-                    else if event.deltaY > 0 && WindowManager.shared.opacity < 1.0 {
+
+                    } else if event.deltaY > 0, WindowManager.shared.opacity < 1.0 {
                         WindowManager.shared.opacity += (event.deltaY / 100)
-                        
+
                     }
-                    
+
                 }
-                
+
             }
-            
+
         }
-        
+
     }
-    
+
 }

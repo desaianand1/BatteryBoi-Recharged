@@ -8,75 +8,74 @@
 import SwiftUI
 
 struct BluetoothIcon: View {
-    @State private var item:BluetoothObject?
-    @State private var icon:String
-    @State private var animation:Namespace.ID
-    
-    @Binding private var style:RadialStyle
+    @State private var item: BluetoothObject?
+    @State private var icon: String
+    @State private var animation: Namespace.ID
 
-    init(_ item:BluetoothObject?, style:Binding<RadialStyle>, animation:Namespace.ID) {
-        self._item = State(initialValue: item)
-        self._icon = State(initialValue: item?.type.icon ?? AppManager.shared.appDeviceType.icon)
-        self._animation = State(initialValue: animation)
-        
-        self._style = style
+    @Binding private var style: RadialStyle
+
+    init(_ item: BluetoothObject?, style: Binding<RadialStyle>, animation: Namespace.ID) {
+        _item = State(initialValue: item)
+        _icon = State(initialValue: item?.type.icon ?? AppManager.shared.appDeviceType.icon)
+        _animation = State(initialValue: animation)
+
+        _style = style
 
     }
-    
+
     var body: some View {
         HStack {
             ZStack {
-                if self.item == nil || self.item?.battery.percent != nil {
-                    RadialProgressMiniContainer(self.item, style: $style)
-                    
-                    Image(systemName: self.icon)
+                if item == nil || item?.battery.percent != nil {
+                    RadialProgressMiniContainer(item, style: $style)
+
+                    Image(systemName: icon)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(self.style == .light ? Color("BatteryButton") : Color("BatterySubtitle"))
+                        .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatterySubtitle"))
                         .padding(2)
                         .background(
                             Circle()
-                                .fill(self.style == .light ? Color("BatteryTitle") : Color("BatteryButton"))
-                                .blur(radius: 2)
-                            
+                                .fill(style == .light ? Color("BatteryTitle") : Color("BatteryButton"))
+                                .blur(radius: 2),
+
                         )
-                        .matchedGeometryEffect(id: self.icon, in: animation)
-                        .offset(x:12, y:12)
-                    
-                }
-                else {
-                    Image(systemName: self.icon)
+                        .matchedGeometryEffect(id: icon, in: animation)
+                        .offset(x: 12, y: 12)
+
+                } else {
+                    Image(systemName: icon)
                         .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(self.style == .light ? Color("BatteryButton") : Color("BatterySubtitle"))
+                        .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatterySubtitle"))
                         .padding(2)
                         .matchedGeometryEffect(id: item?.type.icon ?? "laptopcomputer", in: animation)
-                    
+
                 }
 
             }
-            
-            Spacer().frame(width:18)
-            
+
+            Spacer().frame(width: 18)
+
         }
-        
+
     }
-    
+
 }
 
 struct BluetoothItem: View {
-    @EnvironmentObject var manager:AppManager
-    @EnvironmentObject var battery:BatteryManager
+    @EnvironmentObject var manager: AppManager
+    @EnvironmentObject var battery: BatteryManager
 
-    @Binding var hover:Bool
+    @Binding var hover: Bool
 
-    @State var item:BluetoothObject?
-    @State var style:RadialStyle = .light
+    @State var item: BluetoothObject?
+    @State var style: RadialStyle = .light
 
     @Namespace private var animation
-    
-    init(_ item:BluetoothObject?, hover:Binding<Bool>) {
-        self._item = State(initialValue: item)
-        self._hover = hover
-        
+
+    init(_ item: BluetoothObject?, hover: Binding<Bool>) {
+        _item = State(initialValue: item)
+        _hover = hover
+
     }
 
     var body: some View {
@@ -84,103 +83,98 @@ struct BluetoothItem: View {
             BluetoothIcon(item, style: $style, animation: animation)
 
             VStack(alignment: .leading) {
-                if let item = self.item {
+                if let item {
                     Text(item.device ?? item.type.type.rawValue)
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(self.style == .light ? Color("BatteryButton") : Color("BatteryTitle"))
+                        .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatteryTitle"))
                         .padding(0)
-                    
+
                     HStack {
-                        if self.hover == true {
+                        if hover == true {
                             if item.connected == .disconnected {
                                 Text("BluetoothDisconnectedLabel".localise())
-                        
-                            }
-                            else {
+
+                            } else {
                                 if let percent = item.battery.percent {
                                     Text("AlertSomePercentTitle".localise([Int(percent)]))
-                                    
-                                }
-                                else {
+
+                                } else {
                                     Text("BluetoothInvalidLabel".localise())
-                                        
+
                                 }
-                                
+
                             }
-                            
+
                         }
-                        
+
                     }
                     .font(.system(size: 10, weight: .bold))
                     .foregroundColor(Color("BatterySubtitle"))
-                    
-                }
-                else {
+
+                } else {
                     Text(AppManager.shared.appDeviceType.name)
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(self.style == .light ? Color("BatteryButton") : Color("BatteryTitle"))
+                        .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatteryTitle"))
                         .padding(0)
-                    
-                    if self.hover == true {
+
+                    if hover == true {
                         Text("AlertSomePercentTitle".localise([Int(battery.percentage)]))
                             .font(.system(size: 10, weight: .bold))
                             .foregroundColor(Color("BatterySubtitle"))
-                        
+
                     }
-                    
+
                 }
-                
+
             }
-                                    
+
         }
         .frame(height: 60)
         .padding(.leading, 16)
         .padding(.trailing, 26)
         .background(
-            RoundedRectangle(cornerRadius: 30, style: .continuous).fill(self.style == .light ? Color("BatteryTitle") : Color("BatteryButton"))
-            
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                .fill(style == .light ? Color("BatteryTitle") : Color("BatteryButton")),
+
         )
         .onTapGesture {
             withAnimation(Animation.easeOut) {
-                self.manager.device = item
-                
+                manager.device = item
+
             }
-            
+
         }
         .onHover { hover in
             switch hover {
-                case true : NSCursor.pointingHand.push()
-                default : NSCursor.pop()
-                
+            case true: NSCursor.pointingHand.push()
+            default: NSCursor.pop()
             }
-            
+
         }
         .onChange(of: manager.device) { newValue in
             withAnimation(Animation.easeOut) {
                 if newValue == item {
-                    self.style = .light
-                    
+                    style = .light
+
+                } else {
+                    style = .dark
+
                 }
-                else {
-                    self.style = .dark
-                    
-                }
-                
-            }
-            
-        }
-        .onAppear() {
-            if AppManager.shared.device == item {
-                self.style = .light
-                
-            }
-            else {
-                self.style = .dark
 
             }
-            
+
         }
-        
+        .onAppear {
+            if AppManager.shared.device == item {
+                style = .light
+
+            } else {
+                style = .dark
+
+            }
+
+        }
+
     }
-    
+
 }
