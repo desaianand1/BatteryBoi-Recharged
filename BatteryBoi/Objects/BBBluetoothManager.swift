@@ -1,16 +1,13 @@
-//
-//  BBBluetoothManager.swift
-//  BatteryBoi
-//
-//  Created by Joe Barbour on 8/22/23.
-//
-
 import Cocoa
 import Combine
 import CoreBluetooth
 import Foundation
 import IOBluetooth
 import IOKit.ps
+
+#if canImport(Sentry)
+    import Sentry
+#endif
 
 enum BluetoothConnectionState {
     case connected
@@ -324,12 +321,6 @@ final class BluetoothManager: BluetoothServiceProtocol {
             disconnectionNotifications[address]?.unregister()
             disconnectionNotifications.removeValue(forKey: address)
         }
-
-        #if DEBUG
-            for device in list {
-                print("\n\(device.device ?? "") (\(device.address)) - \(device.connected.status)")
-            }
-        #endif
     }
 
     private var connectionNotification: IOBluetoothUserNotification?
@@ -405,18 +396,23 @@ final class BluetoothManager: BluetoothServiceProtocol {
     }
 
     func bluetoothUpdateConnection(_ device: BluetoothObject, state: BluetoothState) -> BluetoothConnectionState {
-        if let device = IOBluetoothDevice(addressString: device.address) {
-            if device.isConnected() {
+        if let btDevice = IOBluetoothDevice(addressString: device.address) {
+            if btDevice.isConnected() {
                 if state == .connected {
                     return .connected
 
                 } else {
-                    let result = device.closeConnection()
+                    let result = btDevice.closeConnection()
                     if result == kIOReturnSuccess {
                         return .disconnected
 
                     } else {
-                        print("Failed to disconnect from the device. Error: \(result)")
+                        #if canImport(Sentry)
+                            SentrySDK.capture(message: "Bluetooth disconnect failed") { scope in
+                                scope.setExtra(value: device.address, key: "address")
+                                scope.setExtra(value: result, key: "ioReturn")
+                            }
+                        #endif
                         return .failed
 
                     }
@@ -425,12 +421,17 @@ final class BluetoothManager: BluetoothServiceProtocol {
 
             } else {
                 if state == .connected {
-                    let result = device.openConnection()
+                    let result = btDevice.openConnection()
                     if result == kIOReturnSuccess {
                         return .connected
 
                     } else {
-                        print("Failed to connect to the device. Error: \(result)")
+                        #if canImport(Sentry)
+                            SentrySDK.capture(message: "Bluetooth connect failed") { scope in
+                                scope.setExtra(value: device.address, key: "address")
+                                scope.setExtra(value: result, key: "ioReturn")
+                            }
+                        #endif
                         return .failed
 
                     }
@@ -518,7 +519,9 @@ final class BluetoothManager: BluetoothServiceProtocol {
             var didUpdate = false
             for item in IOBluetoothDevice.pairedDevices() {
                 if let device = item as? IOBluetoothDevice {
-                    if let index = list.firstIndex(where: { $0.address == device.addressString }) {
+                    if let index = list
+                        .firstIndex(where: { $0.address == device.addressString?.normalizedBluetoothAddress })
+                    {
                         let status: BluetoothState = device.isConnected() ? .connected : .disconnected
                         var update = list[index]
 
