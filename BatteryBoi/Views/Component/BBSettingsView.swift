@@ -1,10 +1,3 @@
-//
-//  BBSettingsView.swift
-//  BatteryBoi
-//
-//  Created by Joe Barbour on 8/15/23.
-//
-
 import SwiftUI
 
 struct SettingsScrollOffsetKey: PreferenceKey {

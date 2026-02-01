@@ -1,10 +1,3 @@
-//
-//  BBAboutView.swift
-//  BatteryBoi
-//
-//  Created by Joe Barbour on 8/30/23.
-//
-
 import SwiftUI
 
 struct AboutContainer: View {
@@ -35,6 +28,11 @@ struct AboutContainer: View {
                 .font(.system(size: 12, weight: .medium))
                 .padding(.horizontal, 24)
 
+                // Version display
+                Text(UpdateManager.shared.versionDisplay)
+                    .font(.system(size: 10, weight: .regular))
+                    .foregroundColor(Color("BatterySubtitle").opacity(0.6))
+                    .padding(.top, 20)
             }
             .frame(width: 340)
 

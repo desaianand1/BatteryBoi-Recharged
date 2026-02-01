@@ -1,10 +1,3 @@
-//
-//  BBUpdateView.swift
-//  BatteryBoi
-//
-//  Created by Joe Barbour on 9/12/23.
-//
-
 import SwiftUI
 
 struct UpdatePromptView: View {

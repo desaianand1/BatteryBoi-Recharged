@@ -1,10 +1,3 @@
-//
-//  BBNavigationView.swift
-//  BatteryBoi
-//
-//  Created by Joe Barbour on 9/19/23.
-//
-
 import SwiftUI
 
 struct NavigationContainer: View {

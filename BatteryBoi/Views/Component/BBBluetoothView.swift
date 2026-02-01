@@ -1,10 +1,3 @@
-//
-//  BBBluetoothView.swift
-//  BatteryBoi
-//
-//  Created by Joe Barbour on 9/6/23.
-//
-
 import SwiftUI
 
 struct BluetoothIcon: View {
@@ -94,6 +87,8 @@ struct BluetoothItem: View {
         if let item {
             if item.connected == .disconnected {
                 return "Disconnected"
+            } else if let left = item.battery.left, let right = item.battery.right {
+                return "Left \(Int(left)) percent, Right \(Int(right)) percent"
             } else if let percent = item.battery.percent {
                 return "\(Int(percent)) percent"
             } else {
@@ -125,24 +120,26 @@ struct BluetoothItem: View {
                                 .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatteryTitle"))
                                 .padding(0)
 
-                            HStack {
+                            HStack(spacing: 4) {
                                 if hover == true {
                                     if item.connected == .disconnected {
-                                        Text("BluetoothDisconnectedLabel".localise())
-
+                                        Text("BluetoothNotConnectedLabel".localise())
                                     } else {
-                                        if let percent = item.battery.percent {
+                                        // Show left/right battery for AirPods-style devices
+                                        if let left = item.battery.left, let right = item.battery.right {
+                                            Text("L: \(Int(left))%  R: \(Int(right))%")
+                                        } else if let percent = item.battery.percent {
                                             Text("AlertSomePercentTitle".localise([Int(percent)]))
-
                                         } else {
                                             Text("BluetoothInvalidLabel".localise())
-
                                         }
-
                                     }
 
+                                    // Connection status indicator
+                                    Circle()
+                                        .fill(item.connected == .connected ? Color.green : Color.gray)
+                                        .frame(width: 6, height: 6)
                                 }
-
                             }
                             .font(.system(size: 10, weight: .bold))
                             .foregroundColor(Color("BatterySubtitle"))

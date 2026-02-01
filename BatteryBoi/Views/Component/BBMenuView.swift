@@ -1,10 +1,3 @@
-//
-//  BBMenuView.swift
-//  BatteryBoi
-//
-//  Created by Joe Barbour on 8/4/23.
-//
-
 import Combine
 import SwiftUI
 
