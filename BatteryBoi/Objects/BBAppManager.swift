@@ -22,7 +22,6 @@ final class AppManager {
     var profile: SystemProfileObject?
 
     private var updates = Set<AnyCancellable>()
-    private var timer: AnyCancellable?
     private var timerTask: Task<Void, Never>?
 
     init() {
@@ -50,7 +49,6 @@ final class AppManager {
 
     deinit {
         timerTask?.cancel()
-        timer?.cancel()
         updates.forEach { $0.cancel() }
     }
 
@@ -182,6 +180,8 @@ final class AppManager {
 
     var appDeviceType: SystemDeviceTypes {
         let platform = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
+        guard platform != IO_OBJECT_NULL else { return .unknown }
+        defer { IOObjectRelease(platform) }
 
         if let model = IORegistryEntryCreateCFProperty(platform, "model" as CFString, kCFAllocatorDefault, 0)
             .takeRetainedValue() as? Data,
@@ -206,8 +206,6 @@ final class AppManager {
                 return .unknown
             }
         }
-
-        IOObjectRelease(platform)
 
         return .unknown
 
