@@ -42,8 +42,8 @@ final class AppManager {
 
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(2))
-            if self.appDistribution() == .direct {
-                self.profile = self.appProfile(force: false)
+            if await self.appDistribution() == .direct {
+                self.profile = await self.appProfile(force: false)
             }
         }
     }
@@ -213,7 +213,7 @@ final class AppManager {
 
     }
 
-    private func appProfile(force _: Bool = false) -> SystemProfileObject? {
+    private func appProfile(force _: Bool = false) async -> SystemProfileObject? {
         if let payload = UserDefaults.main.object(forKey: SystemDefaultsKeys.profilePayload.rawValue) as? String {
 
             if let object = try? JSONDecoder().decode([SystemProfileObject].self, from: Data(payload.utf8)) {
@@ -222,47 +222,32 @@ final class AppManager {
             }
 
         } else {
-            if FileManager.default.fileExists(atPath: "/usr/bin/python3") {
-                if let script = Bundle.main.path(forResource: "BBProfileScript", ofType: "py") {
-                    let process = Process()
-                    process.executableURL = URL(fileURLWithPath: "/usr/bin/python3")
-                    process.arguments = [script]
+            guard FileManager.default.fileExists(atPath: "/usr/bin/python3"),
+                  let script = Bundle.main.path(forResource: "BBProfileScript", ofType: "py")
+            else {
+                return nil
+            }
 
-                    let pipe = Pipe()
-                    process.standardOutput = pipe
+            do {
+                let output = try await ProcessRunner.shared.run(
+                    executable: "/usr/bin/python3",
+                    arguments: [script],
+                    timeout: .seconds(30),
+                )
 
-                    do {
-                        try process.run()
-                        process.waitUntilExit()
+                UserDefaults.save(.profilePayload, value: output)
+                UserDefaults.save(.profileChecked, value: Date())
 
-                        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-
-                        if let output = String(data: data, encoding: .utf8)?
-                            .trimmingCharacters(in: .whitespacesAndNewlines)
-                        {
-
-                            UserDefaults.save(.profilePayload, value: output)
-                            UserDefaults.save(.profileChecked, value: Date())
-
-                            if let object = try? JSONDecoder().decode(
-                                [SystemProfileObject].self,
-                                from: Data(output.utf8),
-                            ) {
-                                if let id = object.first?.id, let display = object.first?.display {
-                                    return SystemProfileObject(id: id, display: display)
-                                }
-
-                            }
-
-                        }
-
-                    } catch {
-                        print("Profile Error: ", error)
-
+                if let object = try? JSONDecoder().decode(
+                    [SystemProfileObject].self,
+                    from: Data(output.utf8),
+                ) {
+                    if let id = object.first?.id, let display = object.first?.display {
+                        return SystemProfileObject(id: id, display: display)
                     }
-
                 }
-
+            } catch {
+                print("Profile Error: ", error)
             }
 
         }
@@ -271,24 +256,25 @@ final class AppManager {
 
     }
 
-    func appDistribution() -> SystemDistribution {
-        let task = Process()
-        task.launchPath = "/usr/bin/codesign"
-        task.arguments = ["-dv", "--verbose=4", Bundle.main.bundlePath]
+    func appDistribution() async -> SystemDistribution {
+        do {
+            let output = try await ProcessRunner.shared.run(
+                executable: "/usr/bin/codesign",
+                arguments: ["-dv", "--verbose=4", Bundle.main.bundlePath],
+                timeout: .seconds(10),
+            )
 
-        let outputPipe = Pipe()
-        task.standardOutput = outputPipe
-        task.launch()
-        task.waitUntilExit()
-
-        let data = outputPipe.fileHandleForReading.readDataToEndOfFile()
-
-        if let output = String(data: data, encoding: .utf8) {
             if output.contains("Authority=Apple Mac OS Application Signing") {
                 return .appstore
-
             }
-
+        } catch {
+            // codesign outputs to stderr, so non-zero exit is expected for non-App Store builds
+            // Check if the error message contains the App Store signing info
+            if case let ProcessRunnerError.nonZeroExitCode(_, errorOutput) = error {
+                if errorOutput.contains("Authority=Apple Mac OS Application Signing") {
+                    return .appstore
+                }
+            }
         }
 
         return .direct
