@@ -1,163 +1,97 @@
+# BatteryBoi - Recharged
 
-![BatteryBoi Promo image](https://pub-3d59231d7ecc43e7af32a82026f9e071.r2.dev/BatteryBoi%20Poster.jpg)
+A beautiful, powerful battery indicator for your macOS menu bar.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-![GitHub Sponsors](https://img.shields.io/github/sponsors/thebarbican19)
-[![Github All Releases](https://img.shields.io/github/downloads/thebarbican19/BatteryBoi/total.svg)]()
-![GitHub contributors](https://img.shields.io/github/contributors/thebarbican19/BatteryBoi)
-[![Swift Version](https://img.shields.io/badge/Swift-5.x-orange.svg)]()
-[![MacOS Version](https://img.shields.io/badge/Supported%20Version-v11.0,%20v12.0,%20v13.0,%20v14.0+-orange)]()
-[![Twitter](https://img.shields.io/badge/Follow%20BatteryBoiApp-black)](https://twitter.com/batteryboiapp)
+[![Swift Version](https://img.shields.io/badge/Swift-6.x-orange.svg)]()
+[![macOS](https://img.shields.io/badge/macOS-11.0+-blue)]()
 
+> [!NOTE]
+> This is a faithful revival of the original [BatteryBoi](https://github.com/thebarbican19/BatteryBoi) app by Joe Barbour, updated and maintained for modern macOS versions.
 
-# BatteryBoi - A Battery Indicator to Rule Them All!
-**BatteryBoi** is a **replacement Battery Indicator for the MacOS Menu Bar**. <br><br>
+## Features
 
-## Why
-The battery icon really needed an indicator for how much time is left in terms of minutes and hours. So as a fun evening project, I ([Mojito Joe](https://twitter.com/mistermeenr)) built it. 
+- Real-time battery percentage and time remaining in your menu bar
+- Beautiful Dynamic Island-style notifications for charging events
+- Bluetooth device battery monitoring
+- Support for both Intel and Apple Silicon Macs
+- Customizable display options and sound effects
+- Localized in 15+ languages
 
-<br>
-However, because of popular demand, the scope of this project has expanded significantly to be a full-fledged, open-source, completely free battery app giving you beautiful notifications and insights into your battery, and even your connected Bluetooth devices<br><br><br>
-<br>
+## Installation
 
-## News! News! News! - Version 3.0 & the iOS App
-After crossing 20k downloads, I am happy to launch not only some huge updates coming to Version 3.0, but also the release of the BatteryBoi iOS and iPadOS apps. Plus much more. 
-<br>
+### Homebrew (Recommended)
 
-**See the full post about it all [here](https://github.com/thebarbican19/BatteryBoi/discussions/62)**
+```bash
+brew install batteryboi
+```
 
-<br><br>
+### Manual Download
 
-## How (to Install)
+1. Download the latest `.dmg` from [Releases](https://github.com/desaianand1/BatteryBoi-Recharged/releases)
+2. Open the DMG and drag BatteryBoi to your Applications folder
+3. Launch BatteryBoi from Applications
 
-#### Manual Download
-1. You can install the app by downloading the [latest released .DMG file](https://github.com/thebarbican19/BatteryBoi/releases/). This contains an executable version of the app - **you do not need to Xcode to run this.**
-2. Open/mount the DMG file and drag BatteryBoi into the Applications Folder. And that's it!
-3. You can hide the default battery icon by going to **System Preferences** > **Control Center** > **Battery** > **Show in Menu Bar**
-<br><br><br>
+> [!TIP]
+> To hide the default macOS battery icon, go to **System Settings** → **Control Center** → **Battery** → disable **Show in Menu Bar**
 
-#### Homebrew
-You can install BatteryBoi via Homebrew thanks to the contribution from [Marcus Kannicht](https://github.com/kannicht). `$ brew install batteryboi`
+## Compatibility
 
-<br><br><br>
+| macOS Version | Supported |
+|---------------|-----------|
+| 11.0 Big Sur | Yes |
+| 12.0 Monterey | Yes |
+| 13.0 Ventura | Yes |
+| 14.0 Sonoma | Yes |
+| 15.0 Sequoia | Yes |
+| 26.0 Tahoe | Yes |
 
-### Works On...
-**BatteryBoi** runs on **both Intel & Silicon (M1 & M2)** for the following MacOS versions
-- 11.0 (Big Sur)
-- 12.0 (Monterey)
-- 13.0 (Ventura)
-- 14.0 (Sonoma)
-- 15.0 [(Big Chungus)](https://twitter.com/mistermeenr/status/1643378900313964544?s=20)
-
-<br><br><br>
+Works on both **Intel** and **Apple Silicon** Macs.
 
 ## Localization
-**BatteryBoi** has been Localized into the following languages, either by way of auto-translation or by direct translation by the community.
 
-#### Verified
-- 🇬🇧 [English](https://github.com/thebarbican19/BatteryBoi/tree/main/BatteryBoi/Other/Localization/en.lproj/LocalizableMain.strings)
-- 🇯🇵 [Japanese](https://github.com/thebarbican19/BatteryBoi/tree/main/BatteryBoi/Other/Localization/ja.lproj/LocalizableMain.strings) (Provided by [@fus1ondev](https://github.com/fus1ondev))
-- 🇷🇺 [Russian](https://github.com/thebarbican19/BatteryBoi/tree/main/BatteryBoi/Other/Localization/ru.lproj/LocalizableMain.strings) (Provided by [Alexey Petraky @ko-oler](https://github.com/ko-oler))
-- 🇳🇱 [Dutch](https://github.com/thebarbican19/BatteryBoi/tree/main/BatteryBoi/Other/Localization/nl.lproj/LocalizableMain.strings) (Provided by [@joostiphone](https://github.com/joostiphone))
-- 🇹🇷 [Turkish](https://github.com/thebarbican19/BatteryBoi/tree/main/BatteryBoi/Other/Localization/tr.lproj/LocalizableMain.strings) (Provided by [Soner Kalonya @kalonya](https://github.com/kalonya))
-- 🇨🇳 [Chinese (Simplified)](https://github.com/thebarbican19/BatteryBoi/tree/main/BatteryBoi/Other/Localization/tr.lproj/LocalizableMain.strings) (Provided by [Desmoed Richtofen @Shane1119](https://github.com/Shane1119))
-- 🇹🇼 [Chinese (Traditional)](https://github.com/thebarbican19/BatteryBoi/tree/main/BatteryBoi/Other/Localization/tr.lproj/LocalizableMain.strings) (Provided by [Desmoed Richtofen @Shane1119](https://github.com/Shane1119))
-- 🇸🇰 [Slovenian](https://github.com/thebarbican19/BatteryBoi/tree/main/BatteryBoi/Other/Localization/tr.lproj/LocalizableMain.strings) (Provided by [@drodmantras](https://github.com/drodmantras))
-- 🇸🇰 [Slovak](https://github.com/thebarbican19/BatteryBoi/tree/main/BatteryBoi/Other/Localization/tr.lproj/LocalizableMain.strings) (Provided by [@Svec-Tomas](https://github.com/Svec-Tomas))
-- 🇻🇳 [Vietnamese](https://github.com/thebarbican19/BatteryBoi/tree/main/BatteryBoi/Other/Localization/vi.lproj/LocalizableMain.strings) (Provided by [Hieu Huynh @hieuhuynh93](https://github.com/hieuhuynh93))
-- 🇪🇸 [Spanish](https://github.com/thebarbican19/BatteryBoi/tree/main/BatteryBoi/Other/Localization/es.lproj/LocalizableMain.strings) (Provided by [@David C](https://github.com/davidcafor))
-- 🇩🇪 [German](https://github.com/thebarbican19/BatteryBoi/tree/main/BatteryBoi/Other/Localization/de.lproj/LocalizableMain.strings) (Provided by  [Hendrik Erz @nathanlesage](https://github.com/nathanlesage))
-- 🇰🇷 [Korean](https://github.com/thebarbican19/BatteryBoi/tree/main/BatteryBoi/Other/Localization/ko.lproj/LocalizableMain.strings) (Provided by  [YiGeon @YiGeon](https://github.com/YiGeon))
-- 🇫🇷 [French](https://github.com/thebarbican19/BatteryBoi/tree/main/BatteryBoi/Other/Localization/fr.lproj/LocalizableMain.strings) (Provided by  [Ben Wayne](https://github.com/))
-- 🇮🇹 [Italian](https://github.com/thebarbican19/BatteryBoi/tree/main/BatteryBoi/Other/Localization/it.lproj/LocalizableMain.strings) (Provided by  [Francesco @katullo11](https://github.com/katullo11))
+BatteryBoi is available in:
 
+English, Japanese, Russian, Dutch, Turkish, Chinese (Simplified & Traditional), Slovenian, Slovak, Vietnamese, Spanish, German, Korean, French, Italian, Portuguese
 
+Want to help translate? Contributions welcome via pull request.
 
-#### Unverified/Auto-Translated
-- 🇵🇹 [Portuguese (Traditional)](https://github.com/thebarbican19/BatteryBoi/tree/main/BatteryBoi/Other/Localization/pt-PT.lproj/LocalizableMain.strings)
-- 🇧🇷 [Portuguese (Brazil)](https://github.com/thebarbican19/BatteryBoi/tree/main/BatteryBoi/Other/Localization/pt-BR.lproj/LocalizableMain.strings)
+## FAQ
 
-<br>
+<details>
+<summary><strong>Does this app collect my data?</strong></summary>
 
-**If you would like to help by verifying your native language, or if it is not yet on the list, add it!**
+BatteryBoi only logs anonymous install events (device architecture, macOS version, locale, theme). No personal data is collected, stored, or transferred.
+</details>
 
-You can do this on our [Crowdin Translation Page](https://crowdin.com/project/batteryboi?already_accepted=16003147)
+<details>
+<summary><strong>Why doesn't the estimated time show up?</strong></summary>
 
+Estimated time until depletion is calculated by the system. Sometimes this information isn't available, in which case BatteryBoi falls back to showing the battery percentage.
+</details>
 
+<details>
+<summary><strong>Can I use this alongside the default battery icon?</strong></summary>
 
+Yes! Go to **System Settings** → **Control Center** → **Battery** → enable **Show in Menu Bar**.
+</details>
 
-<br><br><br>
-## Roadmap
-With continued support, I will be adding...
+<details>
+<summary><strong>Some Bluetooth devices don't show battery level?</strong></summary>
 
-- [X] **🔋 Battery Replacement**
-- [x] **🚀 Login at Launch**
-- [x] **👴🏻 Support for macOS Monterey & Big Sur (v11)**
-- [ ] **🟡 System Colour Alerts & Charging Icon**
-- [ ] **🪫 Low Power Mode Toggle** (Suggested by [@Crear12](https://github.com/Crear12))
-- [x] **🇲🇽 Multiple Language Support** (Helo Translate for your local language here https://github.com/thebarbican19/BatteryBoi/issues/12)
-- [x] **⬇️ Sparkle Integration**
-- [x] **🚨 Improved Alerts**
-- [x] **🏝️ A Dynamic Island-Style Modal with Sexy Indicator**
-- [ ] **☀️ Light Mode**
-- [x] **🔉 Sound Effects**
-- [ ] **🎨 Customisation View** Funding Goal: **$500**
-    - [ ] **🔉 Sound Effects (Toggle)**
-    - [ ] **⚙️Display (Toggle)**
-    - [ ] **👁️Hide/Show Menu Bar Toggle**
-    - [ ] **☀️Light/Dark Mode Toggle**
+BatteryBoi uses System Information to get battery data. Some devices simply don't report this information.
+</details>
 
-- [ ] **📈 More Stats**
-- [x] **↗️ Move and Snap to Position**
-- [x] **⚙️ App Preferences**
-- [ ] **🎧 Bluetooth Device Support**
-    - [ ] **Custom Notifications**
-    - [x] **Quick View**
-    - [ ] **Add to Menu Bar**
+## Contributing
 
-- [ ] **⌨️ Custom Keyboard Shortcuts**
-- [ ] **⌨️ Custom IF/THEN Triggers** (at 10%, lower the brightness to 0.3) 
-- [ ] **📱 iOS/iPad App (Bidirectional Syncing of Battery Information)** 
-- [ ] **🧳 SMJobBless Helper Command Line**
+Contributions are welcome! Please feel free to submit issues and pull requests.
 
-<br>Ideas are welcome. 
+## Credits
 
-<br><br><br>
+**Original App:** [Joe Barbour (@thebarbican19)](https://github.com/thebarbican19) - Creator of the original BatteryBoi
 
-## Q&A
-**Q.** Is the app GDPR compliment?<br>
-**A.** BatteryBoi does not collect, store, process, or transfer any personal information as defined by Article 4, Section 1 of the GDPR
-<br><br>
-**Q.** Does this app steal my data? <br>
-**A.** The app **only logs installs** with [Enalog](https://github.com/thebarbican19/EnalogSwift). <br><br>&ensp;&ensp;&ensp;The information captured in this logging event is... <br><br>&ensp;&ensp;&ensp; - **Device Architecture (Silicon or Intel)** <br>
-&ensp;&ensp;&ensp; - **MacOS Version Number**<br>
-&ensp;&ensp;&ensp; - **System Locale (ISO Country Code)** <br>
-&ensp;&ensp;&ensp; - **Theme (Dark/Light Mode)**. 
-<br><br>
-**Q.** What about Personal Data? <br>
-**A.** No personal data or anything that can be remotely attributed to your person is collected, stored, processed, or transferred. 
-<br><br>
-**Q.** Did you make any other sweet sweet apps I can try? <br>
-**A.** Yeah, [SprintDock](https://sprintdock.app) is my masterpeice. Check it out!
-<br><br>
-**Q.** The estimated time does not show up. Why? <br>
-**A.** Estimated time until battery depletion is calculated by the System. Sometimes this information just isn't available. When it isn't, it will fall back on the Battery Percentage. 
-<br><br>
-**Q.** Can I revert back to the old MacOS Battery Indicator?<br>
-**A.** Yes! Go to **System Preferences** > **Control Center** > **Battery** > **Show in Menu Bar** and toggle it on. 
-<br><br>
-**Q.** Is there support for 3rd Party Devices?<br>
-**A.** Devices that are connected (via Bluetooth) now show up with their battery level (if available) in BatteryBoi.
-<br><br>
-**Q.** Some Bluetooth devices don't show the Battery Level. Why?<br>
-**A.** BatteryBoi uses **System Information** to get this information, if it's not in here the device simply may not offer this information or it isn't supported.
+**Maintained by:** [Anand Desai (@desaianand1)](https://github.com/desaianand1)
 
-<br><br><br>
+## License
 
-## BatteryBoi In the Media
-Here's a list of places BatteryBoi has been featured across the web and across the world. 
-- [🇯🇵 Apple CH](https://applech2.com/archives/20230831-batteryboi-for-macbook-battery.html)
-- [🇩🇪 iFun](https://www.ifun.de/batteryboi-zeigt-die-restliche-akku-laufzeit-in-der-menueleiste-215907/)
-
-<br><br><br>
-
+This project is licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0).

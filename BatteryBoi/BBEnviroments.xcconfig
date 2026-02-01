@@ -1,13 +1,13 @@
 //
-//  DEnviroments.xcconfig
-//  BatteryBoi
+//  BBEnviroments.xcconfig
+//  BatteryBoi - Recharged
 //
-//  Created by Joe Barbour on 8/9/23.
-//
+//  Configuration settings file format documentation can be found at:
+//  https://help.apple.com/xcode/#/dev745c5c974
 
-// Configuration settings file format documentation can be found at:
-// https://help.apple.com/xcode/#/dev745c5c974
+// Donate URLs (optional - leave empty to hide donate buttons)
+DONATE_BUYMEACOFFEE_URL = https://buymeacoffee.com/ananddesai
+DONATE_KOFI_URL = https://ko-fi.com/ananddesai
 
-SD_ENALOG_KEY = F1908DM0WIFYECGGNN3WDTDP
-
-SD_SLACK_CHANNEL = C05N4FHJSUB
+// GitHub repository for updates
+GITHUB_REPO_URL = https:/$()/github.com/desaianand1/BatteryBoi-Recharged

@@ -10,28 +10,27 @@ import Combine
 import AppKit
 import SwiftUI
 import ServiceManagement
-import EnalogSwift
 
 enum SettingsSoundEffects:String {
     case enabled
     case disabled
-    
+
     var subtitle:String {
         switch self {
             case .enabled : "SettingsEnabledLabel".localise()
             default : "SettingsDisabledLabel".localise()
-            
+
         }
-        
+
     }
-    
+
     var icon:String {
         switch self {
             case .enabled : "AudioIcon"
             default : "MuteIcon"
-            
+
         }
-        
+
     }
 
 }
@@ -39,23 +38,23 @@ enum SettingsSoundEffects:String {
 enum SettingsPinned:String {
     case enabled
     case disabled
-    
+
     var subtitle:String {
         switch self {
             case .enabled : "SettingsEnabledLabel".localise()
             default : "SettingsDisabledLabel".localise()
-            
+
         }
-        
+
     }
-    
+
     var icon:String {
         switch self {
             case .enabled : "AudioIcon"
             default : "MuteIcon"
-            
+
         }
-        
+
     }
 
 }
@@ -63,23 +62,23 @@ enum SettingsPinned:String {
 enum SettingsCharged:String {
     case enabled
     case disabled
-    
+
     var subtitle:String {
         switch self {
             case .enabled : "SettingsEnabledLabel".localise()
             default : "SettingsDisabledLabel".localise()
-            
+
         }
-        
+
     }
-    
+
     var icon:String {
         switch self {
             case .enabled : "AudioIcon"
             default : "MuteIcon"
-            
+
         }
-        
+
     }
 
 }
@@ -88,23 +87,23 @@ enum SettingsCharged:String {
 enum SettingsBeta:String {
     case enabled
     case disabled
-    
+
     var subtitle:String {
         switch self {
             case .enabled : "SettingsEnabledLabel".localise()
             default : "SettingsDisabledLabel".localise()
-            
+
         }
-        
+
     }
-    
+
     var icon:String {
         switch self {
             case .enabled : "AudioIcon"
             default : "MuteIcon"
-            
+
         }
-        
+
     }
 
 }
@@ -115,7 +114,7 @@ enum SettingsDisplayType:String {
     case percent
     case cycle
     case hidden
-    
+
     var type:String {
         switch self {
             case .countdown : return "SettingsDisplayEstimateLabel".localise()
@@ -125,9 +124,9 @@ enum SettingsDisplayType:String {
             case .hidden : return "SettingsDisplayHiddenLabel".localise()
 
         }
-        
+
     }
-    
+
     var icon:String {
         switch self {
             case .countdown : return "TimeIcon"
@@ -137,9 +136,9 @@ enum SettingsDisplayType:String {
             case .hidden : return "EmptyIcon"
 
         }
-        
+
     }
-    
+
 }
 
 struct SettingsActionObject:Hashable {
@@ -163,13 +162,13 @@ struct SettingsActionObject:Hashable {
             case .customiseNotifications : self.title = "SettingsDisplayPercentLabel".localise()
             case .customiseSoundEffects : self.title = "SettingsSoundEffectsLabel".localise()
             case .customiseCharge : self.title = "SettingsEightyLabel".localise()
-            
+
         }
-        
+
         self.type = type
-        
+
     }
-    
+
 }
 
 enum SettingsActionType {
@@ -208,26 +207,26 @@ enum SettingsActionType {
             case .customiseCharge : return "PercentIcon"
 
         }
-        
+
     }
-    
+
 }
 
 enum SettingsTheme:Int {
     case system
     case light
     case dark
-    
+
     var string:String {
         switch self {
             case .light : return "light"
             case .dark : return "dark"
             default : return "system"
-            
+
         }
-        
+
     }
-    
+
 }
 
 enum SettingsStateValue:String {
@@ -235,25 +234,25 @@ enum SettingsStateValue:String {
     case disabled
     case undetermined
     case restricted
-    
+
     var enabled:Bool {
         switch self {
             case .disabled : return false
             default : return true
-            
+
         }
-        
+
     }
-    
+
     var boolean:Bool {
         switch self {
             case .enabled : return true
             default : return false
-            
+
         }
-        
+
     }
-    
+
     var title:String {
         switch self {
             case .enabled : return "Enabled"
@@ -262,14 +261,14 @@ enum SettingsStateValue:String {
             case .restricted : return "Restricted"
 
         }
-        
+
     }
-    
+
 }
 
 class SettingsManager:ObservableObject {
     static var shared = SettingsManager()
-    
+
     @Published var menu:[SettingsActionObject] = []
     @Published var display:SettingsDisplayType = .countdown
     @Published var sfx:SettingsSoundEffects = .enabled
@@ -295,40 +294,40 @@ class SettingsManager:ObservableObject {
                 case .enabledPinned : self.pinned = self.enabledPinned
                 case .enabledChargeEighty : self.charge = self.enabledChargeEighty
                 default : break
-                
+
             }
-           
+
         }.store(in: &updates)
-        
+
     }
-    
+
     deinit {
         self.updates.forEach { $0.cancel() }
-        
+
     }
-    
+
     public var enabledAutoLaunch:SettingsStateValue {
         get {
             if #available(macOS 13.0, *) {
                 if UserDefaults.main.object(forKey: SystemDefaultsKeys.enabledLogin.rawValue) == nil {
                     return .undetermined
-                    
+
                 }
                 else {
                     switch SMAppService.mainApp.status == .enabled {
                         case true : return .enabled
                         case false : return .disabled
-                        
+
                     }
-                    
+
                 }
-                
+
             }
-            
+
             return .restricted
-            
+
         }
-        
+
         set {
             if self.enabledAutoLaunch != .undetermined {
                 if #available(macOS 13.0, *) {
@@ -336,34 +335,33 @@ class SettingsManager:ObservableObject {
                         if newValue == .disabled {
                             if SMAppService.mainApp.status == .enabled {
                                try SMAppService.mainApp.unregister()
-                                
+
                            }
-                    
+
                         }
                         else {
                             if SMAppService.mainApp.status != .enabled {
                                 try SMAppService.mainApp.register()
-                                
+
                             }
-                            
+
                         }
-                        
+
                         UserDefaults.save(.enabledLogin, value: newValue.enabled)
-                        
+
                     }
                     catch {
-                        EnalogManager.main.ingest(SystemEvents.fatalError, description: error.localizedDescription)
-                        
+                        print("Settings error: \(error.localizedDescription)")
                     }
-                    
+
                 }
-                
+
             }
-           
+
         }
-        
+
     }
-    
+
     public func enabledDisplay(_ toggle:Bool = false) -> SettingsDisplayType {
         var output:SettingsDisplayType = .percent
 
@@ -371,7 +369,7 @@ class SettingsManager:ObservableObject {
             output = SettingsDisplayType(rawValue: type) ?? .percent
 
         }
-        
+
         if toggle {
             switch output {
                 case .countdown : output = .percent
@@ -379,44 +377,44 @@ class SettingsManager:ObservableObject {
                 case .empty : output = .cycle
                 case .cycle : output = .hidden
                 default : output = .countdown
-                
+
             }
-                        
+
             UserDefaults.save(.enabledDisplay, value: output.rawValue)
-            
+
         }
-        
+
         switch output {
             case .hidden : NSApp.setActivationPolicy(.regular)
             default : NSApp.setActivationPolicy(.accessory)
-            
+
         }
-       
+
         return output
-        
+
     }
-    
+
     public var enabledStyle:BatteryStyle {
         get {
             if let style = UserDefaults.main.string(forKey: SystemDefaultsKeys.enabledStyle.rawValue) {
                 return BatteryStyle(rawValue: style) ?? .chunky
-                
+
             }
 
             return .chunky
-            
+
         }
-        
+
         set {
             if self.enabledStyle != newValue {
                 UserDefaults.save(.enabledStyle, value: newValue)
-                
+
             }
-            
+
         }
-        
+
     }
-    
+
     public var enabledTheme:SettingsTheme {
         get {
             if let value = UserDefaults.main.object(forKey: SystemDefaultsKeys.enabledTheme.rawValue) as? Int {
@@ -424,138 +422,138 @@ class SettingsManager:ObservableObject {
                     if theme == .light {
                         NSApp.appearance = NSAppearance(named: .aqua)
                         return .light
-                        
+
                     }
                     else if theme == .dark {
                         NSApp.appearance = NSAppearance(named: .darkAqua)
                         return .dark
-                        
+
                     }
-                    
+
                 }
-                
+
             }
             else {
                 if (UserDefaults.standard.string(forKey: "AppleInterfaceStyle") ?? "Light") == "Light" {
                     return .light
-                    
+
                 }
                 else {
                     return .dark
-                    
+
                 }
-                
+
             }
-            
+
             return .dark
-            
+
         }
-        
+
         set {
             if newValue == .dark { NSApp.appearance = NSAppearance(named: .darkAqua) }
             else if newValue == .light { NSApp.appearance = NSAppearance(named: .aqua) }
             else {
                 if (UserDefaults.standard.string(forKey: "AppleInterfaceStyle") ?? "Light") == "Light" {
                     NSApp.appearance = NSAppearance(named: .aqua)
-                    
+
                 }
                 else {
                     NSApp.appearance = NSAppearance(named: .darkAqua)
-                    
+
                 }
-                
+
             }
-            
+
             UserDefaults.save(.enabledTheme, value: newValue.rawValue)
-            
+
         }
-        
+
     }
-    
+
     public var enabledChargeEighty:SettingsCharged {
         get {
             if let key = UserDefaults.main.object(forKey: SystemDefaultsKeys.enabledChargeEighty.rawValue) as? String {
                 return SettingsCharged(rawValue: key) ?? .disabled
-                
+
             }
-            
+
             return .disabled
-            
+
         }
-        
+
         set {
             UserDefaults.save(.enabledChargeEighty, value: newValue.rawValue)
-            
+
         }
-        
+
     }
-    
+
     public var enabledProgressBar:Bool {
         get {
             if UserDefaults.main.object(forKey: SystemDefaultsKeys.enabledProgressState.rawValue) == nil {
                 return false
-                
+
             }
             else {
                 return UserDefaults.main.bool(forKey: SystemDefaultsKeys.enabledProgressState.rawValue)
-                
+
             }
-        
+
         }
-        
+
         set {
             UserDefaults.save(.enabledProgressState, value: newValue)
-            
+
         }
-        
+
     }
-    
+
     public var enabledPinned:SettingsPinned {
         get {
             if let key = UserDefaults.main.object(forKey: SystemDefaultsKeys.enabledPinned.rawValue) as? String {
                 return SettingsPinned(rawValue: key) ?? .disabled
-                
+
             }
-            
+
             return .disabled
-            
+
         }
-        
+
         set {
             UserDefaults.save(.enabledPinned, value: newValue.rawValue)
-            
+
         }
-        
+
     }
-    
+
     public var enabledSoundEffects:SettingsSoundEffects {
         get {
             if let key = UserDefaults.main.object(forKey: SystemDefaultsKeys.enabledSoundEffects.rawValue) as? String {
                 return SettingsSoundEffects(rawValue: key) ?? .enabled
-                
+
             }
-            
+
             return .enabled
-        
+
         }
-        
+
         set {
             if self.enabledSoundEffects == .disabled && newValue == .enabled {
                 SystemSoundEffects.high.play(true)
-                
+
             }
-            
+
             UserDefaults.save(.enabledSoundEffects, value: newValue.rawValue)
-            
+
         }
-        
+
     }
 
     public var enabledBluetoothStatus:SettingsStateValue {
         get {
             if UserDefaults.main.object(forKey: SystemDefaultsKeys.enabledBluetooth.rawValue) == nil {
                 return .undetermined
-                
+
             }
             else {
                 //let devices = IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice]
@@ -563,89 +561,74 @@ class SettingsManager:ObservableObject {
                 switch UserDefaults.main.bool(forKey: SystemDefaultsKeys.enabledBluetooth.rawValue) {
                     case true : return .enabled
                     case false : return .disabled
-                    
+
                 }
-                
+
             }
-            
+
         }
-        
+
         set {
             if self.enabledBluetoothStatus != newValue {
                 UserDefaults.save(.enabledBluetooth, value: newValue.enabled)
-                
+
             }
-            
+
         }
-        
+
     }
-    
+
     public func settingsAction(_ action:SettingsActionObject) {
         if action.type == .appWebsite {
-            if let url = URL(string: "http://batteryboi.ovatar.io/index?ref=app&modal=donate") {
+            // Try Buy Me a Coffee first, then Ko-fi
+            if let urlString = Bundle.main.infoDictionary?["DONATE_BUYMEACOFFEE_URL"] as? String,
+               !urlString.isEmpty,
+               let url = URL(string: urlString) {
                 NSWorkspace.shared.open(url)
-
+            } else if let urlString = Bundle.main.infoDictionary?["DONATE_KOFI_URL"] as? String,
+                      !urlString.isEmpty,
+                      let url = URL(string: urlString) {
+                NSWorkspace.shared.open(url)
+            } else if let urlString = Bundle.main.infoDictionary?["GITHUB_REPO_URL"] as? String,
+                      !urlString.isEmpty,
+                      let url = URL(string: urlString) {
+                // Fallback to GitHub repo
+                NSWorkspace.shared.open(url)
             }
-
         }
         else if action.type == .appRate {
-            if AppManager.shared.appDistribution() == .direct {
-                if let url = URL(string: "https://www.producthunt.com/posts/batteryboi") {
-                    NSWorkspace.shared.open(url)
-                    
-                }
-                
+            // Open GitHub repo for starring/feedback
+            if let urlString = Bundle.main.infoDictionary?["GITHUB_REPO_URL"] as? String,
+               !urlString.isEmpty,
+               let url = URL(string: urlString) {
+                NSWorkspace.shared.open(url)
             }
-
         }
         else if action.type == .appQuit {
             WindowManager.shared.state = .dismissed
-            
-            EnalogManager.main.ingest(SystemEvents.userUpdated, description: "User Quit")
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                 NSApp.terminate(self)
-                
             }
-
         }
         else if action.type == .appInstallUpdate {
-            if let update = UpdateManager.shared.available {
-                if let url = URL(string: "http://batteryboi.ovatar.io/index?modal=update") {
-                    NSWorkspace.shared.open(url)
-                    
-                    EnalogManager.main.ingest(SystemEvents.userUpdated, description: "Updating to \(update.version.formatted)")
-                    
-                }
-                
+            if UpdateManager.shared.available != nil {
+                // Trigger Sparkle update
+                UpdateManager.shared.updateCheck()
             }
-
         }
         else if action.type == .appUpdateCheck {
-            if let update = UpdateManager.shared.available {
-                if let url = URL(string: "http://batteryboi.ovatar.io/index?modal=update") {
-                    NSWorkspace.shared.open(url)
-
-                    EnalogManager.main.ingest(SystemEvents.userUpdated, description: "Updating to \(update.version.formatted)")
-
-                }
-                
-            }
-            else {
-                UpdateManager.shared.updateCheck()
-
-            }
-
+            UpdateManager.shared.updateCheck()
         }
         else if action.type == .appEfficencyMode {
             DispatchQueue.main.async {
                 BatteryManager.shared.powerSaveMode()
 
             }
-            
+
         }
         else if action.type == .appBeta {
-            
+
         }
         else if action.type == .appPinned {
             switch self.enabledPinned {
@@ -653,11 +636,11 @@ class SettingsManager:ObservableObject {
                 case .disabled : self.enabledPinned = .enabled
 
             }
-            
+
         }
         else if action.type == .customiseDisplay {
             _ = self.enabledDisplay(true)
-            
+
         }
         else if action.type == .customiseSoundEffects {
             switch self.enabledSoundEffects {
@@ -665,7 +648,7 @@ class SettingsManager:ObservableObject {
                 case .disabled : self.enabledSoundEffects = .enabled
 
             }
-            
+
         }
         else if action.type == .customiseCharge {
             switch self.enabledChargeEighty {
@@ -673,17 +656,17 @@ class SettingsManager:ObservableObject {
                 case .disabled : self.enabledChargeEighty = .enabled
 
             }
-            
+
         }
-        
+
     }
-    
+
     private var settingsMenu:[SettingsActionObject] {
         var output = Array<SettingsActionObject>()
-        
+
 //        if #available(macOS 12.0, *) {
 //            output.append(.init(.appEfficencyMode))
-//            
+//
 //        }
         #if DEBUG
             output.append(.init(.appPinned))
@@ -692,21 +675,21 @@ class SettingsManager:ObservableObject {
 
         output.append(.init(.customiseDisplay))
         output.append(.init(.customiseSoundEffects))
-        
+
         #if DEBUG
             output.append(.init(.customiseCharge))
         #endif
 
         if AppManager.shared.appDistribution() == .direct {
             output.append(.init(.appUpdateCheck))
-            
+
         }
-        
+
         output.append(.init(.appWebsite))
         output.append(.init(.appRate))
 
         return output
-        
+
     }
 
 }

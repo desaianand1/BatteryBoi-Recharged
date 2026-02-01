@@ -39,7 +39,6 @@
 		D8D9E5CB2A8403D300E295FA /* BBAppManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8D9E5CA2A8403D300E295FA /* BBAppManager.swift */; };
 		D8DFD5822A8BD7E800732635 /* BBProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8DFD5812A8BD7E800732635 /* BBProgressView.swift */; };
 		D8DFD5842A8C26F300732635 /* BBSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8DFD5832A8C26F300732635 /* BBSettingsView.swift */; };
-		D8DFD58E2A8D83B500732635 /* EnalogSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D8DFD58D2A8D83B500732635 /* EnalogSwift */; };
 		D8DFD5932A956D2C00732635 /* BBBluetoothManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8DFD5922A956D2C00732635 /* BBBluetoothManager.swift */; };
 		D8F2671E2AB00558003A6420 /* SMC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8F2671D2AB00557003A6420 /* SMC.swift */; };
 /* End PBXBuildFile section */
@@ -90,7 +89,7 @@
 		D8CDA7FB2AA249F800FAD41E /* highnote.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = highnote.wav; sourceTree = "<group>"; };
 		D8CDA7FC2AA249F800FAD41E /* lownote.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = lownote.wav; sourceTree = "<group>"; };
 		D8CDA7FF2AA250B500FAD41E /* BBTriggerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBTriggerManager.swift; sourceTree = "<group>"; };
-		D8D9E59C2A7DE7AB00E295FA /* BatteryBoi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BatteryBoi.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D8D9E59C2A7DE7AB00E295FA /* BatteryBoi - Recharged.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "BatteryBoi - Recharged.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D8D9E59F2A7DE7AB00E295FA /* BatteryBoiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryBoiApp.swift; sourceTree = "<group>"; };
 		D8D9E5A32A7DE7AE00E295FA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D8D9E5A62A7DE7AE00E295FA /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
@@ -118,7 +117,6 @@
 				D84F4E182A85A66900668582 /* Sparkle in Frameworks */,
 				D8D9E5C62A81B27D00E295FA /* DynamicColor in Frameworks */,
 				D8D9E5C02A81565000E295FA /* FluidGradient in Frameworks */,
-				D8DFD58E2A8D83B500732635 /* EnalogSwift in Frameworks */,
 				D84F4E1B2A85A6A800668582 /* KeyboardShortcuts in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -185,7 +183,7 @@
 		D8D9E59D2A7DE7AB00E295FA /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D8D9E59C2A7DE7AB00E295FA /* BatteryBoi.app */,
+				D8D9E59C2A7DE7AB00E295FA /* BatteryBoi - Recharged.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -274,9 +272,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		D8D9E59B2A7DE7AB00E295FA /* BatteryBoi */ = {
+		D8D9E59B2A7DE7AB00E295FA /* BatteryBoi - Recharged */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D8D9E5AB2A7DE7AE00E295FA /* Build configuration list for PBXNativeTarget "BatteryBoi" */;
+			buildConfigurationList = D8D9E5AB2A7DE7AE00E295FA /* Build configuration list for PBXNativeTarget "BatteryBoi - Recharged" */;
 			buildPhases = (
 				D8D9E5982A7DE7AB00E295FA /* Sources */,
 				D8D9E5992A7DE7AB00E295FA /* Frameworks */,
@@ -287,16 +285,15 @@
 			);
 			dependencies = (
 			);
-			name = BatteryBoi;
+			name = "BatteryBoi - Recharged";
 			packageProductDependencies = (
 				D8D9E5BF2A81565000E295FA /* FluidGradient */,
 				D8D9E5C52A81B27D00E295FA /* DynamicColor */,
 				D84F4E172A85A66900668582 /* Sparkle */,
 				D84F4E1A2A85A6A800668582 /* KeyboardShortcuts */,
-				D8DFD58D2A8D83B500732635 /* EnalogSwift */,
 			);
-			productName = BatteryBoi;
-			productReference = D8D9E59C2A7DE7AB00E295FA /* BatteryBoi.app */;
+			productName = "BatteryBoi - Recharged";
+			productReference = D8D9E59C2A7DE7AB00E295FA /* BatteryBoi - Recharged.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -343,7 +340,6 @@
 				D8D9E5C42A81B27D00E295FA /* XCRemoteSwiftPackageReference "DynamicColor" */,
 				D84F4E162A85A66900668582 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				D84F4E192A85A6A800668582 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
-				D8DFD58C2A8D83B500732635 /* XCRemoteSwiftPackageReference "EnalogSwift" */,
 			);
 			productRefGroup = D8D9E59D2A7DE7AB00E295FA /* Products */;
 			projectDirPath = "";
@@ -566,7 +562,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BatteryBoi/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = BatteryBoi;
+				INFOPLIST_KEY_CFBundleDisplayName = "BatteryBoi - Recharged";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.reference";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "We need access to Bluetooth to show the Battery Status for your Connected Devices.";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "We check your calendar to ensure your battery lasts for your conference calls.";
@@ -579,10 +575,10 @@
 				MARKETING_VERSION = 2.4.1;
 				OLDER_MACOS = "";
 				OTHER_SWIFT_FLAGS = "-DMACOS_13_AND_ABOVE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.ovatar.batteryapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nirnshard.batteryboirecharged;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
 		};
@@ -602,7 +598,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BatteryBoi/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = BatteryBoi;
+				INFOPLIST_KEY_CFBundleDisplayName = "BatteryBoi - Recharged";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.reference";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "We need access to Bluetooth to show the Battery Status for your Connected Devices.";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "We check your calendar to ensure your battery lasts for your conference calls.";
@@ -615,10 +611,10 @@
 				MARKETING_VERSION = 2.4.1;
 				OLDER_MACOS = "";
 				OTHER_SWIFT_FLAGS = "-DMACOS_13_AND_ABOVE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.ovatar.batteryapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nirnshard.batteryboirecharged;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
 		};
@@ -634,7 +630,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D8D9E5AB2A7DE7AE00E295FA /* Build configuration list for PBXNativeTarget "BatteryBoi" */ = {
+		D8D9E5AB2A7DE7AE00E295FA /* Build configuration list for PBXNativeTarget "BatteryBoi - Recharged" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D8D9E5AC2A7DE7AE00E295FA /* Debug */,
@@ -678,14 +674,6 @@
 				minimumVersion = 5.0.0;
 			};
 		};
-		D8DFD58C2A8D83B500732635 /* XCRemoteSwiftPackageReference "EnalogSwift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/thebarbican19/EnalogSwift";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -708,11 +696,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D8D9E5C42A81B27D00E295FA /* XCRemoteSwiftPackageReference "DynamicColor" */;
 			productName = DynamicColor;
-		};
-		D8DFD58D2A8D83B500732635 /* EnalogSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D8DFD58C2A8D83B500732635 /* XCRemoteSwiftPackageReference "EnalogSwift" */;
-			productName = EnalogSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 

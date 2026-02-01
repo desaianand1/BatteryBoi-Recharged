@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "D8D9E59B2A7DE7AB00E295FA"
-               BuildableName = "BatteryBoi.app"
-               BlueprintName = "BatteryBoi"
+               BuildableName = "BatteryBoi - Recharged.app"
+               BlueprintName = "BatteryBoi - Recharged"
                ReferencedContainer = "container:BatteryBoi.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -46,8 +46,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "D8D9E59B2A7DE7AB00E295FA"
-            BuildableName = "BatteryBoi.app"
-            BlueprintName = "BatteryBoi"
+            BuildableName = "BatteryBoi - Recharged.app"
+            BlueprintName = "BatteryBoi - Recharged"
             ReferencedContainer = "container:BatteryBoi.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -63,8 +63,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "D8D9E59B2A7DE7AB00E295FA"
-            BuildableName = "BatteryBoi.app"
-            BlueprintName = "BatteryBoi"
+            BuildableName = "BatteryBoi - Recharged.app"
+            BlueprintName = "BatteryBoi - Recharged"
             ReferencedContainer = "container:BatteryBoi.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
