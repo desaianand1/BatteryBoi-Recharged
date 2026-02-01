@@ -63,7 +63,6 @@ coverage/
 # Project-specific
 BatteryBoi DMG.dmgcanvas/
 BBEnviroments.xcconfig
-*.wav
 
 # IDE
 .idea/
