@@ -69,3 +69,5 @@ BBEnviroments.xcconfig
 *.swp
 *.swo
 *~
+
+sentry.properties
