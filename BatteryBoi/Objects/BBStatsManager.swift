@@ -134,12 +134,11 @@ final class StatsManager {
             self.title = self.statsTitle
             self.subtitle = self.statsSubtitle
 
-            DispatchQueue.global(qos: .background).async {
+            Task {
                 switch newValue.state {
-                case .battery: self.statsStore(.disconnected, device: nil)
-                case .charging: self.statsStore(.connected, device: nil)
+                case .battery: await self.statsStore(.disconnected, device: nil)
+                case .charging: await self.statsStore(.connected, device: nil)
                 }
-
             }
 
         }.store(in: &updates)
@@ -150,12 +149,11 @@ final class StatsManager {
             self.title = self.statsTitle
             self.subtitle = self.statsSubtitle
 
-            DispatchQueue.global(qos: .background).async {
+            Task {
                 switch BatteryManager.shared.charging.state {
-                case .battery: self.statsStore(.depleted, device: nil)
-                case .charging: self.statsStore(.charging, device: nil)
+                case .battery: await self.statsStore(.depleted, device: nil)
+                case .charging: await self.statsStore(.charging, device: nil)
                 }
-
             }
 
         }.store(in: &updates)
@@ -182,11 +180,9 @@ final class StatsManager {
             self.subtitle = self.statsSubtitle
 
             if let device = newValue.first(where: { $0.updated.now == true }) {
-                DispatchQueue.global().async {
-                    self.statsStore(.depleted, device: device)
-
+                Task {
+                    await self.statsStore(.depleted, device: device)
                 }
-
             }
 
         }.store(in: &updates)
@@ -198,9 +194,8 @@ final class StatsManager {
         }.store(in: &updates)
 
         AppManager.shared.appTimer(3600).sink { _ in
-            DispatchQueue.global().async {
-                self.statsWattageStore()
-
+            Task {
+                await self.statsWattageStore()
             }
 
         }.store(in: &updates)
@@ -402,82 +397,76 @@ final class StatsManager {
 
     }
 
-    private func statsStore(_ state: StatsStateType, device: BluetoothObject?) {
-        if let context = statsContext() {
-            context.performAndWait {
-                let expiry = Date().addingTimeInterval(-2 * 60)
-                var charge: Int64 = 100
-                if let percent = device {
-                    charge = Int64(percent.battery.percent ?? 100)
+    private func statsStore(_ state: StatsStateType, device: BluetoothObject?) async {
+        guard let context = statsContext() else { return }
 
-                } else {
-                    charge = Int64(BatteryManager.shared.percentage)
-
-                }
-
-                let fetch = Activity.fetchRequest() as NSFetchRequest<Activity>
-                fetch.includesPendingChanges = true
-                fetch.predicate = NSPredicate(
-                    format: "state == %@ && device == %@ && charge == %d &&  timestamp > %@",
-                    state.rawValue,
-                    device?.address ?? "",
-                    charge,
-                    expiry as NSDate,
-                )
-
-                do {
-                    if try context.fetch(fetch).first == nil {
-                        let store = Activity(context: context) as Activity
-                        store.timestamp = Date()
-                        store.device = device?.address ?? ""
-                        store.state = state.rawValue
-                        store.charge = charge
-
-                        try context.save()
-
-                    }
-
-                } catch {
-                    print("Error", error)
-
-                }
-
-            }
-
+        // Capture values from MainActor context before switching
+        let charge = if let percent = device {
+            Int64(percent.battery.percent ?? 100)
+        } else {
+            Int64(BatteryManager.shared.percentage)
         }
+        let deviceAddress = device?.address ?? ""
 
+        await context.perform {
+            let expiry = Date().addingTimeInterval(-2 * 60)
+
+            let fetch = Activity.fetchRequest() as NSFetchRequest<Activity>
+            fetch.includesPendingChanges = true
+            fetch.predicate = NSPredicate(
+                format: "state == %@ && device == %@ && charge == %d && timestamp > %@",
+                state.rawValue,
+                deviceAddress,
+                charge,
+                expiry as NSDate,
+            )
+
+            do {
+                if try context.fetch(fetch).first == nil {
+                    let store = Activity(context: context)
+                    store.timestamp = Date()
+                    store.device = deviceAddress
+                    store.state = state.rawValue
+                    store.charge = charge
+
+                    try context.save()
+                }
+            } catch {
+                print("Error storing activity: \(error)")
+            }
+        }
     }
 
-    private func statsWattageStore() {
-        if let context = statsContext() {
-            context.performAndWait {
-                let calendar = Calendar.current
-                let components = calendar.dateComponents([.year, .month, .day, .hour], from: Date())
+    private func statsWattageStore() async {
+        guard let context = statsContext() else { return }
 
-                if let hour = calendar.date(from: components) {
-                    let fetch = Wattage.fetchRequest() as NSFetchRequest<Wattage>
-                    fetch.includesPendingChanges = true
-                    fetch.predicate = NSPredicate(format: "timestamp == %@", hour as CVarArg)
+        // Fetch wattage asynchronously before CoreData operation
+        let wattage = await BatteryManager.shared.fetchPowerHourWattage() ?? 0.0
+        let deviceName = AppManager.shared.appDeviceType.name
 
-                    do {
-                        if try context.fetch(fetch).first == nil {
-                            let store = Wattage(context: context) as Wattage
-                            store.timestamp = Date()
-                            store.device = AppManager.shared.appDeviceType.name
-                            store.wattage = BatteryManager.shared.powerHourWattage() ?? 0.0
+        await context.perform {
+            let calendar = Calendar.current
+            let components = calendar.dateComponents([.year, .month, .day, .hour], from: Date())
 
-                            try context.save()
-                        }
-                    } catch {
-                        print("Failed to save CoreData wattage: \(error.localizedDescription)")
-                    }
+            guard let hour = calendar.date(from: components) else { return }
 
+            let fetch = Wattage.fetchRequest() as NSFetchRequest<Wattage>
+            fetch.includesPendingChanges = true
+            fetch.predicate = NSPredicate(format: "timestamp == %@", hour as CVarArg)
+
+            do {
+                if try context.fetch(fetch).first == nil {
+                    let store = Wattage(context: context)
+                    store.timestamp = Date()
+                    store.device = deviceName
+                    store.wattage = wattage
+
+                    try context.save()
                 }
-
+            } catch {
+                print("Failed to save CoreData wattage: \(error.localizedDescription)")
             }
-
         }
-
     }
 
 }
