@@ -8,6 +8,15 @@
 
 /* Begin PBXBuildFile section */
 		C1A0B0C02C01000000000003 /* ProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C01000000000002 /* ProcessRunner.swift */; };
+		C1A0B0C02C02000000000011 /* BatteryServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000001 /* BatteryServiceProtocol.swift */; };
+		C1A0B0C02C02000000000012 /* BluetoothServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000002 /* BluetoothServiceProtocol.swift */; };
+		C1A0B0C02C02000000000013 /* SettingsServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000003 /* SettingsServiceProtocol.swift */; };
+		C1A0B0C02C02000000000014 /* WindowServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000004 /* WindowServiceProtocol.swift */; };
+		C1A0B0C02C02000000000015 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000005 /* AppEnvironment.swift */; };
+		C1A0B0C02C02000000000021 /* MockBatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000016 /* MockBatteryService.swift */; };
+		C1A0B0C02C02000000000022 /* MockBluetoothService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000017 /* MockBluetoothService.swift */; };
+		C1A0B0C02C02000000000023 /* MockSettingsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000018 /* MockSettingsService.swift */; };
+		C1A0B0C02C02000000000024 /* MockWindowService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000019 /* MockWindowService.swift */; };
 		D83CD7452AA8F693004223D7 /* BBBluetoothView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83CD7442AA8F693004223D7 /* BBBluetoothView.swift */; };
 		D83CD7472AAB9370004223D7 /* BBProfileScript.py in Resources */ = {isa = PBXBuildFile; fileRef = D83CD7462AAB9370004223D7 /* BBProfileScript.py */; };
 		D83DD3F52A9908E600FCC534 /* BBUpdateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83DD3F42A9908E600FCC534 /* BBUpdateManager.swift */; };
@@ -59,6 +68,15 @@
 
 /* Begin PBXFileReference section */
 		C1A0B0C02C01000000000002 /* ProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessRunner.swift; sourceTree = "<group>"; };
+		C1A0B0C02C02000000000001 /* BatteryServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryServiceProtocol.swift; sourceTree = "<group>"; };
+		C1A0B0C02C02000000000002 /* BluetoothServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothServiceProtocol.swift; sourceTree = "<group>"; };
+		C1A0B0C02C02000000000003 /* SettingsServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsServiceProtocol.swift; sourceTree = "<group>"; };
+		C1A0B0C02C02000000000004 /* WindowServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowServiceProtocol.swift; sourceTree = "<group>"; };
+		C1A0B0C02C02000000000005 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
+		C1A0B0C02C02000000000016 /* MockBatteryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockBatteryService.swift; sourceTree = "<group>"; };
+		C1A0B0C02C02000000000017 /* MockBluetoothService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockBluetoothService.swift; sourceTree = "<group>"; };
+		C1A0B0C02C02000000000018 /* MockSettingsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockSettingsService.swift; sourceTree = "<group>"; };
+		C1A0B0C02C02000000000019 /* MockWindowService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockWindowService.swift; sourceTree = "<group>"; };
 		D83CD7442AA8F693004223D7 /* BBBluetoothView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBBluetoothView.swift; sourceTree = "<group>"; };
 		D83CD7462AAB9370004223D7 /* BBProfileScript.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = BBProfileScript.py; sourceTree = "<group>"; };
 		D83DD3F42A9908E600FCC534 /* BBUpdateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBUpdateManager.swift; sourceTree = "<group>"; };
@@ -199,6 +217,9 @@
 				D8D9E59F2A7DE7AB00E295FA /* BatteryBoiApp.swift */,
 				D8D9E5B82A80646E00E295FA /* BBExtensions.swift */,
 				D8D9E5BB2A8064A000E295FA /* Objects */,
+				C1A0B0C02C02000000000006 /* Protocols */,
+				C1A0B0C02C02000000000007 /* Services */,
+				C1A0B0C02C02000000000008 /* Tests */,
 				C1A0B0C02C01000000000001 /* Utilities */,
 				D8D9E5BA2A80649B00E295FA /* Views */,
 				D8D9E5A32A7DE7AE00E295FA /* Assets.xcassets */,
@@ -278,6 +299,44 @@
 				C1A0B0C02C01000000000002 /* ProcessRunner.swift */,
 			);
 			path = Utilities;
+			sourceTree = "<group>";
+		};
+		C1A0B0C02C02000000000006 /* Protocols */ = {
+			isa = PBXGroup;
+			children = (
+				C1A0B0C02C02000000000001 /* BatteryServiceProtocol.swift */,
+				C1A0B0C02C02000000000002 /* BluetoothServiceProtocol.swift */,
+				C1A0B0C02C02000000000003 /* SettingsServiceProtocol.swift */,
+				C1A0B0C02C02000000000004 /* WindowServiceProtocol.swift */,
+			);
+			path = Protocols;
+			sourceTree = "<group>";
+		};
+		C1A0B0C02C02000000000007 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				C1A0B0C02C02000000000005 /* AppEnvironment.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		C1A0B0C02C02000000000008 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				C1A0B0C02C02000000000009 /* Mocks */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		C1A0B0C02C02000000000009 /* Mocks */ = {
+			isa = PBXGroup;
+			children = (
+				C1A0B0C02C02000000000016 /* MockBatteryService.swift */,
+				C1A0B0C02C02000000000017 /* MockBluetoothService.swift */,
+				C1A0B0C02C02000000000018 /* MockSettingsService.swift */,
+				C1A0B0C02C02000000000019 /* MockWindowService.swift */,
+			);
+			path = Mocks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -385,6 +444,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				C1A0B0C02C01000000000003 /* ProcessRunner.swift in Sources */,
+				C1A0B0C02C02000000000011 /* BatteryServiceProtocol.swift in Sources */,
+				C1A0B0C02C02000000000012 /* BluetoothServiceProtocol.swift in Sources */,
+				C1A0B0C02C02000000000013 /* SettingsServiceProtocol.swift in Sources */,
+				C1A0B0C02C02000000000014 /* WindowServiceProtocol.swift in Sources */,
+				C1A0B0C02C02000000000015 /* AppEnvironment.swift in Sources */,
+				C1A0B0C02C02000000000021 /* MockBatteryService.swift in Sources */,
+				C1A0B0C02C02000000000022 /* MockBluetoothService.swift in Sources */,
+				C1A0B0C02C02000000000023 /* MockSettingsService.swift in Sources */,
+				C1A0B0C02C02000000000024 /* MockWindowService.swift in Sources */,
 				D851F8062AB214E8003FCA79 /* BBDataObject.xcdatamodeld in Sources */,
 				D89CCFEE2A9FF97900D9531A /* BBAboutView.swift in Sources */,
 				D83DD3FA2A9D62AF00FCC534 /* BBStatsManager.swift in Sources */,
