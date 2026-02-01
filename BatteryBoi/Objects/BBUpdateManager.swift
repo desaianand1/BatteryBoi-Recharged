@@ -1,17 +1,14 @@
-//
-//  BBUpdateManager.swift
-//  BatteryBoi
-//
-//  Created by Joe Barbour on 8/25/23.
-//
-
 import AppKit
 import Foundation
 import Sparkle
 
+#if canImport(Sentry)
+    import Sentry
+#endif
+
 struct UpdateVersionObject: Codable {
     var formatted: String
-    var numerical: Double
+    var semver: String
 
 }
 
@@ -79,6 +76,30 @@ final class UpdateManager: NSObject, SPUUpdaterDelegate {
     var available: UpdatePayloadObject?
     var checked: Date?
 
+    /// Single toggle for automatic updates (combines check + download).
+    var automaticUpdates: Bool {
+        get { updater?.automaticallyChecksForUpdates ?? true }
+        set {
+            updater?.automaticallyChecksForUpdates = newValue
+            updater?.automaticallyDownloadsUpdates = newValue
+        }
+    }
+
+    /// Current app version string (e.g., "3.0.0").
+    var currentVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+    }
+
+    /// Current app build number (e.g., "30000").
+    var currentBuild: String {
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
+    }
+
+    /// Formatted version string for display (e.g., "v3.0.0 (30000)").
+    var versionDisplay: String {
+        "v\(currentVersion) (\(currentBuild))"
+    }
+
     private let driver = SPUStandardUserDriver(hostBundle: Bundle.main, delegate: nil)
 
     private var updater: SPUUpdater?
@@ -99,7 +120,9 @@ final class UpdateManager: NSObject, SPUUpdaterDelegate {
         do {
             try updater?.start()
         } catch {
-            print("Failed to start Sparkle updater: \(error.localizedDescription)")
+            #if canImport(Sentry)
+                SentrySDK.capture(error: error)
+            #endif
         }
 
         checked = updater?.lastUpdateCheckDate
@@ -152,8 +175,8 @@ final class UpdateManager: NSObject, SPUUpdaterDelegate {
             return
         }
 
-        let build = item.propertiesDictionary["sparkle:shortVersionString"] as? Double ?? 0.0
-        let version: UpdateVersionObject = .init(formatted: title, numerical: build)
+        let semver = item.propertiesDictionary["sparkle:shortVersionString"] as? String ?? item.versionString ?? "0.0.0"
+        let version: UpdateVersionObject = .init(formatted: title, semver: semver)
 
         DispatchQueue.main.async {
             self.available = .init(id: id, name: title, version: version)
@@ -165,21 +188,18 @@ final class UpdateManager: NSObject, SPUUpdaterDelegate {
     }
 
     func updater(_: SPUUpdater, failedToDownloadUpdate _: SUAppcastItem, error: Error) {
-        print("update could not get update", error)
-
+        #if canImport(Sentry)
+            SentrySDK.capture(error: error)
+        #endif
     }
 
     func updater(_: SPUUpdater, failedToDownloadAppcastWithError error: Error) {
-        // Handle the case when the appcast fails to download
-        print("update could not get appcast", error)
-
+        #if canImport(Sentry)
+            SentrySDK.capture(error: error)
+        #endif
     }
 
     func updaterDidNotFindUpdate(_: SPUUpdater) {
-        print(
-            "✅ Version \(String(describing: Bundle.main.infoDictionary?["CFBundleShortVersionString"])) is the Latest",
-        )
-
         DispatchQueue.main.async {
             self.available = nil
             self.state = .completed
@@ -227,54 +247,4 @@ final class UpdateManager: NSObject, SPUUpdaterDelegate {
 
     }
 
-}
-
-@objc
-class UpdateDriver: NSObject, SPUUserDriver {
-    func show(_: SPUUpdatePermissionRequest) async -> SUUpdatePermissionResponse {
-        SUUpdatePermissionResponse(automaticUpdateChecks: true, sendSystemProfile: true)
-
-    }
-
-    func showUserInitiatedUpdateCheck(cancellation _: @escaping () -> Void) {
-        // Ideally we should show progress but do nothing for now
-    }
-
-    func showUpdateFound(with _: SUAppcastItem, state _: SPUUserUpdateState) async -> SPUUserUpdateChoice {
-        .install
-
-    }
-
-    func showUpdateReleaseNotes(with _: SPUDownloadData) {}
-
-    func showUpdateReleaseNotesFailedToDownloadWithError(_: Error) {}
-
-    func showUpdateNotFoundWithError(_: Error, acknowledgement _: @escaping () -> Void) {}
-
-    func showUpdaterError(_ error: Error, acknowledgement _: @escaping () -> Void) {
-        print("error", error)
-    }
-
-    func showDownloadInitiated(cancellation _: @escaping () -> Void) {}
-
-    func showDownloadDidReceiveExpectedContentLength(_: UInt64) {}
-
-    func showDownloadDidReceiveData(ofLength _: UInt64) {}
-
-    func showDownloadDidStartExtractingUpdate() {}
-
-    func showExtractionReceivedProgress(_: Double) {}
-
-    func showReadyToInstallAndRelaunch() async -> SPUUserUpdateChoice {
-        .install
-
-    }
-
-    func showInstallingUpdate(withApplicationTerminated _: Bool, retryTerminatingApplication _: @escaping () -> Void) {}
-
-    func showUpdateInstalledAndRelaunched(_: Bool, acknowledgement _: @escaping () -> Void) {}
-
-    func showUpdateInFocus() {}
-
-    func dismissUpdateInstallation() {}
 }
