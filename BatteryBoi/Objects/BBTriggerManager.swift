@@ -16,7 +16,6 @@ final class TriggerClass {
         // TODO: Implement trigger system for custom battery actions
     }
 
-
     func triggerPercent(_: Double) {
         // TBC
 
