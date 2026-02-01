@@ -86,29 +86,29 @@ struct SettingsItem: View {
             }
 
         }
-        .onChange(of: battery.saver, perform: { _ in
+        .onChange(of: battery.saver) { _, newSaver in
             withAnimation(Animation.easeOut.delay(0.1)) {
                 if item.type == .appEfficencyMode {
-                    color = battery.saver == .efficient ? "BatteryEfficient" : nil
-                    subtitle = battery.saver == .efficient ? "SettingsEnabledLabel".localise() : "SettingsDisabledLabel"
+                    color = newSaver == .efficient ? "BatteryEfficient" : nil
+                    subtitle = newSaver == .efficient ? "SettingsEnabledLabel".localise() : "SettingsDisabledLabel"
                         .localise()
 
                 }
 
             }
 
-        })
-        .onChange(of: updates.state, perform: { _ in
+        }
+        .onChange(of: updates.state) { _, newState in
             withAnimation(Animation.easeOut.delay(0.1)) {
                 if item.type == .appUpdateCheck {
-                    subtitle = updates.state.subtitle(updates.checked)
+                    subtitle = newState.subtitle(updates.checked)
 
                 }
 
             }
 
-        })
-        .onChange(of: settings.display, perform: { newValue in
+        }
+        .onChange(of: settings.display) { _, newValue in
             withAnimation(Animation.easeOut.delay(0.1)) {
                 if item.type == .customiseDisplay {
                     subtitle = newValue.type
@@ -118,31 +118,31 @@ struct SettingsItem: View {
 
             }
 
-        })
-        .onChange(of: settings.sfx, perform: { _ in
+        }
+        .onChange(of: settings.sfx) { _, newSfx in
             if item.type == .customiseSoundEffects {
-                subtitle = settings.sfx.subtitle
-                icon = settings.sfx.icon
+                subtitle = newSfx.subtitle
+                icon = newSfx.icon
 
             }
 
-        })
-        .onChange(of: settings.pinned, perform: { _ in
+        }
+        .onChange(of: settings.pinned) { _, newPinned in
             if item.type == .appPinned {
-                subtitle = settings.pinned.subtitle
-                icon = settings.pinned.icon
+                subtitle = newPinned.subtitle
+                icon = newPinned.icon
 
             }
 
-        })
-        .onChange(of: settings.charge, perform: { _ in
+        }
+        .onChange(of: settings.charge) { _, newCharge in
             if item.type == .customiseCharge {
-                subtitle = settings.charge.subtitle
-                icon = settings.charge.icon
+                subtitle = newCharge.subtitle
+                icon = newCharge.icon
 
             }
 
-        })
+        }
         .onTapGesture {
             SettingsManager.shared.settingsAction(item)
 
@@ -202,9 +202,9 @@ struct SettingsOverlayItem: View {
                 }
 
             }
-            .onChange(of: manager.menu) { _ in
+            .onChange(of: manager.menu) { _, newMenu in
                 if item == .appDevices {
-                    switch manager.menu {
+                    switch newMenu {
                     case .settings: icon = timeline.index(index) ?? "headphones"
                     default: icon = "gearshape.fill"
                     }
@@ -212,7 +212,7 @@ struct SettingsOverlayItem: View {
                 }
 
             }
-            .onChange(of: bluetooth.connected) { newValue in
+            .onChange(of: bluetooth.connected) { _, newValue in
                 if item == .appDevices {
                     timeline = newValue.map(\.type.icon)
 

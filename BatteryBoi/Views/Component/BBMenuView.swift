@@ -73,8 +73,9 @@ public struct BatteryPulsatingIcon: View {
             }
             .offset(y: 0.4)
             .opacity(visible ? 1.0 : 0.0)
-            .onChange(of: visible) { _ in
-                DispatchQueue.main.asyncAfter(deadline: .now() + (visible ? 2.0 : 0.8)) {
+            .onChange(of: visible) { _, newVisible in
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(newVisible ? 2.0 : 0.8))
                     withAnimation(Animation.easeInOut) {
                         visible.toggle()
 

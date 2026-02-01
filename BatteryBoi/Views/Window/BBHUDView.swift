@@ -248,13 +248,13 @@ struct HUDSummary: View {
             subtitle = newValue
 
         }
-        .onChange(of: window.state, perform: { newValue in
+        .onChange(of: window.state) { _, newValue in
             withAnimation(Animation.easeOut(duration: 0.6).delay(visible == false ? 0.9 : 0.0)) {
                 visible = newValue.visible
 
             }
 
-        })
+        }
 
     }
 
@@ -262,7 +262,6 @@ struct HUDSummary: View {
 
 struct HUDContainer: View {
     @EnvironmentObject var battery: BatteryManager
-    @EnvironmentObject var manager: WindowManager
     @EnvironmentObject var window: WindowManager
 
     @State private var timeline: AnimationObject
@@ -298,7 +297,7 @@ struct HUDContainer: View {
             }
 
         }
-        .onChange(of: window.state, perform: { newValue in
+        .onChange(of: window.state) { _, newValue in
             if let animation = newValue.container {
                 timeline = animation
 
@@ -312,7 +311,7 @@ struct HUDContainer: View {
 
             }
 
-        })
+        }
 
     }
 
@@ -345,13 +344,13 @@ struct HUDMaskView: View {
             }
 
         }
-        .onChange(of: window.state, perform: { newValue in
+        .onChange(of: window.state) { _, newValue in
             if let animation = newValue.mask {
                 timeline = animation
 
             }
 
-        })
+        }
 
     }
 
@@ -380,13 +379,13 @@ struct HUDGlow: View {
                 }
 
             }
-            .onChange(of: window.state, perform: { newValue in
+            .onChange(of: window.state) { _, newValue in
                 if let animation = newValue.glow {
                     timeline = animation
 
                 }
 
-            })
+            }
 
     }
 
@@ -413,13 +412,13 @@ struct HUDProgress: View {
                 }
 
             }
-            .onChange(of: window.state, perform: { newValue in
+            .onChange(of: window.state) { _, newValue in
                 if let animation = newValue.progress {
                     timeline = animation
 
                 }
 
-            })
+            }
 
     }
 

@@ -99,9 +99,9 @@ struct RadialProgressBar: View {
             }
 
         }
-        .onChange(of: progress) { _ in
+        .onChange(of: progress) { _, newProgress in
             withAnimation(Animation.easeOut(duration: 0.6)) {
-                position = progress
+                position = newProgress
 
             }
 
@@ -240,24 +240,24 @@ struct RadialProgressContainer: View {
             }
 
         }
-        .onChange(of: battery.percentage) { _ in
-            if let percent = manager.device?.battery.percent {
-                progress = percent / 100
-                self.percent = Int(percent)
+        .onChange(of: battery.percentage) { _, newPercentage in
+            if let devicePercent = manager.device?.battery.percent {
+                progress = devicePercent / 100
+                percent = Int(devicePercent)
 
             } else {
-                percent = Int(battery.percentage)
-                progress = battery.percentage / 100
+                percent = Int(newPercentage)
+                progress = newPercentage / 100
 
             }
 
         }
-        .onChange(of: manager.device) { _ in
+        .onChange(of: manager.device) { _, newDevice in
             withAnimation(Animation.easeOut(duration: 0.4)) {
-                if let device = manager.device {
-                    if let percent = device.battery.percent {
-                        progress = percent / 100
-                        self.percent = Int(percent)
+                if let device = newDevice {
+                    if let devicePercent = device.battery.percent {
+                        progress = devicePercent / 100
+                        percent = Int(devicePercent)
 
                     } else {
                         progress = 0.0
