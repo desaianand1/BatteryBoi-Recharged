@@ -59,13 +59,13 @@ import Foundation
 
         init(
             menu: [SettingsActionObject] = [],
-            display: SettingsDisplayType = .percentage,
+            display: SettingsDisplayType = .percent,
             sfx: SettingsSoundEffects = .enabled,
             theme: SettingsTheme = .system,
             pinned: SettingsPinned = .disabled,
             charge: SettingsCharged = .disabled,
             autoLaunch: SettingsStateValue = .enabled,
-            style: BatteryStyle = .modern,
+            style: BatteryStyle = .chunky,
             chargeEighty: SettingsCharged = .disabled,
             progressBar: Bool = true,
             soundEffects: SettingsSoundEffects = .enabled,
@@ -92,12 +92,16 @@ import Foundation
             toggleDisplayCallCount += 1
             // Cycle through display types
             switch display {
-            case .percentage:
-                display = .time
-            case .time:
+            case .countdown:
+                display = .percent
+            case .percent:
+                display = .empty
+            case .empty:
+                display = .cycle
+            case .cycle:
                 display = .hidden
             case .hidden:
-                display = .percentage
+                display = .countdown
             }
             displaySubject.send(display)
             return display

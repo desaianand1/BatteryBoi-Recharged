@@ -18,7 +18,6 @@ import Foundation
         var charging: BatteryCharging
         var percentage: Double
         var remaining: BatteryRemaining?
-        var mode: Bool
         var saver: BatteryModeType
         var rate: BatteryEstimateObject?
         var metrics: BatteryMetricsObject?
@@ -50,19 +49,17 @@ import Foundation
         // MARK: - Initialization
 
         init(
-            charging: BatteryCharging = BatteryCharging(state: .battery),
+            charging: BatteryCharging = BatteryCharging(.battery),
             percentage: Double = 75.0,
             remaining: BatteryRemaining? = nil,
-            mode: Bool = false,
-            saver: BatteryModeType = .disabled,
+            saver: BatteryModeType = .normal,
             rate: BatteryEstimateObject? = nil,
             metrics: BatteryMetricsObject? = nil,
-            thermal: BatteryThemalState = .nominal,
+            thermal: BatteryThemalState = .optimal,
         ) {
             self.charging = charging
             self.percentage = percentage
             self.remaining = remaining
-            self.mode = mode
             self.saver = saver
             self.rate = rate
             self.metrics = metrics
@@ -77,7 +74,7 @@ import Foundation
 
         func togglePowerSaveMode() {
             togglePowerSaveModeCallCount += 1
-            saver = saver == .enabled ? .disabled : .enabled
+            saver = saver == .efficient ? .normal : .efficient
         }
 
         var untilFull: Date? {

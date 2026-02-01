@@ -23,9 +23,6 @@ protocol BatteryServiceProtocol: AnyObject {
     /// Estimated time remaining on battery or until full charge
     var remaining: BatteryRemaining? { get }
 
-    /// Whether the device is in low power mode
-    var mode: Bool { get }
-
     /// Current power save mode status
     var saver: BatteryModeType { get }
 
