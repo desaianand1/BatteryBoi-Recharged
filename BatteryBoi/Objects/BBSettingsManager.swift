@@ -1,10 +1,3 @@
-//
-//  BBSettingsManager.swift
-//  BatteryBoi
-//
-//  Created by Joe Barbour on 8/5/23.
-//
-
 import AppKit
 import Foundation
 import ServiceManagement
@@ -377,7 +370,7 @@ final class SettingsManager: SettingsServiceProtocol {
                     UserDefaults.save(.enabledLogin, value: newValue.enabled)
 
                 } catch {
-                    print("Settings error: \(error.localizedDescription)")
+                    // Error registering/unregistering login item
                 }
             }
         }
@@ -568,8 +561,6 @@ final class SettingsManager: SettingsServiceProtocol {
                 .undetermined
 
             } else {
-                // let devices = IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice]
-
                 switch UserDefaults.main.bool(forKey: SystemDefaultsKeys.enabledBluetooth.rawValue) {
                 case true: .enabled
                 case false: .disabled
@@ -665,21 +656,9 @@ final class SettingsManager: SettingsServiceProtocol {
     private var settingsMenu: [SettingsActionObject] {
         var output = [SettingsActionObject]()
 
-//        if #available(macOS 12.0, *) {
-//            output.append(.init(.appEfficencyMode))
-//
-//        }
-        #if DEBUG
-            output.append(.init(.appPinned))
-
-        #endif
-
         output.append(.init(.customiseDisplay))
         output.append(.init(.customiseSoundEffects))
-
-        #if DEBUG
-            output.append(.init(.customiseCharge))
-        #endif
+        output.append(.init(.customiseCharge))
 
         if AppManager.shared.appDistribution() == .direct {
             output.append(.init(.appUpdateCheck))
