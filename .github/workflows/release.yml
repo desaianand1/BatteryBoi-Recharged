@@ -153,7 +153,7 @@ jobs:
                   sparkle:edSignature="${SPARKLE_SIGNATURE:-}"
                   length="${DMG_SIZE}"
                   type="application/octet-stream"/>
-                <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+                <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
               </item>
             </channel>
           </rss>

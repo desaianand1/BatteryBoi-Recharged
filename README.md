@@ -4,7 +4,7 @@ A beautiful, powerful battery indicator for your macOS menu bar.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Swift Version](https://img.shields.io/badge/Swift-6.x-orange.svg)]()
-[![macOS](https://img.shields.io/badge/macOS-11.0+-blue)]()
+[![macOS](https://img.shields.io/badge/macOS-14.0+-blue)]()
 
 > [!NOTE]
 > This is a faithful revival of the original [BatteryBoi](https://github.com/thebarbican19/BatteryBoi) app by Joe Barbour, updated and maintained for modern macOS versions.
@@ -39,12 +39,12 @@ brew install batteryboi
 
 | macOS Version | Supported |
 |---------------|-----------|
-| 11.0 Big Sur | Yes |
-| 12.0 Monterey | Yes |
-| 13.0 Ventura | Yes |
-| 14.0 Sonoma | Yes |
-| 15.0 Sequoia | Yes |
-| 26.0 Tahoe | Yes |
+| 14.0 Sonoma | ✅ Yes |
+| 15.0 Sequoia | ✅ Yes |
+| 26.0 Tahoe | ✅ Yes |
+
+> [!WARNING]
+> Minimum supported version is now macOS 14.0 (Sonoma). Earlier versions are no longer supported.
 
 Works on both **Intel** and **Apple Silicon** Macs.
 
