@@ -241,7 +241,7 @@ class BatteryManager:ObservableObject {
 
         #if DEBUG
             AppManager.shared.appTimer(90).sink { _ in
-                self.powerThermalCheck()
+                Task { await self.powerThermalCheck() }
 
             }.store(in: &updates)
 
@@ -491,20 +491,15 @@ class BatteryManager:ObservableObject {
 
     }
 
-    private func powerThermalCheck() {
-        let process = Process()
-        process.launchPath = "/usr/bin/env"
-        process.arguments = ["pmset", "-g", "therm"]
+    private func powerThermalCheck() async {
+        do {
+            let output = try await ProcessRunner.shared.run(
+                executable: "/usr/bin/env",
+                arguments: ["pmset", "-g", "therm"],
+                timeout: .seconds(10)
+            )
 
-        let pipe = Pipe()
-        process.standardOutput = pipe
-
-        process.launch()
-        process.waitUntilExit()
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        if let output = String(data: data, encoding: .utf8) {
-            let cores = self.powerCPUCores
+            let cores = await self.fetchCPUCores()
             var isSuboptimal = false
 
             if let match = output.range(of: "CPU_Scheduler_Limit\\s+=\\s+(\\d+)", options: .regularExpression) {
@@ -537,10 +532,27 @@ class BatteryManager:ObservableObject {
 
             }
 
-            self.thermal = isSuboptimal ? .suboptimal : .optimal
+            await MainActor.run {
+                self.thermal = isSuboptimal ? .suboptimal : .optimal
+            }
 
+        } catch {
+            print("Thermal check failed: \(error)")
         }
 
+    }
+
+    private func fetchCPUCores() async -> Int {
+        do {
+            let output = try await ProcessRunner.shared.run(
+                executable: "/usr/bin/env",
+                arguments: ["sysctl", "-n", "hw.physicalcpu"],
+                timeout: .seconds(5)
+            )
+            return Int(output) ?? 1
+        } catch {
+            return 1
+        }
     }
 
 

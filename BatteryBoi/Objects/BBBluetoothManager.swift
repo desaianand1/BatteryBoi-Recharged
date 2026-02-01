@@ -301,8 +301,10 @@ class BluetoothManager:ObservableObject {
 
     init() {
         AppManager.shared.appTimer(15).dropFirst(1).receive(on: DispatchQueue.main).sink { _ in
-            self.bluetoothList(.oreg)
-            self.bluetoothList(.profiler)
+            Task {
+                await self.bluetoothList(.oreg)
+                await self.bluetoothList(.profiler)
+            }
 
         }.store(in: &updates)
 
@@ -328,9 +330,9 @@ class BluetoothManager:ObservableObject {
 
         }.store(in: &updates)
 
-        DispatchQueue.main.async {
-            self.bluetoothList(.oreg, initialize: true)
-            self.bluetoothList(.profiler)
+        Task { @MainActor in
+            await self.bluetoothList(.oreg, initialize: true)
+            await self.bluetoothList(.profiler)
 
             switch self.list.filter({ $0.connected == .connected }).count {
                 case 0 : AppManager.shared.menu = .settings
@@ -392,100 +394,85 @@ class BluetoothManager:ObservableObject {
 
     }
 
-    private func bluetoothList(_ type:BluetoothScriptType, initialize:Bool = false) {
-        if FileManager.default.fileExists(atPath: "/usr/bin/python3") {
-            if let script = Bundle.main.path(forResource: type.rawValue, ofType: "py") {
-                let process = Process()
-                process.executableURL = URL(fileURLWithPath: "/usr/bin/python3")
-                process.arguments = [script]
+    private func bluetoothList(_ type:BluetoothScriptType, initialize:Bool = false) async {
+        guard FileManager.default.fileExists(atPath: "/usr/bin/python3") else {
+            print("Python not found at /usr/bin/python3")
+            return
+        }
 
-                let pipe = Pipe()
-                process.standardOutput = pipe
+        guard let script = Bundle.main.path(forResource: type.rawValue, ofType: "py") else {
+            print("Script not found: \(type.rawValue)")
+            return
+        }
 
-                do {
-                    try process.run()
-                    process.waitUntilExit()
+        do {
+            let output = try await ProcessRunner.shared.run(
+                executable: "/usr/bin/python3",
+                arguments: [script],
+                timeout: .seconds(30)
+            )
 
-                    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            guard let data = output.data(using: .utf8) else { return }
 
-                    if let output = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) {
-                        if let stripped = output.data(using: .utf8) {
-                            do {
-                                let object = try JSONDecoder().decode([BluetoothObjectContainer].self, from: stripped)
-                                let values = object.flatMap { $0.values }
+            let object = try JSONDecoder().decode([BluetoothObjectContainer].self, from: data)
+            let values = object.flatMap { $0.values }
 
-                                for item in IOBluetoothDevice.pairedDevices() {
-                                    if let device = item as? IOBluetoothDevice {
-                                        if let index = values.firstIndex(where: {$0.address == device.addressString }) {
-                                            let status:BluetoothState = device.isConnected() ? .connected : .disconnected
+            await MainActor.run {
+                for item in IOBluetoothDevice.pairedDevices() {
+                    if let device = item as? IOBluetoothDevice {
+                        if let index = values.firstIndex(where: {$0.address == device.addressString }) {
+                            let status:BluetoothState = device.isConnected() ? .connected : .disconnected
 
-                                            var updated = values[index]
-                                            updated.device = device.name
+                            var updated = values[index]
+                            updated.device = device.name
 
-                                            if status != updated.connected {
-                                                updated.connected = status
-                                                updated.updated = Date()
-
-                                            }
-
-                                            if let index = self.list.firstIndex(where: {$0.address == device.addressString }) {
-                                                if self.list[index].battery.general != nil && updated.battery.general == nil  {
-                                                    updated.battery.general = self.list[index].battery.general
-                                                    updated.updated = Date()
-
-                                                }
-
-                                                if self.list[index].battery.left != nil && updated.battery.left == nil  {
-                                                    updated.battery.left = self.list[index].battery.left
-                                                    updated.updated = Date()
-
-                                                }
-
-                                                if self.list[index].battery.right != nil && updated.battery.right == nil  {
-                                                    updated.battery.right = self.list[index].battery.right
-                                                    updated.updated = Date()
-
-                                                }
-
-                                                if self.list[index].battery.percent != nil && updated.battery.percent == nil  {
-                                                    updated.battery.percent = self.list[index].battery.percent
-                                                    updated.updated = Date()
-
-                                                }
-
-                                                if self.list[index].distance != updated.distance {
-                                                    updated.distance = self.list[index].distance
-                                                    updated.updated = Date()
-
-                                                }
-
-                                                self.list[index] = updated
-
-                                            }
-                                            else {
-                                                if updated.type.type != .other {
-                                                    self.list.append(updated)
-
-                                                }
-
-                                                device.register(forDisconnectNotification: self, selector: #selector(self.bluetoothDeviceUpdated))
-
-                                            }
-
-                                        }
-
-                                    }
-
-                                }
-
-                                if initialize == true {
-                                    IOBluetoothDevice.register(forConnectNotifications: self, selector: #selector(self.bluetoothDeviceUpdated))
-
-                                }
+                            if status != updated.connected {
+                                updated.connected = status
+                                updated.updated = Date()
 
                             }
-                            catch {
-                                print("Failed to convert output data to object - \(error)")
+
+                            if let listIndex = self.list.firstIndex(where: {$0.address == device.addressString }) {
+                                if self.list[listIndex].battery.general != nil && updated.battery.general == nil  {
+                                    updated.battery.general = self.list[listIndex].battery.general
+                                    updated.updated = Date()
+
+                                }
+
+                                if self.list[listIndex].battery.left != nil && updated.battery.left == nil  {
+                                    updated.battery.left = self.list[listIndex].battery.left
+                                    updated.updated = Date()
+
+                                }
+
+                                if self.list[listIndex].battery.right != nil && updated.battery.right == nil  {
+                                    updated.battery.right = self.list[listIndex].battery.right
+                                    updated.updated = Date()
+
+                                }
+
+                                if self.list[listIndex].battery.percent != nil && updated.battery.percent == nil  {
+                                    updated.battery.percent = self.list[listIndex].battery.percent
+                                    updated.updated = Date()
+
+                                }
+
+                                if self.list[listIndex].distance != updated.distance {
+                                    updated.distance = self.list[listIndex].distance
+                                    updated.updated = Date()
+
+                                }
+
+                                self.list[listIndex] = updated
+
+                            }
+                            else {
+                                if updated.type.type != .other {
+                                    self.list.append(updated)
+
+                                }
+
+                                device.register(forDisconnectNotification: self, selector: #selector(self.bluetoothDeviceUpdated))
 
                             }
 
@@ -493,17 +480,17 @@ class BluetoothManager:ObservableObject {
 
                     }
 
-
-                }
-                catch {
-                    print("Error running Python script: \(error)")
-
                 }
 
+                if initialize == true {
+                    IOBluetoothDevice.register(forConnectNotifications: self, selector: #selector(self.bluetoothDeviceUpdated))
+
+                }
             }
-            else {
-                print("Python library not found at /usr/bin/python3")
-            }
+
+        }
+        catch {
+            print("Bluetooth list error: \(error)")
 
         }
 
