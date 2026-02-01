@@ -216,6 +216,7 @@ class BatteryManager:ObservableObject {
 
     private var counter:Int? = 0
     private var updates = Set<AnyCancellable>()
+    private var fallbackTimer: Timer?
 
     init() {
         Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { _ in
@@ -258,6 +259,7 @@ class BatteryManager:ObservableObject {
     }
 
     deinit {
+        fallbackTimer?.invalidate()
         self.updates.forEach { $0.cancel() }
 
     }
@@ -277,7 +279,8 @@ class BatteryManager:ObservableObject {
     }
 
     private func powerUpdaterFallback() {
-        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+        fallbackTimer?.invalidate()
+        fallbackTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             if let counter = self.counter {
                 if counter.isMultiple(of: 1) {
                     self.powerStatus(true)
