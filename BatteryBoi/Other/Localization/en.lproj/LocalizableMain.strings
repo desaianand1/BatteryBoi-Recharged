@@ -63,7 +63,7 @@
 "UpdateStatusCheckingLabel" = "Checking for Updates...";
 "UpdateStatusIdleLabel" = "Last Checked: %@"; // Last Checked: 4 hours ago
 "UpdateStatusEmptyLabel" = "No Updates Available";
-"UpdateStatusNewLabel" = "New Update Available!"; 
+"UpdateStatusNewLabel" = "New Update Available!";
 
 "AboutTitle" = "BatteryBoi, Free, Forever, for Everyone...";
 "AboutBodyOne" = "In the bustling app-scape where wallets often weep at reoccurring subscriptions. BatteryBoi is 100% free & Open-Source, forever!";
@@ -83,10 +83,13 @@
 "BluetoothConnectLabel" = "Connect";
 "BluetoothDisconnectLabel" = "Disconnect";
 "BluetoothDisconnectedLabel" = "Not Paired";
+"BluetoothNotConnectedLabel" = "Disconnected";
 "BluetoothDistanceProximateLabel" = "On the Desk/Table";
 "BluetoothDistanceNearLabel" = "In the same Room";
 "BluetoothDistanceFarLabel" = "In another Realm";
 "BluetoothInvalidLabel" = "No Battery Information";
+"BluetoothBatteryLeftLabel" = "L: %d%%";
+"BluetoothBatteryRightLabel" = "R: %d%%";
 
 "OnboardingNotificationsTitle" = "";
 "OnboardingNotificationsBody" = "";
@@ -94,4 +97,3 @@
 "OnboardingInsightsBody" = "";
 "OnboardingBluetoothTitle" = "";
 "OnboardingBluetoothBody" = "";
-
