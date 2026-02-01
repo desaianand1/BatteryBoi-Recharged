@@ -144,100 +144,97 @@ struct AnimationModifier: ViewModifier {
                 }
 
             }
-            .onChange(of: keyframes, perform: { _ in
-                if keyframes.autoplay == true {
+            .onChange(of: keyframes) { _, newKeyframes in
+                if newKeyframes.autoplay == true {
                     state = .playing
                     animate(index: 0)
 
                 }
 
-            })
+            }
 
     }
 
     func animate(index: Int = 0) {
         if index < keyframes.keyframes.count {
-            for _ in 0 ..< keyframes.keyframes.count {
-                let current = keyframes.keyframes[index]
+            let current = keyframes.keyframes[index]
 
-                if current.easing == .linear {
-                    withAnimation(Animation.linear(duration: current.duration)) {
-                        width = current.width
-                        height = current.height
-                        opacity = current.opacity
-                        blur = current.blur
-                        radius = current.radius
-                        scale = current.scale
-                        rotate = current.rotate
+            if current.easing == .linear {
+                withAnimation(Animation.linear(duration: current.duration)) {
+                    width = current.width
+                    height = current.height
+                    opacity = current.opacity
+                    blur = current.blur
+                    radius = current.radius
+                    scale = current.scale
+                    rotate = current.rotate
 
-                        paddingTop = current.padding.top
-                        paddingLeading = current.padding.leading
-                        paddingTrailing = current.padding.trailing
-                        paddingBottom = current.padding.bottom
-
-                    }
-
-                } else if current.easing == .easein {
-                    withAnimation(Animation.easeIn(duration: current.duration)) {
-                        width = current.width
-                        height = current.height
-                        opacity = current.opacity
-                        blur = current.blur
-                        radius = current.radius
-                        scale = current.scale
-                        rotate = current.rotate
-
-                        paddingTop = current.padding.top
-                        paddingLeading = current.padding.leading
-                        paddingTrailing = current.padding.trailing
-                        paddingBottom = current.padding.bottom
-
-                    }
-
-                } else if current.easing == .easeout {
-                    withAnimation(Animation.easeOut(duration: current.duration)) {
-                        width = current.width
-                        height = current.height
-                        opacity = current.opacity
-                        blur = current.blur
-                        radius = current.radius
-                        scale = current.scale
-                        rotate = current.rotate
-
-                        paddingTop = current.padding.top
-                        paddingLeading = current.padding.leading
-                        paddingTrailing = current.padding.trailing
-                        paddingBottom = current.padding.bottom
-
-                    }
-
-                } else if current.easing == .bounce {
-                    withAnimation(.interactiveSpring(
-                        response: 0.4,
-                        dampingFraction: 0.7,
-                        blendDuration: current.duration,
-                    )) {
-                        width = current.width
-                        height = current.height
-                        opacity = current.opacity
-                        blur = current.blur
-                        radius = current.radius
-                        scale = current.scale
-                        rotate = current.rotate
-
-                        paddingTop = current.padding.top
-                        paddingLeading = current.padding.leading
-                        paddingTrailing = current.padding.trailing
-                        paddingBottom = current.padding.bottom
-
-                    }
+                    paddingTop = current.padding.top
+                    paddingLeading = current.padding.leading
+                    paddingTrailing = current.padding.trailing
+                    paddingBottom = current.padding.bottom
 
                 }
 
-                DispatchQueue.main.asyncAfter(deadline: .now() + current.duration + current.delay) {
-                    animate(index: index + 1)
+            } else if current.easing == .easein {
+                withAnimation(Animation.easeIn(duration: current.duration)) {
+                    width = current.width
+                    height = current.height
+                    opacity = current.opacity
+                    blur = current.blur
+                    radius = current.radius
+                    scale = current.scale
+                    rotate = current.rotate
+
+                    paddingTop = current.padding.top
+                    paddingLeading = current.padding.leading
+                    paddingTrailing = current.padding.trailing
+                    paddingBottom = current.padding.bottom
 
                 }
+
+            } else if current.easing == .easeout {
+                withAnimation(Animation.easeOut(duration: current.duration)) {
+                    width = current.width
+                    height = current.height
+                    opacity = current.opacity
+                    blur = current.blur
+                    radius = current.radius
+                    scale = current.scale
+                    rotate = current.rotate
+
+                    paddingTop = current.padding.top
+                    paddingLeading = current.padding.leading
+                    paddingTrailing = current.padding.trailing
+                    paddingBottom = current.padding.bottom
+
+                }
+
+            } else if current.easing == .bounce {
+                withAnimation(.interactiveSpring(
+                    response: 0.4,
+                    dampingFraction: 0.7,
+                    blendDuration: current.duration,
+                )) {
+                    width = current.width
+                    height = current.height
+                    opacity = current.opacity
+                    blur = current.blur
+                    radius = current.radius
+                    scale = current.scale
+                    rotate = current.rotate
+
+                    paddingTop = current.padding.top
+                    paddingLeading = current.padding.leading
+                    paddingTrailing = current.padding.trailing
+                    paddingBottom = current.padding.bottom
+
+                }
+
+            }
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + current.duration + current.delay) {
+                animate(index: index + 1)
 
             }
 
