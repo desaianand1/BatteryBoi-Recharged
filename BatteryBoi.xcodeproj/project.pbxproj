@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C1A0B0C02C01000000000003 /* ProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C01000000000002 /* ProcessRunner.swift */; };
 		D83CD7452AA8F693004223D7 /* BBBluetoothView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83CD7442AA8F693004223D7 /* BBBluetoothView.swift */; };
 		D83CD7472AAB9370004223D7 /* BBProfileScript.py in Resources */ = {isa = PBXBuildFile; fileRef = D83CD7462AAB9370004223D7 /* BBProfileScript.py */; };
 		D83DD3F52A9908E600FCC534 /* BBUpdateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83DD3F42A9908E600FCC534 /* BBUpdateManager.swift */; };
@@ -57,6 +58,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		C1A0B0C02C01000000000002 /* ProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessRunner.swift; sourceTree = "<group>"; };
 		D83CD7442AA8F693004223D7 /* BBBluetoothView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBBluetoothView.swift; sourceTree = "<group>"; };
 		D83CD7462AAB9370004223D7 /* BBProfileScript.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = BBProfileScript.py; sourceTree = "<group>"; };
 		D83DD3F42A9908E600FCC534 /* BBUpdateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBUpdateManager.swift; sourceTree = "<group>"; };
@@ -197,6 +199,7 @@
 				D8D9E59F2A7DE7AB00E295FA /* BatteryBoiApp.swift */,
 				D8D9E5B82A80646E00E295FA /* BBExtensions.swift */,
 				D8D9E5BB2A8064A000E295FA /* Objects */,
+				C1A0B0C02C01000000000001 /* Utilities */,
 				D8D9E5BA2A80649B00E295FA /* Views */,
 				D8D9E5A32A7DE7AE00E295FA /* Assets.xcassets */,
 				D8D9E5A82A7DE7AE00E295FA /* BatteryBoi.entitlements */,
@@ -267,6 +270,14 @@
 				D8DFD5852A8D510200732635 /* ServiceManagement.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		C1A0B0C02C01000000000001 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				C1A0B0C02C01000000000002 /* ProcessRunner.swift */,
+			);
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -373,6 +384,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C1A0B0C02C01000000000003 /* ProcessRunner.swift in Sources */,
 				D851F8062AB214E8003FCA79 /* BBDataObject.xcdatamodeld in Sources */,
 				D89CCFEE2A9FF97900D9531A /* BBAboutView.swift in Sources */,
 				D83DD3FA2A9D62AF00FCC534 /* BBStatsManager.swift in Sources */,
