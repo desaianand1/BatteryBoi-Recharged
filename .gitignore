@@ -1,7 +1,72 @@
+# Xcode
+build/
+DerivedData/
+*.xcarchive
+*.xcuserstate
+xcuserdata/
+*.xccheckout
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
 
-DEnviroments.xcconfig
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+Packages/
+
+# macOS
+.DS_Store
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+
+# Node.js
+node_modules/
+package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Secrets & Signing
+.env
+.env.*
+*.p12
+*.mobileprovision
+*.provisionprofile
+AuthKey_*.p8
+Certificates/
+Provisioning/
+
+# Build Artifacts
+*.app
+*.dmg
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Coverage
+coverage/
+*.lcov
+*.gcov
+*.gcda
+*.gcno
+
+# Project-specific
+BatteryBoi DMG.dmgcanvas/
+BBEnviroments.xcconfig
 *.wav
-*.wav
-BatteryBoi DMG.dmgcanvas/Disk Image
-BatteryBoi DMG.dmgcanvas/Contents/backgroundImage.png
-BatteryBoi DMG.dmgcanvas/QuickLook/Preview.jpg
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
