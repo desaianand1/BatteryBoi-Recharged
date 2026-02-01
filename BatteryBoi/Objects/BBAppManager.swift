@@ -23,22 +23,21 @@ final class AppManager {
 
     private var updates = Set<AnyCancellable>()
     private var timer: AnyCancellable?
+    private var timerTask: Task<Void, Never>?
 
     init() {
-        timer = Timer.publish(every: 1.0, on: .main, in: .common).autoconnect().sink { [weak self] _ in
+        // Start the main timer using async/await
+        timerTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1))
+                guard let self, !Task.isCancelled else { break }
 
-            guard let self else {
-                return
+                if counter > 999 {
+                    appUsageTracker()
+                }
 
+                counter += 1
             }
-
-            if counter > 999 {
-                appUsageTracker()
-
-            }
-
-            counter += 1
-
         }
 
         Task { @MainActor in
@@ -47,15 +46,12 @@ final class AppManager {
                 self.profile = self.appProfile(force: false)
             }
         }
-
-        timer?.store(in: &updates)
-
     }
 
     deinit {
-        self.timer?.cancel()
-        self.updates.forEach { $0.cancel() }
-
+        timerTask?.cancel()
+        timer?.cancel()
+        updates.forEach { $0.cancel() }
     }
 
     func appToggleMenu(_ animate: Bool) {
@@ -77,9 +73,37 @@ final class AppManager {
 
     }
 
+    /// Legacy Combine-based timer publisher. Use `appTimerAsync` for new code.
     func appTimer(_ multiple: Int) -> AnyPublisher<Int, Never> {
         $counter.filter { $0 % multiple == 0 }.eraseToAnyPublisher()
+    }
 
+    /// Async timer that emits at the specified interval in seconds.
+    /// Returns an AsyncStream that yields the current counter value.
+    func appTimerAsync(_ intervalSeconds: Int) -> AsyncStream<Int> {
+        AsyncStream { continuation in
+            let task = Task { @MainActor [weak self] in
+                var lastEmitted = -intervalSeconds // Ensure first value is emitted
+                while !Task.isCancelled {
+                    guard let self else {
+                        continuation.finish()
+                        return
+                    }
+
+                    if counter - lastEmitted >= intervalSeconds {
+                        lastEmitted = counter
+                        continuation.yield(counter)
+                    }
+
+                    try? await Task.sleep(for: .seconds(1))
+                }
+                continuation.finish()
+            }
+
+            continuation.onTermination = { _ in
+                task.cancel()
+            }
+        }
     }
 
     var appInstalled: Date {

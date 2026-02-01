@@ -246,7 +246,21 @@ extension View {
 }
 
 extension UserDefaults {
+    /// Legacy Combine publisher for settings changes. Use `changedAsync()` for new code.
     nonisolated(unsafe) static let changed = PassthroughSubject<SystemDefaultsKeys, Never>()
+
+    /// Async stream for observing UserDefaults changes.
+    static func changedAsync() -> AsyncStream<SystemDefaultsKeys> {
+        AsyncStream { continuation in
+            let cancellable = changed.sink { key in
+                continuation.yield(key)
+            }
+
+            continuation.onTermination = { _ in
+                cancellable.cancel()
+            }
+        }
+    }
 
     static var main: UserDefaults {
         UserDefaults()
