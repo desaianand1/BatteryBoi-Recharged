@@ -60,6 +60,8 @@ final class WindowManager: WindowServiceProtocol {
     private var globalMouseMonitor: Any?
     /// Task for auto-dismissing the HUD after a timeout. Cancelled when a new alert appears.
     private var dismissalTask: Task<Void, Never>?
+    /// Task for handling state transitions. Cancelled when a new state change occurs.
+    private var stateTransitionTask: Task<Void, Never>?
 
     // Async observation tasks
     private var chargingObserverTask: Task<Void, Never>?
@@ -72,6 +74,10 @@ final class WindowManager: WindowServiceProtocol {
     // Debounce tracking for charging state changes
     private var lastChargingState: BatteryChargingState?
     private var chargingDebounceTask: Task<Void, Never>?
+
+    // Mouse event debouncing
+    private var lastMouseEventTime: Date = .distantPast
+    private let mouseEventDebounceInterval: TimeInterval = 0.1
 
     // MARK: - WindowServiceProtocol Publishers
 
@@ -158,11 +164,11 @@ final class WindowManager: WindowServiceProtocol {
             }
         }
 
-        // Observe percentage changes
+        // Observe percentage changes (optimized from 500ms to 2s)
         percentageObserverTask = Task { @MainActor [weak self] in
             var previousPercent = BatteryManager.shared.percentage
             while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(500))
+                try? await Task.sleep(for: .seconds(2))
                 guard let self, !Task.isCancelled else { break }
 
                 let currentPercent = BatteryManager.shared.percentage
@@ -289,6 +295,12 @@ final class WindowManager: WindowServiceProtocol {
             .rightMouseUp,
         ]) { [weak self] _ in
             guard let self else { return }
+
+            // Debounce mouse events
+            let now = Date()
+            guard now.timeIntervalSince(lastMouseEventTime) > mouseEventDebounceInterval else { return }
+            lastMouseEventTime = now
+
             if NSRunningApplication.current == NSWorkspace.shared.frontmostApplication {
                 if state == .revealed || state == .progress {
                     windowSetState(.detailed)
@@ -312,6 +324,7 @@ final class WindowManager: WindowServiceProtocol {
             NSEvent.removeMonitor(monitor)
         }
         dismissalTask?.cancel()
+        stateTransitionTask?.cancel()
         chargingObserverTask?.cancel()
         percentageObserverTask?.cancel()
         thermalObserverTask?.cancel()
@@ -322,26 +335,33 @@ final class WindowManager: WindowServiceProtocol {
     }
 
     private func handleStateChange(_ state: HUDState) {
+        // Cancel any pending state transition tasks from previous state changes
+        stateTransitionTask?.cancel()
+
         if state == .dismissed {
             // Cancel any pending dismissal when manually dismissed
             dismissalTask?.cancel()
             dismissalTask = nil
 
-            Task { @MainActor in
+            stateTransitionTask = Task { @MainActor [weak self] in
                 try? await Task.sleep(for: .seconds(0.8))
+                guard let self, !Task.isCancelled else { return }
                 Self.shared.windowClose()
             }
         } else if state == .progress {
-            Task { @MainActor in
+            stateTransitionTask = Task { @MainActor [weak self] in
                 try? await Task.sleep(for: .seconds(0.2))
-                self.windowSetState(.revealed)
+                guard let self, !Task.isCancelled else { return }
+                windowSetState(.revealed)
             }
         } else if state == .revealed {
             // Transition to detailed view for non-timeout alerts after 1 second
-            if AppManager.shared.alert?.timeout == false {
-                Task { @MainActor in
+            let shouldTransitionToDetailed = AppManager.shared.alert?.timeout == false
+            if shouldTransitionToDetailed {
+                stateTransitionTask = Task { @MainActor [weak self] in
                     try? await Task.sleep(for: .seconds(1))
-                    self.windowSetState(.detailed)
+                    guard let self, !Task.isCancelled else { return }
+                    windowSetState(.detailed)
                 }
             }
 
@@ -355,12 +375,14 @@ final class WindowManager: WindowServiceProtocol {
     private func scheduleDismissal() {
         dismissalTask?.cancel()
 
+        // Capture the current state at scheduling time to avoid race conditions
+        let targetState: HUDState = .revealed
         let timeout: Duration = AppManager.shared.alert?.timeout == true ? .seconds(5) : .seconds(10)
 
         dismissalTask = Task { @MainActor [weak self] in
             do {
                 try await Task.sleep(for: timeout)
-                guard let self, state == .revealed else { return }
+                guard let self, !Task.isCancelled, state == targetState else { return }
                 windowSetState(.dismissed)
             } catch {
                 // Task was cancelled, don't dismiss
