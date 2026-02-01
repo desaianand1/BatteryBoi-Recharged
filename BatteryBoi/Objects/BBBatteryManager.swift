@@ -463,6 +463,7 @@ final class BatteryManager: BatteryServiceProtocol {
                 let averages = UserDefaults.main
                     .object(forKey: SystemDefaultsKeys.batteryDepletionRate.rawValue) as? [Double] ?? [Double]()
 
+                guard percentage > 0 else { return }
                 if averages.contains(seconds / percentage) == false, charging.state == .battery {
                     if (seconds / percentage) > 0.0 {
                         var list = Array(averages.suffix(15))
