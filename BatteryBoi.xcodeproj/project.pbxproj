@@ -646,7 +646,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.reference";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "We need access to Bluetooth to show the Battery Status for your Connected Devices.";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "We check your calendar to ensure your battery lasts for your conference calls.";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Ovatar Ltd";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Nirnshard LLP";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -682,7 +682,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.reference";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "We need access to Bluetooth to show the Battery Status for your Connected Devices.";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "We check your calendar to ensure your battery lasts for your conference calls.";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Ovatar Ltd";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Nirnshard LLP";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
