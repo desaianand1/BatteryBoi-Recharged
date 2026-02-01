@@ -1,4 +1,4 @@
-"AlertSomePercentTitle" = "Kalan %%d%"; // 90% Remaining
+"AlertSomePercentTitle" = "%d%% Kalan"; // 90% Remaining
 "AlertOnePercentTitle" = "Mac'iniz Kapanmak Üzere";
 "AlertChargingTitle" = "Şarj oluyor...";
 "AlertChargingStoppedTitle" = "Şarj Aleti Çıkarıldı";
