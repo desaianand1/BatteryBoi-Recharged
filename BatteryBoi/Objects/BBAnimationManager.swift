@@ -124,6 +124,9 @@ struct AnimationModifier: ViewModifier {
     @State private var paddingTrailing: CGFloat = 0.0
     @State private var paddingBottom: CGFloat = 0.0
 
+    /// Task for running keyframe animations. Cancelled when view disappears.
+    @State private var animationTask: Task<Void, Never>?
+
     func body(content: Content) -> some View {
         content
             .frame(width: width, height: height)
@@ -139,110 +142,83 @@ struct AnimationModifier: ViewModifier {
             .onAppear {
                 if keyframes.autoplay == true {
                     state = .playing
-                    animate(index: 0)
-
+                    startAnimation(index: 0)
                 }
-
+            }
+            .onDisappear {
+                // Cancel any pending animation when view disappears
+                animationTask?.cancel()
+                animationTask = nil
             }
             .onChange(of: keyframes) { _, newKeyframes in
+                // Cancel previous animation before starting new one
+                animationTask?.cancel()
                 if newKeyframes.autoplay == true {
                     state = .playing
-                    animate(index: 0)
-
+                    startAnimation(index: 0)
                 }
-
             }
-
     }
 
-    func animate(index: Int = 0) {
-        if index < keyframes.keyframes.count {
-            let current = keyframes.keyframes[index]
+    /// Starts the animation sequence using a cancellable Task
+    private func startAnimation(index: Int) {
+        animationTask?.cancel()
+        animationTask = Task { @MainActor in
+            await animateAsync(index: index)
+        }
+    }
 
-            if current.easing == .linear {
-                withAnimation(Animation.linear(duration: current.duration)) {
-                    width = current.width
-                    height = current.height
-                    opacity = current.opacity
-                    blur = current.blur
-                    radius = current.radius
-                    scale = current.scale
-                    rotate = current.rotate
-
-                    paddingTop = current.padding.top
-                    paddingLeading = current.padding.leading
-                    paddingTrailing = current.padding.trailing
-                    paddingBottom = current.padding.bottom
-
-                }
-
-            } else if current.easing == .easein {
-                withAnimation(Animation.easeIn(duration: current.duration)) {
-                    width = current.width
-                    height = current.height
-                    opacity = current.opacity
-                    blur = current.blur
-                    radius = current.radius
-                    scale = current.scale
-                    rotate = current.rotate
-
-                    paddingTop = current.padding.top
-                    paddingLeading = current.padding.leading
-                    paddingTrailing = current.padding.trailing
-                    paddingBottom = current.padding.bottom
-
-                }
-
-            } else if current.easing == .easeout {
-                withAnimation(Animation.easeOut(duration: current.duration)) {
-                    width = current.width
-                    height = current.height
-                    opacity = current.opacity
-                    blur = current.blur
-                    radius = current.radius
-                    scale = current.scale
-                    rotate = current.rotate
-
-                    paddingTop = current.padding.top
-                    paddingLeading = current.padding.leading
-                    paddingTrailing = current.padding.trailing
-                    paddingBottom = current.padding.bottom
-
-                }
-
-            } else if current.easing == .bounce {
-                withAnimation(.interactiveSpring(
-                    response: 0.4,
-                    dampingFraction: 0.7,
-                    blendDuration: current.duration,
-                )) {
-                    width = current.width
-                    height = current.height
-                    opacity = current.opacity
-                    blur = current.blur
-                    radius = current.radius
-                    scale = current.scale
-                    rotate = current.rotate
-
-                    paddingTop = current.padding.top
-                    paddingLeading = current.padding.leading
-                    paddingTrailing = current.padding.trailing
-                    paddingBottom = current.padding.bottom
-
-                }
-
+    /// Async version of animate that uses Task.sleep instead of DispatchQueue
+    func animateAsync(index: Int = 0) async {
+        guard !Task.isCancelled, index < keyframes.keyframes.count else {
+            if !Task.isCancelled {
+                state = .complete
             }
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + current.duration + current.delay) {
-                animate(index: index + 1)
-
-            }
-
-        } else {
-            state = .complete
-
+            return
         }
 
+        let current = keyframes.keyframes[index]
+
+        // Apply animation based on easing type
+        applyKeyframe(current)
+
+        // Wait for animation to complete using Task.sleep
+        let totalDuration = current.duration + current.delay
+        do {
+            try await Task.sleep(for: .seconds(totalDuration))
+            guard !Task.isCancelled else { return }
+            await animateAsync(index: index + 1)
+        } catch {
+            // Task was cancelled, stop animation
+        }
+    }
+
+    /// Applies a single keyframe animation
+    private func applyKeyframe(_ current: AnimationKeyframeObject) {
+        let animation: Animation = switch current.easing {
+        case .linear:
+            .linear(duration: current.duration)
+        case .easein:
+            .easeIn(duration: current.duration)
+        case .easeout:
+            .easeOut(duration: current.duration)
+        case .bounce:
+            .interactiveSpring(response: 0.4, dampingFraction: 0.7, blendDuration: current.duration)
+        }
+
+        withAnimation(animation) {
+            width = current.width
+            height = current.height
+            opacity = current.opacity
+            blur = current.blur
+            radius = current.radius
+            scale = current.scale
+            rotate = current.rotate
+            paddingTop = current.padding.top
+            paddingLeading = current.padding.leading
+            paddingTrailing = current.padding.trailing
+            paddingBottom = current.padding.bottom
+        }
     }
 
 }
