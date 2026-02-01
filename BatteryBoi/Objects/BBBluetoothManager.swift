@@ -298,6 +298,8 @@ class BluetoothManager:ObservableObject {
     @Published var icons = Array<String>()
 
     private var updates = Set<AnyCancellable>()
+    private var connectionNotification: IOBluetoothUserNotification?
+    private var disconnectionNotifications: [IOBluetoothUserNotification] = []
 
     init() {
         AppManager.shared.appTimer(15).dropFirst(1).receive(on: DispatchQueue.main).sink { _ in
@@ -345,6 +347,8 @@ class BluetoothManager:ObservableObject {
     }
 
     deinit {
+        connectionNotification?.unregister()
+        disconnectionNotifications.forEach { $0.unregister() }
         self.updates.forEach { $0.cancel() }
 
     }
@@ -472,7 +476,9 @@ class BluetoothManager:ObservableObject {
 
                                 }
 
-                                device.register(forDisconnectNotification: self, selector: #selector(self.bluetoothDeviceUpdated))
+                                if let notification = device.register(forDisconnectNotification: self, selector: #selector(self.bluetoothDeviceUpdated)) {
+                                    self.disconnectionNotifications.append(notification)
+                                }
 
                             }
 
@@ -483,7 +489,7 @@ class BluetoothManager:ObservableObject {
                 }
 
                 if initialize == true {
-                    IOBluetoothDevice.register(forConnectNotifications: self, selector: #selector(self.bluetoothDeviceUpdated))
+                    self.connectionNotification = IOBluetoothDevice.register(forConnectNotifications: self, selector: #selector(self.bluetoothDeviceUpdated))
 
                 }
             }
