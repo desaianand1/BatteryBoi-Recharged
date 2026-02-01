@@ -502,12 +502,13 @@ class BatteryManager:ObservableObject {
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         if let output = String(data: data, encoding: .utf8) {
             let cores = self.powerCPUCores
+            var isSuboptimal = false
 
             if let match = output.range(of: "CPU_Scheduler_Limit\\s+=\\s+(\\d+)", options: .regularExpression) {
                 let value = Int(output[match].components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ?? 0
 
                 if value < 100 {
-                    self.thermal = .suboptimal
+                    isSuboptimal = true
 
                 }
 
@@ -517,7 +518,7 @@ class BatteryManager:ObservableObject {
                 let value = Int(output[match].components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ?? 0
 
                 if value < cores {
-                    self.thermal = .suboptimal
+                    isSuboptimal = true
 
                 }
 
@@ -527,15 +528,15 @@ class BatteryManager:ObservableObject {
                 let value = Int(output[match].components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ?? 0
 
                 if value < 100 {
-                    self.thermal = .suboptimal
+                    isSuboptimal = true
 
                 }
 
             }
 
-        }
+            self.thermal = isSuboptimal ? .suboptimal : .optimal
 
-        self.thermal = .optimal
+        }
 
     }
 
