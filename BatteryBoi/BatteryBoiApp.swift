@@ -5,7 +5,6 @@
 //  Created by Joe Barbour on 8/4/23.
 //
 
-import Combine
 import Foundation
 import Sparkle
 import SwiftUI
@@ -199,10 +198,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
     var status: NSStatusItem?
     var hosting: NSHostingView = .init(rootView: MenuContainer())
-    var updates = Set<AnyCancellable>()
 
     private var globalMouseMonitor: Any?
     private var windowMoveObserver: NSObjectProtocol?
+    private var displayObserverTask: Task<Void, Never>?
 
     func applicationDidFinishLaunching(_: Notification) {
         status = NSStatusBar.system.statusItem(withLength: 45)
@@ -226,13 +225,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
             WindowManager.shared.windowOpen(.userLaunched, device: nil)
 
-            SettingsManager.shared.$display.sink { type in
-                switch type {
-                case .hidden: self.applicationMenuBarIcon(false)
-                default: self.applicationMenuBarIcon(true)
-                }
+            // Set initial display state
+            switch SettingsManager.shared.display {
+            case .hidden: self.applicationMenuBarIcon(false)
+            default: self.applicationMenuBarIcon(true)
+            }
 
-            }.store(in: &self.updates)
+            // Observe display changes using async/await via UserDefaults
+            self.displayObserverTask = Task { @MainActor [weak self] in
+                for await key in UserDefaults.changedAsync() {
+                    guard let self, !Task.isCancelled else { break }
+                    if key == .enabledDisplay {
+                        switch SettingsManager.shared.display {
+                        case .hidden: applicationMenuBarIcon(false)
+                        default: applicationMenuBarIcon(true)
+                        }
+                    }
+                }
+            }
 
             if SettingsManager.shared.enabledAutoLaunch == .undetermined {
                 SettingsManager.shared.enabledAutoLaunch = .enabled
@@ -367,8 +377,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             windowMoveObserver = nil
         }
 
+        displayObserverTask?.cancel()
         NSWorkspace.shared.notificationCenter.removeObserver(self)
-        updates.forEach { $0.cancel() }
     }
 
 }

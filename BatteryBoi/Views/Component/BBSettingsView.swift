@@ -174,8 +174,6 @@ struct SettingsOverlayItem: View {
 
     }
 
-    let timer = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
-
     var body: some View {
         RoundedRectangle(cornerRadius: 30, style: .continuous)
             .fill(Color("BatteryButton"))
@@ -219,23 +217,25 @@ struct SettingsOverlayItem: View {
                 }
 
             }
-            .onReceive(timer) { _ in
-                if item == .appDevices {
-                    switch timeline.index(index) {
-                    case nil: index = 0
-                    default: index += 1
-                    }
+            .task {
+                // Cycle through device icons every 2 seconds
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(2))
+                    guard !Task.isCancelled else { break }
 
-                    if let icon = timeline.index(index) {
-                        withAnimation(.interactiveSpring(response: 0.6, dampingFraction: 0.9, blendDuration: 1)) {
-                            self.icon = icon
-
+                    if item == .appDevices {
+                        switch timeline.index(index) {
+                        case nil: index = 0
+                        default: index += 1
                         }
 
+                        if let newIcon = timeline.index(index) {
+                            withAnimation(.interactiveSpring(response: 0.6, dampingFraction: 0.9, blendDuration: 1)) {
+                                icon = newIcon
+                            }
+                        }
                     }
-
                 }
-
             }
             .onHover { hover in
                 switch hover {

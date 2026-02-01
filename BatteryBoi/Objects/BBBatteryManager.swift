@@ -207,9 +207,14 @@ final class BatteryManager: BatteryServiceProtocol {
     var thermal: BatteryThemalState = .optimal
 
     private var counter: Int?
-    private var updates = Set<AnyCancellable>()
     private var fallbackTimer: Timer?
     private var initialTimer: Timer?
+    private var statusTask: Task<Void, Never>?
+    private var remainingTask: Task<Void, Never>?
+    private var metricsTask: Task<Void, Never>?
+    #if DEBUG
+        private var thermalTask: Task<Void, Never>?
+    #endif
 
     // MARK: - BatteryServiceProtocol Publishers
 
@@ -240,7 +245,8 @@ final class BatteryManager: BatteryServiceProtocol {
     }
 
     func hourWattage() -> Double? {
-        powerHourWattage()
+        // Sync version returns nil - use fetchPowerHourWattage() for async access
+        nil
     }
 
     init() {
@@ -248,51 +254,63 @@ final class BatteryManager: BatteryServiceProtocol {
             guard let self else { return }
             if counter == nil {
                 powerUpdaterFallback()
-
             }
-
         }
 
-        AppManager.shared.appTimer(1).dropFirst(5).sink { _ in
-            self.powerStatus(true)
-            self.counter = nil
-
-        }.store(in: &updates)
-
-        AppManager.shared.appTimer(6).sink { _ in
-            Task { @MainActor in
-                self.remaining = await self.fetchPowerRemaining()
+        // Battery status check every 1 second (skip first 5 ticks)
+        statusTask = Task { @MainActor [weak self] in
+            var tickCount = 0
+            for await _ in AppManager.shared.appTimerAsync(1) {
+                guard let self, !Task.isCancelled else { break }
+                tickCount += 1
+                if tickCount > 5 {
+                    powerStatus(true)
+                    counter = nil
+                }
             }
-            self.counter = nil
+        }
 
-        }.store(in: &updates)
+        // Remaining time check every 6 seconds
+        remainingTask = Task { @MainActor [weak self] in
+            for await _ in AppManager.shared.appTimerAsync(6) {
+                guard let self, !Task.isCancelled else { break }
+                remaining = await fetchPowerRemaining()
+                counter = nil
+            }
+        }
 
         #if DEBUG
-            AppManager.shared.appTimer(90).sink { _ in
-                Task { await self.powerThermalCheck() }
-
-            }.store(in: &updates)
-
+            // Thermal check every 90 seconds (DEBUG only)
+            thermalTask = Task { @MainActor [weak self] in
+                for await _ in AppManager.shared.appTimerAsync(90) {
+                    guard let self, !Task.isCancelled else { break }
+                    await powerThermalCheck()
+                }
+            }
         #endif
 
-        AppManager.shared.appTimer(60).sink { _ in
-            Task { @MainActor in
-                self.saver = await self.fetchPowerSaveModeStatus()
-                self.metrics = await self.fetchPowerProfilerDetails()
+        // Metrics check every 60 seconds
+        metricsTask = Task { @MainActor [weak self] in
+            for await _ in AppManager.shared.appTimerAsync(60) {
+                guard let self, !Task.isCancelled else { break }
+                saver = await fetchPowerSaveModeStatus()
+                metrics = await fetchPowerProfilerDetails()
+                counter = nil
             }
-            self.counter = nil
-
-        }.store(in: &updates)
+        }
 
         powerStatus(true)
-
     }
 
     deinit {
         initialTimer?.invalidate()
         fallbackTimer?.invalidate()
-        updates.forEach { $0.cancel() }
-
+        statusTask?.cancel()
+        remainingTask?.cancel()
+        metricsTask?.cancel()
+        #if DEBUG
+            thermalTask?.cancel()
+        #endif
     }
 
     func powerForceRefresh() {
@@ -617,12 +635,6 @@ final class BatteryManager: BatteryServiceProtocol {
         }
     }
 
-    func powerHourWattage() -> Double? {
-        // This method is called synchronously, use cached values or return nil
-        // For async usage, call fetchPowerHourWattage() instead
-        nil
-    }
-
     func fetchPowerHourWattage() async -> Double? {
         async let mAh = fetchPowerWattage(.max)
         async let mV = fetchPowerWattage(.voltage)
@@ -633,33 +645,5 @@ final class BatteryManager: BatteryServiceProtocol {
 
         return nil
     }
-
-//    func setSMCByte(key: String, value: UInt8) {
-//           do {
-//               try SMCKit.open()
-//           } catch {
-//               print(error)
-//               exit(EX_UNAVAILABLE)
-//           }
-//           let smcKey = SMCKit.getKey(key, type: DataTypes.UInt8)
-//           let bytes: SMCBytes = (value, UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0),
-//           UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0),
-//           UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0),
-//           UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0),
-//           UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0),
-//           UInt8(0), UInt8(0))
-//
-//           if(self.modifiedKeys[key] == nil){
-//               readSMCByte(key: key) { (originalValue) in
-//                   self.modifiedKeys[key] = originalValue
-//                   _ = try? SMCKit.writeData(smcKey, data: bytes)
-//               }
-//           }
-//           else{
-//               _ = try? SMCKit.writeData(smcKey, data: bytes)
-//           }
-//
-//
-//       }
 
 }

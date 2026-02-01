@@ -286,13 +286,25 @@ enum BluetoothState: Int {
 final class BluetoothManager: BluetoothServiceProtocol {
     static let shared = BluetoothManager()
 
-    var list = [BluetoothObject]()
+    var list = [BluetoothObject]() {
+        didSet {
+            // Update connected and icons whenever list changes
+            connected = list.filter { $0.connected == .connected }
+            icons = connected.map(\.type.icon)
+
+            for device in list {
+                print("\n\(device.device ?? "") (\(device.address)) - \(device.connected.status)")
+            }
+        }
+    }
+
     var connected = [BluetoothObject]()
     var icons = [String]()
 
-    private var updates = Set<AnyCancellable>()
     private var connectionNotification: IOBluetoothUserNotification?
     private var disconnectionNotifications: [IOBluetoothUserNotification] = []
+    private var scanTimerTask: Task<Void, Never>?
+    private var deviceObserverTask: Task<Void, Never>?
 
     // MARK: - BluetoothServiceProtocol Publishers
 
@@ -316,36 +328,36 @@ final class BluetoothManager: BluetoothServiceProtocol {
     }
 
     init() {
-        AppManager.shared.appTimer(15).dropFirst(1).receive(on: DispatchQueue.main).sink { _ in
-            Task {
-                await self.bluetoothList(.oreg)
-                await self.bluetoothList(.profiler)
+        // Scan for Bluetooth devices every 15 seconds
+        scanTimerTask = Task { @MainActor [weak self] in
+            var skipFirst = true
+            for await _ in AppManager.shared.appTimerAsync(15) {
+                guard let self, !Task.isCancelled else { break }
+                if skipFirst { skipFirst = false; continue }
+
+                await bluetoothList(.oreg)
+                await bluetoothList(.profiler)
             }
+        }
 
-        }.store(in: &updates)
+        // Observe device selection changes to auto-connect
+        deviceObserverTask = Task { @MainActor [weak self] in
+            var previousDevice: BluetoothObject?
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(200))
+                guard let self, !Task.isCancelled else { break }
 
-        AppManager.shared.$device.receive(on: DispatchQueue.global()).sink { device in
-            if let device {
-                if device.connected == .disconnected {
-                    _ = self.bluetoothUpdateConnetion(device, state: .connected)
-
+                let currentDevice = AppManager.shared.device
+                if let device = currentDevice, device.address != previousDevice?.address {
+                    if device.connected == .disconnected {
+                        _ = bluetoothUpdateConnetion(device, state: .connected)
+                    }
                 }
-
+                previousDevice = currentDevice
             }
+        }
 
-        }.store(in: &updates)
-
-        $list.receive(on: DispatchQueue.main).sink { list in
-            self.connected = list.filter { $0.connected == .connected }
-            self.icons = self.connected.map(\.type.icon)
-
-            for device in list {
-                print("\n\(device.device ?? "") (\(device.address)) - \(device.connected.status)")
-
-            }
-
-        }.store(in: &updates)
-
+        // Initial scan
         Task { @MainActor in
             await self.bluetoothList(.oreg, initialize: true)
             await self.bluetoothList(.profiler)
@@ -354,16 +366,14 @@ final class BluetoothManager: BluetoothServiceProtocol {
             case 0: AppManager.shared.menu = .settings
             default: AppManager.shared.menu = .devices
             }
-
         }
-
     }
 
     deinit {
         connectionNotification?.unregister()
         disconnectionNotifications.forEach { $0.unregister() }
-        self.updates.forEach { $0.cancel() }
-
+        scanTimerTask?.cancel()
+        deviceObserverTask?.cancel()
     }
 
     func bluetoothUpdateConnetion(_ device: BluetoothObject, state: BluetoothState) -> BluetoothConnectionState {

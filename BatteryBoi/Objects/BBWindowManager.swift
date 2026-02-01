@@ -54,11 +54,24 @@ enum WindowPosition: String {
 final class WindowManager: WindowServiceProtocol {
     static let shared = WindowManager()
 
-    private var updates = Set<AnyCancellable>()
     private var triggered: Int = 0
     private var notifiedThresholds: Set<Int> = []
     private var notifiedBluetoothThresholds: [String: Set<Int>] = [:]
     private var globalMouseMonitor: Any?
+    /// Task for auto-dismissing the HUD after a timeout. Cancelled when a new alert appears.
+    private var dismissalTask: Task<Void, Never>?
+
+    // Async observation tasks
+    private var chargingObserverTask: Task<Void, Never>?
+    private var percentageObserverTask: Task<Void, Never>?
+    private var thermalObserverTask: Task<Void, Never>?
+    private var bluetoothTimerTask: Task<Void, Never>?
+    private var eventTimerTask: Task<Void, Never>?
+    private var pinnedObserverTask: Task<Void, Never>?
+
+    // Debounce tracking for charging state changes
+    private var lastChargingState: BatteryChargingState?
+    private var chargingDebounceTask: Task<Void, Never>?
 
     // MARK: - WindowServiceProtocol Publishers
 
@@ -108,158 +121,168 @@ final class WindowManager: WindowServiceProtocol {
     var opacity: CGFloat = 1.0
 
     init() {
-        BatteryManager.shared.$charging.dropFirst().removeDuplicates().sink { charging in
-            if charging.state == .charging {
-                self.notifiedThresholds.removeAll()
-            }
-        }.store(in: &updates)
+        lastChargingState = BatteryManager.shared.charging.state
 
-        BatteryManager.shared.$charging
-            .dropFirst()
-            .removeDuplicates()
-            .debounce(for: .seconds(2), scheduler: RunLoop.main)
-            .sink { charging in
-                switch charging.state {
-                case .battery: self.windowOpen(.chargingStopped, device: nil)
-                case .charging: self.windowOpen(.chargingBegan, device: nil)
-                }
+        // Observe charging state changes with debounce
+        chargingObserverTask = Task { @MainActor [weak self] in
+            var previousCharging = BatteryManager.shared.charging
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(100))
+                guard let self, !Task.isCancelled else { break }
 
-            }.store(in: &updates)
-
-        BatteryManager.shared.$percentage.dropFirst().removeDuplicates().sink { percent in
-            if BatteryManager.shared.charging.state == .battery {
-                let thresholds: [(Int, HUDAlertTypes)] = [
-                    (25, .percentTwentyFive),
-                    (10, .percentTen),
-                    (5, .percentFive),
-                    (1, .percentOne),
-                ]
-
-                for (threshold, alertType) in thresholds {
-                    if percent <= Double(threshold), !self.notifiedThresholds.contains(threshold) {
-                        self.notifiedThresholds.insert(threshold)
-                        self.windowOpen(alertType, device: nil)
-                        break
+                let currentCharging = BatteryManager.shared.charging
+                if currentCharging != previousCharging {
+                    // Reset thresholds when charging starts
+                    if currentCharging.state == .charging {
+                        notifiedThresholds.removeAll()
                     }
-                }
 
-            } else {
-                if percent >= 100, SettingsManager.shared.enabledChargeEighty == .disabled {
-                    self.windowOpen(.chargingComplete, device: nil)
-
-                } else if percent >= 80, SettingsManager.shared.enabledChargeEighty == .enabled {
-                    self.windowOpen(.chargingComplete, device: nil)
-
-                }
-
-            }
-
-        }.store(in: &updates)
-
-        BatteryManager.shared.$thermal.dropFirst().removeDuplicates().sink { state in
-            if state == .suboptimal {
-                self.windowOpen(.deviceOverheating, device: nil)
-
-            }
-
-        }.store(in: &updates)
-
-//        BluetoothManager.shared.$connected.removeDuplicates().dropFirst(1).receive(on: DispatchQueue.main).sink() { items in
-//            if let latest = items.sorted(by: { $0.updated > $1.updated }).first {
-//                if latest.updated.now == true {
-//                    switch latest.connected {
-//                        case .connected : self.windowOpen(.deviceConnected, device: latest)
-//                        default : break //self.windowOpen(.deviceRemoved, device: latest)
-//
-//                    }
-//
-//                }
-//
-//            }
-//
-//        }.store(in: &updates)
-
-        AppManager.shared.appTimer(60).dropFirst().receive(on: DispatchQueue.main).sink { _ in
-            let connected = BluetoothManager.shared.list.filter { $0.connected == .connected }
-
-            for device in connected {
-                guard let percent = device.battery.general else { continue }
-                let deviceId = device.address
-
-                // Initialize threshold tracking for this device if needed
-                if self.notifiedBluetoothThresholds[deviceId] == nil {
-                    self.notifiedBluetoothThresholds[deviceId] = []
-                }
-
-                let thresholds: [(Int, HUDAlertTypes)] = [
-                    (25, .percentTwentyFive),
-                    (10, .percentTen),
-                    (5, .percentFive),
-                    (1, .percentOne),
-                ]
-
-                for (threshold, alertType) in thresholds {
-                    if percent <= threshold,
-                       !(self.notifiedBluetoothThresholds[deviceId]?.contains(threshold) ?? false)
-                    {
-                        self.notifiedBluetoothThresholds[deviceId]?.insert(threshold)
-                        self.windowOpen(alertType, device: device)
-                        break
-                    }
-                }
-
-                // Reset thresholds if device battery goes above 30%
-                if percent > 30 {
-                    self.notifiedBluetoothThresholds[deviceId]?.removeAll()
-                }
-
-            }
-
-        }.store(in: &updates)
-
-        AppManager.shared.$alert.removeDuplicates().delay(for: .seconds(5.0), scheduler: RunLoop.main).sink { _ in
-            if AppManager.shared.alert?.timeout == true, self.state == .revealed {
-                self.windowSetState(.dismissed)
-
-            }
-
-        }.store(in: &updates)
-
-        AppManager.shared.$alert.removeDuplicates().delay(for: .seconds(10.0), scheduler: RunLoop.main).sink { _ in
-            if AppManager.shared.alert?.timeout == false, self.state == .revealed {
-                self.windowSetState(.dismissed)
-
-            }
-
-        }.store(in: &updates)
-
-        AppManager.shared.appTimer(30).dropFirst().sink { _ in
-            if BatteryManager.shared.charging.state == .battery {
-                if let now = EventManager.shared.events.max(by: { $0.start < $1.start }) {
-                    if let minutes = Calendar.current.dateComponents([.minute], from: Date(), to: now.start).minute {
-                        switch minutes {
-                        case 2: self.windowOpen(.userEvent, device: nil)
-                        default: break
+                    // Debounce the charging state change notification (2 seconds)
+                    chargingDebounceTask?.cancel()
+                    let newState = currentCharging.state
+                    chargingDebounceTask = Task { @MainActor [weak self] in
+                        do {
+                            try await Task.sleep(for: .seconds(2))
+                            guard let self, !Task.isCancelled else { return }
+                            switch newState {
+                            case .battery: windowOpen(.chargingStopped, device: nil)
+                            case .charging: windowOpen(.chargingBegan, device: nil)
+                            }
+                        } catch {
+                            // Task cancelled
                         }
-
                     }
 
+                    previousCharging = currentCharging
                 }
-
             }
+        }
 
-        }.store(in: &updates)
+        // Observe percentage changes
+        percentageObserverTask = Task { @MainActor [weak self] in
+            var previousPercent = BatteryManager.shared.percentage
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(500))
+                guard let self, !Task.isCancelled else { break }
 
-        SettingsManager.shared.$pinned.sink { pinned in
-            if pinned == .enabled {
-                withAnimation(Animation.easeOut) {
-                    self.opacity = 1.0
+                let currentPercent = BatteryManager.shared.percentage
+                if currentPercent != previousPercent {
+                    if BatteryManager.shared.charging.state == .battery {
+                        let thresholds: [(Int, HUDAlertTypes)] = [
+                            (25, .percentTwentyFive),
+                            (10, .percentTen),
+                            (5, .percentFive),
+                            (1, .percentOne),
+                        ]
 
+                        for (threshold, alertType) in thresholds {
+                            if currentPercent <= Double(threshold), !notifiedThresholds.contains(threshold) {
+                                notifiedThresholds.insert(threshold)
+                                windowOpen(alertType, device: nil)
+                                break
+                            }
+                        }
+                    } else {
+                        if currentPercent >= 100, SettingsManager.shared.enabledChargeEighty == .disabled {
+                            windowOpen(.chargingComplete, device: nil)
+                        } else if currentPercent >= 80, SettingsManager.shared.enabledChargeEighty == .enabled {
+                            windowOpen(.chargingComplete, device: nil)
+                        }
+                    }
+
+                    previousPercent = currentPercent
                 }
-
             }
+        }
 
-        }.store(in: &updates)
+        // Observe thermal state changes
+        thermalObserverTask = Task { @MainActor [weak self] in
+            var previousThermal = BatteryManager.shared.thermal
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1))
+                guard let self, !Task.isCancelled else { break }
+
+                let currentThermal = BatteryManager.shared.thermal
+                if currentThermal != previousThermal, currentThermal == .suboptimal {
+                    windowOpen(.deviceOverheating, device: nil)
+                }
+                previousThermal = currentThermal
+            }
+        }
+
+        // Check Bluetooth device battery levels every 60 seconds
+        bluetoothTimerTask = Task { @MainActor [weak self] in
+            var skipFirst = true
+            for await _ in AppManager.shared.appTimerAsync(60) {
+                guard let self, !Task.isCancelled else { break }
+                if skipFirst { skipFirst = false; continue }
+
+                let connected = BluetoothManager.shared.list.filter { $0.connected == .connected }
+
+                for device in connected {
+                    guard let percent = device.battery.general else { continue }
+                    let deviceId = device.address
+
+                    if notifiedBluetoothThresholds[deviceId] == nil {
+                        notifiedBluetoothThresholds[deviceId] = []
+                    }
+
+                    let thresholds: [(Int, HUDAlertTypes)] = [
+                        (25, .percentTwentyFive),
+                        (10, .percentTen),
+                        (5, .percentFive),
+                        (1, .percentOne),
+                    ]
+
+                    for (threshold, alertType) in thresholds {
+                        if percent <= threshold,
+                           !(notifiedBluetoothThresholds[deviceId]?.contains(threshold) ?? false)
+                        {
+                            notifiedBluetoothThresholds[deviceId]?.insert(threshold)
+                            windowOpen(alertType, device: device)
+                            break
+                        }
+                    }
+
+                    if percent > 30 {
+                        notifiedBluetoothThresholds[deviceId]?.removeAll()
+                    }
+                }
+            }
+        }
+
+        // Check for upcoming events every 30 seconds
+        eventTimerTask = Task { @MainActor [weak self] in
+            var skipFirst = true
+            for await _ in AppManager.shared.appTimerAsync(30) {
+                guard let self, !Task.isCancelled else { break }
+                if skipFirst { skipFirst = false; continue }
+
+                if BatteryManager.shared.charging.state == .battery {
+                    if let now = EventManager.shared.events.max(by: { $0.start < $1.start }) {
+                        if let minutes = Calendar.current.dateComponents([.minute], from: Date(), to: now.start)
+                            .minute
+                        {
+                            if minutes == 2 {
+                                windowOpen(.userEvent, device: nil)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Observe pinned setting changes
+        pinnedObserverTask = Task { @MainActor [weak self] in
+            for await key in UserDefaults.changedAsync() {
+                guard let self, !Task.isCancelled else { break }
+                if key == .enabledPinned, SettingsManager.shared.pinned == .enabled {
+                    withAnimation(Animation.easeOut) {
+                        self.opacity = 1.0
+                    }
+                }
+            }
+        }
 
         globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [
             .leftMouseUp,
@@ -269,38 +292,41 @@ final class WindowManager: WindowServiceProtocol {
             if NSRunningApplication.current == NSWorkspace.shared.frontmostApplication {
                 if state == .revealed || state == .progress {
                     windowSetState(.detailed)
-
                 }
-
             } else {
                 if SettingsManager.shared.enabledPinned == .disabled {
                     if state.visible == true {
                         windowSetState(.dismissed)
-
                     }
-
                 } else {
                     windowSetState(.revealed)
-
                 }
-
             }
-
         }
 
         position = windowLastPosition
-
     }
 
     deinit {
         if let monitor = globalMouseMonitor {
             NSEvent.removeMonitor(monitor)
         }
-        updates.forEach { $0.cancel() }
+        dismissalTask?.cancel()
+        chargingObserverTask?.cancel()
+        percentageObserverTask?.cancel()
+        thermalObserverTask?.cancel()
+        bluetoothTimerTask?.cancel()
+        eventTimerTask?.cancel()
+        pinnedObserverTask?.cancel()
+        chargingDebounceTask?.cancel()
     }
 
     private func handleStateChange(_ state: HUDState) {
         if state == .dismissed {
+            // Cancel any pending dismissal when manually dismissed
+            dismissalTask?.cancel()
+            dismissalTask = nil
+
             Task { @MainActor in
                 try? await Task.sleep(for: .seconds(0.8))
                 Self.shared.windowClose()
@@ -310,13 +336,36 @@ final class WindowManager: WindowServiceProtocol {
                 try? await Task.sleep(for: .seconds(0.2))
                 self.windowSetState(.revealed)
             }
-        } else if state == .revealed, AppManager.shared.alert?.timeout == false {
-            Task { @MainActor in
-                try? await Task.sleep(for: .seconds(1))
-                self.windowSetState(.detailed)
+        } else if state == .revealed {
+            // Transition to detailed view for non-timeout alerts after 1 second
+            if AppManager.shared.alert?.timeout == false {
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(1))
+                    self.windowSetState(.detailed)
+                }
+            }
+
+            // Schedule auto-dismissal based on alert timeout setting
+            scheduleDismissal()
+        }
+    }
+
+    /// Schedules auto-dismissal of the HUD based on the current alert's timeout setting.
+    /// Cancels any existing dismissal task before scheduling a new one.
+    private func scheduleDismissal() {
+        dismissalTask?.cancel()
+
+        let timeout: Duration = AppManager.shared.alert?.timeout == true ? .seconds(5) : .seconds(10)
+
+        dismissalTask = Task { @MainActor [weak self] in
+            do {
+                try await Task.sleep(for: timeout)
+                guard let self, state == .revealed else { return }
+                windowSetState(.dismissed)
+            } catch {
+                // Task was cancelled, don't dismiss
             }
         }
-
     }
 
     func windowSetState(_ state: HUDState, animated _: Bool = true) {
@@ -344,6 +393,10 @@ final class WindowManager: WindowServiceProtocol {
     }
 
     func windowOpen(_ type: HUDAlertTypes, device: BluetoothObject?) {
+        // Cancel any pending dismissal from a previous alert
+        dismissalTask?.cancel()
+        dismissalTask = nil
+
         if let window = windowExists(type) {
             window.contentView = WindowHostingView(rootView: HUDParent(type, device: device))
 

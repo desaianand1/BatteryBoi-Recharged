@@ -5,7 +5,6 @@
 //  Created by Joe Barbour on 8/28/23.
 //
 
-import Combine
 import CoreData
 import Foundation
 
@@ -46,7 +45,11 @@ final class StatsManager {
     var title: String
     var subtitle: String
 
-    private var updates = Set<AnyCancellable>()
+    // Async observation tasks
+    private var userDefaultsTask: Task<Void, Never>?
+    private var batteryObserverTask: Task<Void, Never>?
+    private var bluetoothObserverTask: Task<Void, Never>?
+    private var wattageTimerTask: Task<Void, Never>?
 
     nonisolated(unsafe) static var container: StatsContainerObject = {
         let object = "BBDataObject"
@@ -111,100 +114,140 @@ final class StatsManager {
         title = ""
         subtitle = ""
 
-        UserDefaults.changed.receive(on: DispatchQueue.main).sink { key in
-            if key == .enabledDisplay {
-                self.display = self.statsDisplay
-                self.overlay = self.statsOverlay
-
-            }
-
-        }.store(in: &updates)
-
-        AppManager.shared.$alert.receive(on: DispatchQueue.main).sink { _ in
-            self.display = self.statsDisplay
-            self.overlay = self.statsOverlay
-            self.title = self.statsTitle
-            self.subtitle = self.statsSubtitle
-
-        }.store(in: &updates)
-
-        BatteryManager.shared.$charging.receive(on: DispatchQueue.main).sink { newValue in
-            self.display = self.statsDisplay
-            self.overlay = self.statsOverlay
-            self.title = self.statsTitle
-            self.subtitle = self.statsSubtitle
-
-            Task {
-                switch newValue.state {
-                case .battery: await self.statsStore(.disconnected, device: nil)
-                case .charging: await self.statsStore(.connected, device: nil)
+        // Observe UserDefaults changes
+        userDefaultsTask = Task { @MainActor [weak self] in
+            for await key in UserDefaults.changedAsync() {
+                guard let self, !Task.isCancelled else { break }
+                if key == .enabledDisplay {
+                    display = statsDisplay
+                    overlay = statsOverlay
                 }
             }
+        }
 
-        }.store(in: &updates)
+        // Observe battery-related state changes with polling
+        batteryObserverTask = Task { @MainActor [weak self] in
+            var prevAlert = AppManager.shared.alert
+            var prevCharging = BatteryManager.shared.charging
+            var prevPercentage = BatteryManager.shared.percentage
+            var prevSaver = BatteryManager.shared.saver
+            var prevThermal = BatteryManager.shared.thermal
+            var prevDevice = AppManager.shared.device
 
-        BatteryManager.shared.$percentage.receive(on: DispatchQueue.main).sink { _ in
-            self.display = self.statsDisplay
-            self.overlay = self.statsOverlay
-            self.title = self.statsTitle
-            self.subtitle = self.statsSubtitle
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(200))
+                guard let self, !Task.isCancelled else { break }
 
-            Task {
-                switch BatteryManager.shared.charging.state {
-                case .battery: await self.statsStore(.depleted, device: nil)
-                case .charging: await self.statsStore(.charging, device: nil)
+                var needsUpdate = false
+
+                // Check alert changes
+                let currentAlert = AppManager.shared.alert
+                if currentAlert != prevAlert {
+                    needsUpdate = true
+                    prevAlert = currentAlert
+                }
+
+                // Check charging state changes
+                let currentCharging = BatteryManager.shared.charging
+                if currentCharging != prevCharging {
+                    needsUpdate = true
+
+                    // Store activity
+                    Task {
+                        switch currentCharging.state {
+                        case .battery: await self.statsStore(.disconnected, device: nil)
+                        case .charging: await self.statsStore(.connected, device: nil)
+                        }
+                    }
+
+                    prevCharging = currentCharging
+                }
+
+                // Check percentage changes
+                let currentPercentage = BatteryManager.shared.percentage
+                if currentPercentage != prevPercentage {
+                    needsUpdate = true
+
+                    // Store activity
+                    Task {
+                        switch BatteryManager.shared.charging.state {
+                        case .battery: await self.statsStore(.depleted, device: nil)
+                        case .charging: await self.statsStore(.charging, device: nil)
+                        }
+                    }
+
+                    prevPercentage = currentPercentage
+                }
+
+                // Check saver changes
+                let currentSaver = BatteryManager.shared.saver
+                if currentSaver != prevSaver {
+                    needsUpdate = true
+                    prevSaver = currentSaver
+                }
+
+                // Check thermal changes
+                let currentThermal = BatteryManager.shared.thermal
+                if currentThermal != prevThermal {
+                    needsUpdate = true
+                    prevThermal = currentThermal
+                }
+
+                // Check device changes
+                let currentDevice = AppManager.shared.device
+                if currentDevice?.address != prevDevice?.address {
+                    title = statsTitle
+                    subtitle = statsSubtitle
+                    prevDevice = currentDevice
+                }
+
+                if needsUpdate {
+                    display = statsDisplay
+                    overlay = statsOverlay
+                    title = statsTitle
+                    subtitle = statsSubtitle
                 }
             }
+        }
 
-        }.store(in: &updates)
+        // Observe Bluetooth connection changes
+        bluetoothObserverTask = Task { @MainActor [weak self] in
+            var prevConnected = BluetoothManager.shared.connected
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(500))
+                guard let self, !Task.isCancelled else { break }
 
-        BatteryManager.shared.$saver.receive(on: DispatchQueue.main).sink { _ in
-            self.display = self.statsDisplay
-            self.overlay = self.statsOverlay
-            self.title = self.statsTitle
-            self.subtitle = self.statsSubtitle
+                let currentConnected = BluetoothManager.shared.connected
+                if currentConnected != prevConnected {
+                    overlay = statsOverlay
+                    title = statsTitle
+                    subtitle = statsSubtitle
 
-        }.store(in: &updates)
+                    if let device = currentConnected.first(where: { $0.updated.now == true }) {
+                        Task {
+                            await self.statsStore(.depleted, device: device)
+                        }
+                    }
 
-        BatteryManager.shared.$thermal.receive(on: DispatchQueue.main).sink { _ in
-            self.display = self.statsDisplay
-            self.overlay = self.statsOverlay
-            self.title = self.statsTitle
-            self.subtitle = self.statsSubtitle
-
-        }.store(in: &updates)
-
-        BluetoothManager.shared.$connected.removeDuplicates().receive(on: DispatchQueue.main).sink { newValue in
-            self.overlay = self.statsOverlay
-            self.title = self.statsTitle
-            self.subtitle = self.statsSubtitle
-
-            if let device = newValue.first(where: { $0.updated.now == true }) {
-                Task {
-                    await self.statsStore(.depleted, device: device)
+                    prevConnected = currentConnected
                 }
             }
+        }
 
-        }.store(in: &updates)
-
-        AppManager.shared.$device.receive(on: DispatchQueue.main).sink { _ in
-            self.title = self.statsTitle
-            self.subtitle = self.statsSubtitle
-
-        }.store(in: &updates)
-
-        AppManager.shared.appTimer(3600).sink { _ in
-            Task {
-                await self.statsWattageStore()
+        // Store wattage every hour
+        wattageTimerTask = Task { @MainActor [weak self] in
+            for await _ in AppManager.shared.appTimerAsync(3600) {
+                guard let self, !Task.isCancelled else { break }
+                await statsWattageStore()
             }
-
-        }.store(in: &updates)
-
+        }
     }
 
     deinit {
-        self.updates.forEach { $0.cancel() }
-
+        userDefaultsTask?.cancel()
+        batteryObserverTask?.cancel()
+        bluetoothObserverTask?.cancel()
+        wattageTimerTask?.cancel()
     }
 
     private var statsDisplay: String? {

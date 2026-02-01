@@ -6,7 +6,6 @@
 //
 
 import AppKit
-import Combine
 import Foundation
 import ServiceManagement
 import SwiftUI
@@ -261,7 +260,7 @@ final class SettingsManager: SettingsServiceProtocol {
     var pinned: SettingsPinned = .disabled
     var charge: SettingsCharged = .disabled
 
-    private var updates = Set<AnyCancellable>()
+    private var settingsTask: Task<Void, Never>?
 
     // MARK: - SettingsServiceProtocol Publishers
 
@@ -330,23 +329,24 @@ final class SettingsManager: SettingsServiceProtocol {
         pinned = enabledPinned
         charge = enabledChargeEighty
 
-        UserDefaults.changed.receive(on: DispatchQueue.main).sink { key in
-            switch key {
-            case .enabledDisplay: self.display = self.enabledDisplay(false)
-            case .enabledTheme: self.theme = self.enabledTheme
-            case .enabledSoundEffects: self.sfx = self.enabledSoundEffects
-            case .enabledPinned: self.pinned = self.enabledPinned
-            case .enabledChargeEighty: self.charge = self.enabledChargeEighty
-            default: break
+        // Observe UserDefaults changes using async/await
+        settingsTask = Task { @MainActor [weak self] in
+            for await key in UserDefaults.changedAsync() {
+                guard let self, !Task.isCancelled else { break }
+                switch key {
+                case .enabledDisplay: display = enabledDisplay(false)
+                case .enabledTheme: theme = enabledTheme
+                case .enabledSoundEffects: sfx = enabledSoundEffects
+                case .enabledPinned: pinned = enabledPinned
+                case .enabledChargeEighty: charge = enabledChargeEighty
+                default: break
+                }
             }
-
-        }.store(in: &updates)
-
+        }
     }
 
     deinit {
-        self.updates.forEach { $0.cancel() }
-
+        settingsTask?.cancel()
     }
 
     var enabledAutoLaunch: SettingsStateValue {
