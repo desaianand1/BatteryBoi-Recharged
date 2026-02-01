@@ -74,15 +74,23 @@ class WindowManager: ObservableObject {
 
     init() {
         BatteryManager.shared.$charging.dropFirst().removeDuplicates().sink { charging in
-            switch charging.state {
-                case .battery : self.windowOpen(.chargingStopped, device: nil)
-                case .charging :
-                    self.notifiedThresholds.removeAll()
-                    self.windowOpen(.chargingBegan, device: nil)
-
+            if charging.state == .charging {
+                self.notifiedThresholds.removeAll()
             }
-
         }.store(in: &updates)
+
+        BatteryManager.shared.$charging
+            .dropFirst()
+            .removeDuplicates()
+            .debounce(for: .seconds(2), scheduler: RunLoop.main)
+            .sink { charging in
+                switch charging.state {
+                    case .battery : self.windowOpen(.chargingStopped, device: nil)
+                    case .charging : self.windowOpen(.chargingBegan, device: nil)
+
+                }
+
+            }.store(in: &updates)
         
         BatteryManager.shared.$percentage.dropFirst().removeDuplicates().sink { percent in
             if BatteryManager.shared.charging.state == .battery {
