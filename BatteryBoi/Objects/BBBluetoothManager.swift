@@ -36,12 +36,6 @@ enum BluetoothVendor: String {
 
 }
 
-enum BluetoothScriptType: String {
-    case profiler = "BBProfilerList"
-    case oreg = "BBIOREGList"
-
-}
-
 enum BluetoothDistanceType: Int {
     case proximate
     case near
@@ -175,9 +169,15 @@ struct BluetoothBatteryObject: Decodable, Equatable {
         case left = "device_batteryLevelLeft"
         case enclosure = "device_batteryLevel"
         case general = "device_batteryLevelMain"
-
     }
 
+    /// Initializer for creating from native IOKit battery percent
+    init(percent: Int?) {
+        general = percent.map { Double($0) }
+        left = nil
+        right = nil
+        self.percent = general
+    }
 }
 
 struct BluetoothObject: Decodable, Equatable {
@@ -252,9 +252,25 @@ struct BluetoothObject: Decodable, Equatable {
         case vendor = "device_vendorID"
         case product = "device_productID"
         case rssi = "device_rssi"
-
     }
 
+    /// Initializer for creating BluetoothObject from native IOKit data
+    init(
+        address: String,
+        name: String?,
+        isConnected: Bool,
+        batteryPercent: Int?,
+        deviceType: String,
+    ) {
+        self.address = address.lowercased().replacingOccurrences(of: ":", with: "-")
+        firmware = nil
+        battery = BluetoothBatteryObject(percent: batteryPercent)
+        type = BluetoothDeviceObject(deviceType)
+        distance = .unknown
+        updated = Date()
+        device = name
+        connected = isConnected ? .connected : .disconnected
+    }
 }
 
 typealias BluetoothObjectContainer = [String: BluetoothObject]
@@ -286,20 +302,35 @@ enum BluetoothState: Int {
 final class BluetoothManager: BluetoothServiceProtocol {
     static let shared = BluetoothManager()
 
-    var list = [BluetoothObject]() {
-        didSet {
-            // Update connected and icons whenever list changes
-            connected = list.filter { $0.connected == .connected }
-            icons = connected.map(\.type.icon)
+    var list = [BluetoothObject]()
+    var connected = [BluetoothObject]()
+    var icons = [String]()
 
+    /// Updates derived state (connected devices, icons) after list modifications.
+    /// Also cleans up disconnection notifications for devices no longer in list.
+    /// Call this after batch updates to the list are complete.
+    private func updateDerivedState() {
+        connected = list.filter { $0.connected == .connected }
+        icons = connected.map(\.type.icon)
+
+        // Clean up disconnection notifications for devices no longer in the list
+        let currentAddresses = Set(list.map(\.address))
+        let staleAddresses = disconnectionNotifications.keys
+            .filter { !currentAddresses.contains($0.lowercased().replacingOccurrences(
+                of: ":",
+                with: "-",
+            )) }
+        for address in staleAddresses {
+            disconnectionNotifications[address]?.unregister()
+            disconnectionNotifications.removeValue(forKey: address)
+        }
+
+        #if DEBUG
             for device in list {
                 print("\n\(device.device ?? "") (\(device.address)) - \(device.connected.status)")
             }
-        }
+        #endif
     }
-
-    var connected = [BluetoothObject]()
-    var icons = [String]()
 
     private var connectionNotification: IOBluetoothUserNotification?
     private var disconnectionNotifications: [String: IOBluetoothUserNotification] = [:]
@@ -323,20 +354,18 @@ final class BluetoothManager: BluetoothServiceProtocol {
     }
 
     func refreshDeviceList() async {
-        await bluetoothList(.oreg)
-        await bluetoothList(.profiler)
+        await bluetoothListNative()
     }
 
     init() {
-        // Scan for Bluetooth devices every 15 seconds
+        // Scan for Bluetooth devices every 15 seconds using native IOKit
         scanTimerTask = Task { @MainActor [weak self] in
             var skipFirst = true
             for await _ in AppManager.shared.appTimerAsync(15) {
                 guard let self, !Task.isCancelled else { break }
                 if skipFirst { skipFirst = false; continue }
 
-                await bluetoothList(.oreg)
-                await bluetoothList(.profiler)
+                await bluetoothListNative()
             }
         }
 
@@ -357,10 +386,9 @@ final class BluetoothManager: BluetoothServiceProtocol {
             }
         }
 
-        // Initial scan
+        // Initial scan using native IOKit
         Task { @MainActor in
-            await self.bluetoothList(.oreg, initialize: true)
-            await self.bluetoothList(.profiler)
+            await self.bluetoothListNative(initialize: true)
 
             switch self.list.filter({ $0.connected == .connected }).count {
             case 0: AppManager.shared.menu = .settings
@@ -417,142 +445,97 @@ final class BluetoothManager: BluetoothServiceProtocol {
 
     }
 
-    private func bluetoothList(_ type: BluetoothScriptType, initialize: Bool = false) async {
-        guard FileManager.default.fileExists(atPath: "/usr/bin/python3") else {
-            print("Python not found at /usr/bin/python3")
-            return
-        }
+    /// Refreshes the Bluetooth device list using native IOKit APIs.
+    /// This replaces the Python script-based approach for better performance and reliability.
+    private func bluetoothListNative(initialize: Bool = false) async {
+        // Get device info from native IOKit service
+        let devices = await IOKitBluetoothService.shared.getConnectedDevices()
 
-        guard let script = Bundle.main.path(forResource: type.rawValue, ofType: "py") else {
-            print("Script not found: \(type.rawValue)")
-            return
-        }
+        for deviceInfo in devices {
+            // Skip devices without a valid type (other than "other")
+            let deviceType = BluetoothDeviceType(rawValue: deviceInfo.deviceType) ?? .other
+            guard deviceType != .other else { continue }
 
-        do {
-            let output = try await ProcessRunner.shared.run(
-                executable: "/usr/bin/python3",
-                arguments: [script],
-                timeout: .seconds(30),
-            )
+            let normalizedAddress = deviceInfo.address
 
-            guard let data = output.data(using: .utf8) else { return }
+            // Check if device already exists in the list
+            if let listIndex = list.firstIndex(where: { $0.address == normalizedAddress }) {
+                // Update existing device
+                var updated = list[listIndex]
+                updated.device = deviceInfo.name
+                updated.connected = deviceInfo.isConnected ? .connected : .disconnected
 
-            let object = try JSONDecoder().decode([BluetoothObjectContainer].self, from: data)
-            let values = object.flatMap(\.values)
-
-            await MainActor.run {
-                for item in IOBluetoothDevice.pairedDevices() {
-                    if let device = item as? IOBluetoothDevice {
-                        if let index = values.firstIndex(where: { $0.address == device.addressString }) {
-                            let status: BluetoothState = device.isConnected() ? .connected : .disconnected
-
-                            var updated = values[index]
-                            updated.device = device.name
-
-                            if status != updated.connected {
-                                updated.connected = status
-                                updated.updated = Date()
-
-                            }
-
-                            if let listIndex = self.list.firstIndex(where: { $0.address == device.addressString }) {
-                                if self.list[listIndex].battery.general != nil, updated.battery.general == nil {
-                                    updated.battery.general = self.list[listIndex].battery.general
-                                    updated.updated = Date()
-
-                                }
-
-                                if self.list[listIndex].battery.left != nil, updated.battery.left == nil {
-                                    updated.battery.left = self.list[listIndex].battery.left
-                                    updated.updated = Date()
-
-                                }
-
-                                if self.list[listIndex].battery.right != nil, updated.battery.right == nil {
-                                    updated.battery.right = self.list[listIndex].battery.right
-                                    updated.updated = Date()
-
-                                }
-
-                                if self.list[listIndex].battery.percent != nil, updated.battery.percent == nil {
-                                    updated.battery.percent = self.list[listIndex].battery.percent
-                                    updated.updated = Date()
-
-                                }
-
-                                if self.list[listIndex].distance != updated.distance {
-                                    updated.distance = self.list[listIndex].distance
-                                    updated.updated = Date()
-
-                                }
-
-                                self.list[listIndex] = updated
-
-                            } else {
-                                if updated.type.type != .other {
-                                    self.list.append(updated)
-
-                                }
-
-                                // Only register if we don't already have a notification for this device
-                                if self.disconnectionNotifications[device.addressString] == nil,
-                                   let notification = device.register(
-                                       forDisconnectNotification: self,
-                                       selector: #selector(self.bluetoothDeviceUpdated),
-                                   )
-                                {
-                                    self.disconnectionNotifications[device.addressString] = notification
-                                }
-
-                            }
-
-                        }
-
-                    }
-
+                // Update battery if we have new data
+                if let percent = deviceInfo.batteryPercent, updated.battery.general == nil {
+                    updated.battery = BluetoothBatteryObject(percent: percent)
                 }
 
-                if initialize == true {
-                    self.connectionNotification = IOBluetoothDevice.register(
-                        forConnectNotifications: self,
-                        selector: #selector(self.bluetoothDeviceUpdated),
-                    )
+                updated.updated = Date()
+                list[listIndex] = updated
+            } else {
+                // Add new device
+                let newDevice = BluetoothObject(
+                    address: normalizedAddress,
+                    name: deviceInfo.name,
+                    isConnected: deviceInfo.isConnected,
+                    batteryPercent: deviceInfo.batteryPercent,
+                    deviceType: deviceInfo.deviceType,
+                )
 
+                list.append(newDevice)
+
+                // Register for disconnect notifications
+                if let btDevice = IOBluetoothDevice(addressString: normalizedAddress.replacingOccurrences(
+                    of: "-",
+                    with: ":",
+                )),
+                    disconnectionNotifications[normalizedAddress] == nil,
+                    let notification = btDevice.register(
+                        forDisconnectNotification: self,
+                        selector: #selector(bluetoothDeviceUpdated),
+                    )
+                {
+                    disconnectionNotifications[normalizedAddress] = notification
                 }
             }
-
-        } catch {
-            print("Bluetooth list error: \(error)")
-
         }
 
+        if initialize {
+            connectionNotification = IOBluetoothDevice.register(
+                forConnectNotifications: self,
+                selector: #selector(bluetoothDeviceUpdated),
+            )
+        }
+
+        updateDerivedState()
     }
 
     @objc
     private func bluetoothDeviceUpdated() {
-        for item in IOBluetoothDevice.pairedDevices() {
-            if let device = item as? IOBluetoothDevice {
-                if let index = list.firstIndex(where: { $0.address == device.addressString }) {
-                    DispatchQueue.main.async {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+
+            var didUpdate = false
+            for item in IOBluetoothDevice.pairedDevices() {
+                if let device = item as? IOBluetoothDevice {
+                    if let index = list.firstIndex(where: { $0.address == device.addressString }) {
                         let status: BluetoothState = device.isConnected() ? .connected : .disconnected
-                        var update = self.list[index]
+                        var update = list[index]
 
                         if update.connected != status {
                             update.updated = Date()
                             update.connected = status
-
-                            self.list[index] = update
-
+                            list[index] = update
+                            didUpdate = true
                         }
-
                     }
-
                 }
-
             }
 
+            if didUpdate {
+                updateDerivedState()
+            }
         }
-
     }
 
 }
