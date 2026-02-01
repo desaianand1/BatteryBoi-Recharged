@@ -1,14 +1,11 @@
-//
-//  BBBatteryManager.swift
-//  BatteryBoi
-//
-//  Created by Joe Barbour on 8/4/23.
-//
-
 import Combine
 import Foundation
 import IOKit.ps
 import IOKit.pwr_mgt
+
+#if canImport(Sentry)
+    import Sentry
+#endif
 
 enum BatteryThemalState {
     case optimal
@@ -48,16 +45,16 @@ struct BatteryCycleObject {
 
 struct BatteryMetricsObject {
     var cycles: BatteryCycleObject
-    var heath: BatteryCondition
+    var health: BatteryCondition
 
     init(cycles: String, health: String) {
         self.cycles = BatteryCycleObject(Int(cycles) ?? 0)
-        heath = BatteryCondition(rawValue: health) ?? .optimal
+        self.health = BatteryCondition(rawValue: health) ?? .optimal
     }
 
     init(cycleCount: Int, condition: String) {
         cycles = BatteryCycleObject(cycleCount)
-        heath = BatteryCondition(rawValue: condition) ?? .optimal
+        health = BatteryCondition(rawValue: condition) ?? .optimal
     }
 }
 
@@ -196,7 +193,6 @@ final class BatteryManager: BatteryServiceProtocol {
     var charging: BatteryCharging = .init(.battery)
     var percentage: Double = 100
     var remaining: BatteryRemaining?
-    var mode: Bool = false
     var saver: BatteryModeType = .unavailable
     var rate: BatteryEstimateObject?
     var metrics: BatteryMetricsObject?
@@ -208,9 +204,7 @@ final class BatteryManager: BatteryServiceProtocol {
     private var statusTask: Task<Void, Never>?
     private var remainingTask: Task<Void, Never>?
     private var metricsTask: Task<Void, Never>?
-    #if DEBUG
-        private var thermalTask: Task<Void, Never>?
-    #endif
+    private var thermalTask: Task<Void, Never>?
 
     // MARK: - BatteryServiceProtocol Publishers
 
@@ -275,15 +269,13 @@ final class BatteryManager: BatteryServiceProtocol {
             }
         }
 
-        #if DEBUG
-            // Thermal check every 90 seconds (DEBUG only)
-            thermalTask = Task { @MainActor [weak self] in
-                for await _ in AppManager.shared.appTimerAsync(90) {
-                    guard let self, !Task.isCancelled else { break }
-                    await powerThermalCheck()
-                }
+        // Thermal check every 90 seconds
+        thermalTask = Task { @MainActor [weak self] in
+            for await _ in AppManager.shared.appTimerAsync(90) {
+                guard let self, !Task.isCancelled else { break }
+                await powerThermalCheck()
             }
-        #endif
+        }
 
         // Metrics check every 300 seconds (optimized from 60s)
         metricsTask = Task { @MainActor [weak self] in
@@ -304,9 +296,7 @@ final class BatteryManager: BatteryServiceProtocol {
         statusTask?.cancel()
         remainingTask?.cancel()
         metricsTask?.cancel()
-        #if DEBUG
-            thermalTask?.cancel()
-        #endif
+        thermalTask?.cancel()
     }
 
     func powerForceRefresh() {
@@ -475,6 +465,18 @@ final class BatteryManager: BatteryServiceProtocol {
             if let script = NSAppleScript(source: command) {
                 var error: NSDictionary?
                 script.executeAndReturnError(&error)
+
+                if let error {
+                    #if canImport(Sentry)
+                        SentrySDK.capture(message: "Power save mode AppleScript failed") { scope in
+                            scope.setExtra(
+                                value: error["NSAppleScriptErrorMessage"] as? String ?? "Unknown error",
+                                key: "message",
+                            )
+                            scope.setExtra(value: error["NSAppleScriptErrorNumber"] as? Int ?? -1, key: "errorNumber")
+                        }
+                    #endif
+                }
 
                 Task { @MainActor in
                     self.saver = await self.fetchPowerSaveModeStatus()
