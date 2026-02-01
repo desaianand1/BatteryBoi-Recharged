@@ -283,12 +283,14 @@ enum BluetoothState: Int {
 
 }
 
-class BluetoothManager: ObservableObject {
-    nonisolated(unsafe) static var shared = BluetoothManager()
+@Observable
+@MainActor
+final class BluetoothManager {
+    static let shared = BluetoothManager()
 
-    @Published var list = [BluetoothObject]()
-    @Published var connected = [BluetoothObject]()
-    @Published var icons = [String]()
+    var list = [BluetoothObject]()
+    var connected = [BluetoothObject]()
+    var icons = [String]()
 
     private var updates = Set<AnyCancellable>()
     private var connectionNotification: IOBluetoothUserNotification?

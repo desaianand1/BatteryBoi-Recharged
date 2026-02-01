@@ -36,13 +36,15 @@ struct StatsContainerObject {
 
 }
 
-class StatsManager: ObservableObject {
-    nonisolated(unsafe) static var shared = StatsManager()
+@Observable
+@MainActor
+final class StatsManager {
+    static let shared = StatsManager()
 
-    @Published var display: String?
-    @Published var overlay: String?
-    @Published var title: String
-    @Published var subtitle: String
+    var display: String?
+    var overlay: String?
+    var title: String
+    var subtitle: String
 
     private var updates = Set<AnyCancellable>()
 

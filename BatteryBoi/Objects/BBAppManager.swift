@@ -10,15 +10,16 @@ import Foundation
 import Sparkle
 import SwiftUI
 
+@Observable
 @MainActor
-class AppManager: ObservableObject {
+final class AppManager {
     static let shared = AppManager()
 
-    @Published var counter = 0
-    @Published var device: BluetoothObject?
-    @Published var alert: HUDAlertTypes?
-    @Published var menu: SystemMenuView = .devices
-    @Published var profile: SystemProfileObject?
+    var counter = 0
+    var device: BluetoothObject?
+    var alert: HUDAlertTypes?
+    var menu: SystemMenuView = .devices
+    var profile: SystemProfileObject?
 
     private var updates = Set<AnyCancellable>()
     private var timer: AnyCancellable?
@@ -40,15 +41,10 @@ class AppManager: ObservableObject {
 
         }
 
-        if #available(macOS 13.0, *) {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                if self.appDistribution() == .direct {
-                    self.profile = self.appProfile(force: false)
-
-                }
-
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            if self.appDistribution() == .direct {
+                self.profile = self.appProfile(force: false)
             }
-
         }
 
         timer?.store(in: &updates)

@@ -249,15 +249,17 @@ enum SettingsStateValue: String {
 
 }
 
-class SettingsManager: ObservableObject {
-    nonisolated(unsafe) static var shared = SettingsManager()
+@Observable
+@MainActor
+final class SettingsManager {
+    static let shared = SettingsManager()
 
-    @Published var menu: [SettingsActionObject] = []
-    @Published var display: SettingsDisplayType = .countdown
-    @Published var sfx: SettingsSoundEffects = .enabled
-    @Published var theme: SettingsTheme = .dark
-    @Published var pinned: SettingsPinned = .disabled
-    @Published var charge: SettingsCharged = .disabled
+    var menu: [SettingsActionObject] = []
+    var display: SettingsDisplayType = .countdown
+    var sfx: SettingsSoundEffects = .enabled
+    var theme: SettingsTheme = .dark
+    var pinned: SettingsPinned = .disabled
+    var charge: SettingsCharged = .disabled
 
     private var updates = Set<AnyCancellable>()
 
@@ -290,54 +292,36 @@ class SettingsManager: ObservableObject {
 
     var enabledAutoLaunch: SettingsStateValue {
         get {
-            if #available(macOS 13.0, *) {
-                if UserDefaults.main.object(forKey: SystemDefaultsKeys.enabledLogin.rawValue) == nil {
-                    return .undetermined
-
-                } else {
-                    switch SMAppService.mainApp.status == .enabled {
-                    case true: return .enabled
-                    case false: return .disabled
-                    }
-
+            if UserDefaults.main.object(forKey: SystemDefaultsKeys.enabledLogin.rawValue) == nil {
+                return .undetermined
+            } else {
+                switch SMAppService.mainApp.status == .enabled {
+                case true: return .enabled
+                case false: return .disabled
                 }
-
             }
-
-            return .restricted
-
         }
 
         set {
             if self.enabledAutoLaunch != .undetermined {
-                if #available(macOS 13.0, *) {
-                    do {
-                        if newValue == .disabled {
-                            if SMAppService.mainApp.status == .enabled {
-                                try SMAppService.mainApp.unregister()
-
-                            }
-
-                        } else {
-                            if SMAppService.mainApp.status != .enabled {
-                                try SMAppService.mainApp.register()
-
-                            }
-
+                do {
+                    if newValue == .disabled {
+                        if SMAppService.mainApp.status == .enabled {
+                            try SMAppService.mainApp.unregister()
                         }
-
-                        UserDefaults.save(.enabledLogin, value: newValue.enabled)
-
-                    } catch {
-                        print("Settings error: \(error.localizedDescription)")
+                    } else {
+                        if SMAppService.mainApp.status != .enabled {
+                            try SMAppService.mainApp.register()
+                        }
                     }
 
+                    UserDefaults.save(.enabledLogin, value: newValue.enabled)
+
+                } catch {
+                    print("Settings error: \(error.localizedDescription)")
                 }
-
             }
-
         }
-
     }
 
     func enabledDisplay(_ toggle: Bool = false) -> SettingsDisplayType {

@@ -31,12 +31,14 @@ struct EventObject: Equatable {
 
 }
 
-class EventManager: ObservableObject {
-    nonisolated(unsafe) static var shared = EventManager()
+@Observable
+@MainActor
+final class EventManager {
+    static let shared = EventManager()
 
     private var updates = Set<AnyCancellable>()
 
-    @Published var events = [EventObject]()
+    var events = [EventObject]()
 
     init() {
         AppManager.shared.appTimer(1800).sink { _ in
@@ -53,26 +55,11 @@ class EventManager: ObservableObject {
 
     private func eventAuthorizeStatus() {
         if EKEventStore.authorizationStatus(for: .event) == .notDetermined {
-            if #available(macOS 14.0, *) {
-                EKEventStore().requestFullAccessToEvents { _, _ in
-                    DispatchQueue.main.async {
-                        self.events = self.eventsList()
-
-                    }
-
+            EKEventStore().requestFullAccessToEvents { _, _ in
+                DispatchQueue.main.async {
+                    self.events = self.eventsList()
                 }
-
-            } else {
-                EKEventStore().requestAccess(to: .event) { _, _ in
-                    DispatchQueue.main.async {
-                        self.events = self.eventsList()
-
-                    }
-
-                }
-
             }
-
         } else {
             events = eventsList()
 

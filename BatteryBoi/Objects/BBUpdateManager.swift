@@ -51,12 +51,14 @@ enum UpdateStateType {
 
 }
 
-class UpdateManager: NSObject, SPUUpdaterDelegate, ObservableObject {
-    nonisolated(unsafe) static var shared = UpdateManager()
+@Observable
+@MainActor
+final class UpdateManager: NSObject, SPUUpdaterDelegate {
+    static let shared = UpdateManager()
 
-    @Published var state: UpdateStateType = .completed
-    @Published var available: UpdatePayloadObject?
-    @Published var checked: Date?
+    var state: UpdateStateType = .completed
+    var available: UpdatePayloadObject?
+    var checked: Date?
 
     private let driver = SPUStandardUserDriver(hostBundle: Bundle.main, delegate: nil)
 

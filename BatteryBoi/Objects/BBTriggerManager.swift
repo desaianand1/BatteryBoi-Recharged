@@ -8,22 +8,14 @@
 import Combine
 import Foundation
 
-class TriggerClass {
-    nonisolated(unsafe) static var shared = TriggerClass()
-
-    private var updates = Set<AnyCancellable>()
+@MainActor
+final class TriggerClass {
+    static let shared = TriggerClass()
 
     init() {
-        BatteryManager.shared.$charging.dropFirst().removeDuplicates().sink { _ in
-
-        }.store(in: &updates)
-
+        // TODO: Implement trigger system for custom battery actions
     }
 
-    deinit {
-        self.updates.forEach { $0.cancel() }
-
-    }
 
     func triggerPercent(_: Double) {
         // TBC

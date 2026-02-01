@@ -49,8 +49,10 @@ enum WindowPosition: String {
 
 }
 
-class WindowManager: ObservableObject {
-    nonisolated(unsafe) static var shared = WindowManager()
+@Observable
+@MainActor
+final class WindowManager {
+    static let shared = WindowManager()
 
     private var updates = Set<AnyCancellable>()
     private var triggered: Int = 0
@@ -64,10 +66,14 @@ class WindowManager: ObservableObject {
         return CGSize(width: 1920, height: 1080)
     }
 
-    @Published var hover: Bool = false
-    @Published var state: HUDState = .hidden
-    @Published var position: WindowPosition = .topMiddle
-    @Published var opacity: CGFloat = 1.0
+    var hover: Bool = false
+    var state: HUDState = .hidden {
+        didSet {
+            handleStateChange(state)
+        }
+    }
+    var position: WindowPosition = .topMiddle
+    var opacity: CGFloat = 1.0
 
     init() {
         BatteryManager.shared.$charging.dropFirst().removeDuplicates().sink { charging in
@@ -224,30 +230,24 @@ class WindowManager: ObservableObject {
 
         }
 
-        $state.sink { state in
-            if state == .dismissed {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                    Self.shared.windowClose()
-
-                }
-
-            } else if state == .progress {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    self.windowSetState(.revealed)
-
-                }
-
-            } else if state == .revealed, AppManager.shared.alert?.timeout == false {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    self.windowSetState(.detailed)
-
-                }
-
-            }
-
-        }.store(in: &updates)
-
         position = windowLastPosition
+
+    }
+
+    private func handleStateChange(_ state: HUDState) {
+        if state == .dismissed {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                Self.shared.windowClose()
+            }
+        } else if state == .progress {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                self.windowSetState(.revealed)
+            }
+        } else if state == .revealed, AppManager.shared.alert?.timeout == false {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                self.windowSetState(.detailed)
+            }
+        }
 
     }
 

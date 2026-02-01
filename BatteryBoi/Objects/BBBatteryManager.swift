@@ -192,17 +192,19 @@ struct BatteryEstimateObject {
 
 }
 
-class BatteryManager: ObservableObject {
-    nonisolated(unsafe) static var shared = BatteryManager()
+@Observable
+@MainActor
+final class BatteryManager {
+    static let shared = BatteryManager()
 
-    @Published var charging: BatteryCharging = .init(.battery)
-    @Published var percentage: Double = 100
-    @Published var remaining: BatteryRemaining?
-    @Published var mode: Bool = false
-    @Published var saver: BatteryModeType = .unavailable
-    @Published var rate: BatteryEstimateObject?
-    @Published var metrics: BatteryMetricsObject?
-    @Published var thermal: BatteryThemalState = .optimal
+    var charging: BatteryCharging = .init(.battery)
+    var percentage: Double = 100
+    var remaining: BatteryRemaining?
+    var mode: Bool = false
+    var saver: BatteryModeType = .unavailable
+    var rate: BatteryEstimateObject?
+    var metrics: BatteryMetricsObject?
+    var thermal: BatteryThemalState = .optimal
 
     private var counter: Int?
     private var updates = Set<AnyCancellable>()
