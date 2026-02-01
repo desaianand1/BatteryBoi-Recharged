@@ -1,4 +1,5 @@
 {
+  "originHash" : "d83d8fc6e27db0b96829ece2f89f4fb1623846bc266ac7e4072843e9bd2c117c",
   "pins" : [
     {
       "identity" : "dynamiccolor",
@@ -7,15 +8,6 @@
       "state" : {
         "revision" : "d9beca13ca85baa50ee29832d0db5129fba69630",
         "version" : "5.0.1"
-      }
-    },
-    {
-      "identity" : "enalogswift",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/thebarbican19/EnalogSwift",
-      "state" : {
-        "branch" : "main",
-        "revision" : "c1e97f967c1b953d822f9b59ed3f8641a4c6d274"
       }
     },
     {
@@ -46,5 +38,5 @@
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }
