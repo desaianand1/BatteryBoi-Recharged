@@ -234,7 +234,7 @@ class BatteryManager:ObservableObject {
         }.store(in: &updates)
 
         AppManager.shared.appTimer(6).sink { _ in
-            self.remaining = self.powerRemaing
+            self.remaining = self.powerRemaining
             self.counter = nil
 
         }.store(in: &updates)
@@ -288,7 +288,7 @@ class BatteryManager:ObservableObject {
                 }
 
                 if counter.isMultiple(of: 6) {
-                    self.remaining = self.powerRemaing
+                    self.remaining = self.powerRemaining
 
                 }
 
@@ -344,7 +344,7 @@ class BatteryManager:ObservableObject {
 
     }
 
-    private var powerRemaing:BatteryRemaining? {
+    private var powerRemaining:BatteryRemaining? {
         let process = Process()
         process.launchPath = "/bin/sh"
         process.arguments = ["-c", "pmset -g batt | grep -o '[0-9]\\{1,2\\}:[0-9]\\{2\\}'"]
