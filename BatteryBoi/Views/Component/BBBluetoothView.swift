@@ -64,6 +64,7 @@ struct BluetoothIcon: View {
 struct BluetoothItem: View {
     @EnvironmentObject var manager: AppManager
     @EnvironmentObject var battery: BatteryManager
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @Binding var hover: Bool
 
@@ -78,72 +79,103 @@ struct BluetoothItem: View {
 
     }
 
+    private var easeOutAnimation: Animation? {
+        reduceMotion ? nil : Animation.easeOut
+    }
+
+    private var deviceName: String {
+        if let item {
+            return item.device ?? item.type.type.rawValue
+        }
+        return AppManager.shared.appDeviceType.name
+    }
+
+    private var batteryInfo: String {
+        if let item {
+            if item.connected == .disconnected {
+                return "Disconnected"
+            } else if let percent = item.battery.percent {
+                return "\(Int(percent)) percent"
+            } else {
+                return "Battery level unavailable"
+            }
+        }
+        return "\(Int(battery.percentage)) percent"
+    }
+
     var body: some View {
-        HStack(alignment: .center) {
-            BluetoothIcon(item, style: $style, animation: animation)
+        Button(
+            action: {
+                if let animation = easeOutAnimation {
+                    withAnimation(animation) {
+                        manager.device = item
+                    }
+                } else {
+                    manager.device = item
+                }
+            },
+            label: {
+                HStack(alignment: .center) {
+                    BluetoothIcon(item, style: $style, animation: animation)
 
-            VStack(alignment: .leading) {
-                if let item {
-                    Text(item.device ?? item.type.type.rawValue)
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatteryTitle"))
-                        .padding(0)
+                    VStack(alignment: .leading) {
+                        if let item {
+                            Text(item.device ?? item.type.type.rawValue)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatteryTitle"))
+                                .padding(0)
 
-                    HStack {
-                        if hover == true {
-                            if item.connected == .disconnected {
-                                Text("BluetoothDisconnectedLabel".localise())
+                            HStack {
+                                if hover == true {
+                                    if item.connected == .disconnected {
+                                        Text("BluetoothDisconnectedLabel".localise())
 
-                            } else {
-                                if let percent = item.battery.percent {
-                                    Text("AlertSomePercentTitle".localise([Int(percent)]))
+                                    } else {
+                                        if let percent = item.battery.percent {
+                                            Text("AlertSomePercentTitle".localise([Int(percent)]))
 
-                                } else {
-                                    Text("BluetoothInvalidLabel".localise())
+                                        } else {
+                                            Text("BluetoothInvalidLabel".localise())
+
+                                        }
+
+                                    }
 
                                 }
+
+                            }
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(Color("BatterySubtitle"))
+
+                        } else {
+                            Text(AppManager.shared.appDeviceType.name)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatteryTitle"))
+                                .padding(0)
+
+                            if hover == true {
+                                Text("AlertSomePercentTitle".localise([Int(battery.percentage)]))
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(Color("BatterySubtitle"))
 
                             }
 
                         }
 
                     }
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(Color("BatterySubtitle"))
-
-                } else {
-                    Text(AppManager.shared.appDeviceType.name)
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatteryTitle"))
-                        .padding(0)
-
-                    if hover == true {
-                        Text("AlertSomePercentTitle".localise([Int(battery.percentage)]))
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(Color("BatterySubtitle"))
-
-                    }
 
                 }
+                .frame(height: 60)
+                .padding(.leading, 16)
+                .padding(.trailing, 26)
+                .background(
+                    RoundedRectangle(cornerRadius: 30, style: .continuous)
+                        .fill(style == .light ? Color("BatteryTitle") : Color("BatteryButton")),
 
-            }
-
-        }
-        .frame(height: 60)
-        .padding(.leading, 16)
-        .padding(.trailing, 26)
-        .background(
-            RoundedRectangle(cornerRadius: 30, style: .continuous)
-                .fill(style == .light ? Color("BatteryTitle") : Color("BatteryButton")),
-
+                )
+            },
         )
-        .onTapGesture {
-            withAnimation(Animation.easeOut) {
-                manager.device = item
-
-            }
-
-        }
+        .buttonStyle(.plain)
         .onHover { hover in
             switch hover {
             case true: NSCursor.pointingHand.push()
@@ -152,15 +184,12 @@ struct BluetoothItem: View {
 
         }
         .onChange(of: manager.device) { newValue in
-            withAnimation(Animation.easeOut) {
-                if newValue == item {
-                    style = .light
-
-                } else {
-                    style = .dark
-
+            if let animation = easeOutAnimation {
+                withAnimation(animation) {
+                    style = newValue == item ? .light : .dark
                 }
-
+            } else {
+                style = newValue == item ? .light : .dark
             }
 
         }
@@ -174,6 +203,10 @@ struct BluetoothItem: View {
             }
 
         }
+        .accessibilityLabel(deviceName)
+        .accessibilityValue(batteryInfo)
+        .accessibilityHint("Double tap to select this device")
+        .accessibilityAddTraits(manager.device == item ? .isSelected : [])
 
     }
 

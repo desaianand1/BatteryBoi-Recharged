@@ -196,6 +196,7 @@ struct HUDIcon: View {
         .padding(.leading, 10)
         .padding(.trailing, 4)
         .background(Color.clear)
+        .accessibilityHidden(true)
 
     }
 
@@ -205,6 +206,7 @@ struct HUDSummary: View {
     @EnvironmentObject var stats: StatsManager
     @EnvironmentObject var updates: UpdateManager
     @EnvironmentObject var window: WindowManager
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var title = ""
     @State private var subtitle = ""
@@ -249,12 +251,17 @@ struct HUDSummary: View {
 
         }
         .onChange(of: window.state) { _, newValue in
-            withAnimation(Animation.easeOut(duration: 0.6).delay(visible == false ? 0.9 : 0.0)) {
+            if reduceMotion {
                 visible = newValue.visible
-
+            } else {
+                withAnimation(Animation.easeOut(duration: 0.6).delay(visible == false ? 0.9 : 0.0)) {
+                    visible = newValue.visible
+                }
             }
 
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title). \(subtitle)")
 
     }
 
@@ -479,6 +486,9 @@ struct HUDView: View {
             window.hover = hover
 
         })
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Battery status notification")
+        .accessibilityAddTraits(.isModal)
 
     }
 

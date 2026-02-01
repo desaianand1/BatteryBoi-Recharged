@@ -46,6 +46,7 @@ enum BatteryAnimationType {
 
 public struct BatteryPulsatingIcon: View {
     @EnvironmentObject var manager: BatteryManager
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var visible: Bool = false
     @State private var icon: String = "ChargingIcon"
@@ -57,7 +58,7 @@ public struct BatteryPulsatingIcon: View {
 
     public var body: some View {
         Rectangle()
-            .fill(Color.black)
+            .fill(Color("BatteryIconFill"))
             .mask(
                 Image(icon)
                     .resizable()
@@ -66,14 +67,19 @@ public struct BatteryPulsatingIcon: View {
             )
             .frame(width: 5, height: 8)
             .onAppear {
-                withAnimation(Animation.easeInOut) {
+                if reduceMotion {
                     visible = true
-
+                } else {
+                    withAnimation(Animation.easeInOut) {
+                        visible = true
+                    }
                 }
             }
             .offset(y: 0.4)
             .opacity(visible ? 1.0 : 0.0)
             .onChange(of: visible) { _, newVisible in
+                // Skip pulsating animation if reduce motion is enabled
+                guard !reduceMotion else { return }
                 Task { @MainActor in
                     try? await Task.sleep(for: .seconds(newVisible ? 2.0 : 0.8))
                     withAnimation(Animation.easeInOut) {
@@ -84,6 +90,7 @@ public struct BatteryPulsatingIcon: View {
                 }
 
             }
+            .accessibilityHidden(true)
 
     }
 
@@ -154,7 +161,7 @@ private struct BatteryStatus: View {
 
             }
             .offset(y: hover ? size.height : 0.0)
-            .foregroundColor(Color.black)
+            .foregroundColor(Color("BatteryIconFill"))
             .frame(width: size.width, height: size.height)
 
         }
@@ -189,7 +196,7 @@ private struct BatteryStatus: View {
 
         }
         .frame(alignment: .center)
-        .foregroundColor(Color.black)
+        .foregroundColor(Color("BatteryIconFill"))
         .animation(Animation.easeInOut, value: manager.charging)
 
     }
@@ -221,6 +228,7 @@ private struct BatteryStub: View {
 
 struct BatteryIcon: View {
     @EnvironmentObject var manager: BatteryManager
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State var size: CGSize
     @State var radius: CGFloat = 25
@@ -242,6 +250,10 @@ struct BatteryIcon: View {
 
     }
 
+    private var springAnimation: Animation? {
+        reduceMotion ? nil : .interactiveSpring(response: 0.6, dampingFraction: 0.9, blendDuration: 1)
+    }
+
     var body: some View {
         ZStack {
             HStack(alignment: .center) {
@@ -251,18 +263,18 @@ struct BatteryIcon: View {
 
             }
             .frame(maxWidth: size.width, alignment: .leading)
-            .foregroundColor(Color.black)
+            .foregroundColor(Color("BatteryIconFill"))
             .overlay(
                 BatteryStatus(size, font: font, hover: $hover),
 
             )
 
         }
-        .animation(.linear, value: manager.percentage)
+        .animation(reduceMotion ? nil : .linear, value: manager.percentage)
         .inverse(
             BatteryStatus(size, font: font, hover: $hover).mask(
                 Rectangle()
-                    .fill(.black)
+                    .fill(Color("BatteryIconFill"))
                     .frame(width: size.width)
                     .position(x: -(size.width / 2) + (progress + 2.0), y: size.height / 2),
 
@@ -272,23 +284,32 @@ struct BatteryIcon: View {
         .clipShape(RoundedRectangle(cornerRadius: radius - padding, style: .continuous))
         .padding(padding)
         .onChange(of: manager.charging.state, perform: { newValue in
-            withAnimation(.interactiveSpring(response: 0.6, dampingFraction: 0.9, blendDuration: 1)) {
+            if let animation = springAnimation {
+                withAnimation(animation) {
+                    progress = newValue.progress(manager.percentage, width: size.width)
+                }
+            } else {
                 progress = newValue.progress(manager.percentage, width: size.width)
-
             }
 
         })
         .onChange(of: manager.percentage, perform: { newValue in
-            withAnimation(.interactiveSpring(response: 0.6, dampingFraction: 0.9, blendDuration: 1)) {
+            if let animation = springAnimation {
+                withAnimation(animation) {
+                    progress = manager.charging.state.progress(newValue, width: size.width)
+                }
+            } else {
                 progress = manager.charging.state.progress(newValue, width: size.width)
-
             }
 
         })
         .onAppear {
-            withAnimation(.interactiveSpring(response: 0.6, dampingFraction: 0.9, blendDuration: 1)) {
+            if let animation = springAnimation {
+                withAnimation(animation) {
+                    progress = manager.charging.state.progress(manager.percentage, width: size.width)
+                }
+            } else {
                 progress = manager.charging.state.progress(manager.percentage, width: size.width)
-
             }
 
         }
@@ -301,6 +322,7 @@ struct BatteryContainer: View {
     @EnvironmentObject var manager: BatteryManager
     @EnvironmentObject var updates: UpdateManager
     @EnvironmentObject var stats: StatsManager
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var size: CGSize
     @State private var radius: CGFloat
@@ -312,6 +334,10 @@ struct BatteryContainer: View {
         _radius = State(initialValue: radius)
         _font = State(initialValue: font)
 
+    }
+
+    private var hoverAnimation: Animation? {
+        reduceMotion ? nil : Animation.easeOut(duration: 0.3)
     }
 
     var body: some View {
@@ -328,9 +354,12 @@ struct BatteryContainer: View {
         }
         .onHover { hover in
             if stats.overlay != nil {
-                withAnimation(Animation.easeOut(duration: 0.3).delay(self.hover ? 0.8 : 0.1)) {
+                if let animation = hoverAnimation {
+                    withAnimation(animation.delay(self.hover ? 0.8 : 0.1)) {
+                        self.hover = hover
+                    }
+                } else {
                     self.hover = hover
-
                 }
 
             }
@@ -338,9 +367,12 @@ struct BatteryContainer: View {
         }
         .onChange(of: manager.charging, perform: { newValue in
             if newValue.state == .charging, hover == true {
-                withAnimation(Animation.easeOut(duration: 0.3)) {
+                if let animation = hoverAnimation {
+                    withAnimation(animation) {
+                        hover = false
+                    }
+                } else {
                     hover = false
-
                 }
 
             }
@@ -353,6 +385,7 @@ struct BatteryContainer: View {
                         .fill(Color("BatteryEfficient"))
                         .frame(width: 5, height: 5)
                         .position(x: -5, y: (geo.size.height / 2) + 0.5)
+                        .accessibilityLabel("Update available")
 
                 }
 
@@ -361,6 +394,12 @@ struct BatteryContainer: View {
             },
 
         )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Battery level")
+        .accessibilityValue(
+            "\(Int(manager.percentage)) percent\(manager.charging.state == .charging ? ", charging" : "")",
+        )
+        .accessibilityHint("Shows current battery status")
 
     }
 

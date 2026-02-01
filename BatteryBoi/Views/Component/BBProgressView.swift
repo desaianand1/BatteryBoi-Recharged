@@ -17,7 +17,7 @@ enum RadialStyle {
         switch self {
         case .dark: Color("BatteryTitle")
         case .light: Color("BatteryDefault")
-        case .colour: Color(hexString: "E4FFD8")
+        case .colour: Color("BatteryProgressGreen")
         }
 
     }
@@ -26,6 +26,7 @@ enum RadialStyle {
 
 struct RadialProgressBar: View {
     @Binding var progress: Double
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var size: CGSize
     @State private var line: CGFloat
@@ -40,6 +41,10 @@ struct RadialProgressBar: View {
 
         _style = style
 
+    }
+
+    private var progressAnimation: Animation? {
+        reduceMotion ? nil : Animation.easeOut(duration: 0.6)
     }
 
     var body: some View {
@@ -75,7 +80,7 @@ struct RadialProgressBar: View {
                     .trim(from: 0.0, to: CGFloat(position))
                     .stroke(
                         AngularGradient(
-                            gradient: Gradient(colors: [Color(hexString: "E4FFD8"), Color.green, Color.green]),
+                            gradient: Gradient(colors: [Color("BatteryProgressGreen"), Color.green, Color.green]),
                             center: .center,
                         ),
                         style: StrokeStyle(lineWidth: line, lineCap: .round),
@@ -93,19 +98,26 @@ struct RadialProgressBar: View {
         }
         .frame(width: size.width, height: size.height, alignment: .center)
         .onAppear {
-            withAnimation(Animation.easeOut(duration: 0.6).delay(0.1)) {
+            if let animation = progressAnimation {
+                withAnimation(animation.delay(0.1)) {
+                    position = progress
+                }
+            } else {
                 position = progress
-
             }
 
         }
         .onChange(of: progress) { _, newProgress in
-            withAnimation(Animation.easeOut(duration: 0.6)) {
+            if let animation = progressAnimation {
+                withAnimation(animation) {
+                    position = newProgress
+                }
+            } else {
                 position = newProgress
-
             }
 
         }
+        .accessibilityHidden(true)
 
     }
 
@@ -182,6 +194,7 @@ struct RadialProgressContainer: View {
     @EnvironmentObject var manager: AppManager
     @EnvironmentObject var window: WindowManager
     @EnvironmentObject var battery: BatteryManager
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var percent: Int?
     @State private var progress: Double = 0.0
@@ -190,6 +203,10 @@ struct RadialProgressContainer: View {
     init(_ animate: Bool) {
         _animate = State(initialValue: animate)
 
+    }
+
+    private var deviceChangeAnimation: Animation? {
+        reduceMotion ? nil : Animation.easeOut(duration: 0.4)
     }
 
     var body: some View {
@@ -220,23 +237,13 @@ struct RadialProgressContainer: View {
         .frame(width: 90, height: 90)
         .padding(10)
         .onAppear {
-            withAnimation(Animation.easeOut(duration: animate ? 1.2 : 0.0)) {
-                if let device = manager.device {
-                    if let percent = device.battery.percent {
-                        progress = percent / 100
-                        self.percent = Int(percent)
-
-                    } else {
-                        progress = 0.0
-                        percent = nil
-                    }
-
-                } else {
-                    progress = battery.percentage / 100
-                    percent = Int(battery.percentage)
-
+            let animationDuration = (animate && !reduceMotion) ? 1.2 : 0.0
+            if animationDuration > 0 {
+                withAnimation(Animation.easeOut(duration: animationDuration)) {
+                    updateProgress()
                 }
-
+            } else {
+                updateProgress()
             }
 
         }
@@ -253,27 +260,49 @@ struct RadialProgressContainer: View {
 
         }
         .onChange(of: manager.device) { _, newDevice in
-            withAnimation(Animation.easeOut(duration: 0.4)) {
-                if let device = newDevice {
-                    if let devicePercent = device.battery.percent {
-                        progress = devicePercent / 100
-                        percent = Int(devicePercent)
-
-                    } else {
-                        progress = 0.0
-                        percent = nil
-                    }
-
-                } else {
-                    progress = battery.percentage / 100
-                    percent = Int(battery.percentage)
-
+            if let animation = deviceChangeAnimation {
+                withAnimation(animation) {
+                    updateProgressForDevice(newDevice)
                 }
-
+            } else {
+                updateProgressForDevice(newDevice)
             }
 
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Battery progress")
+        .accessibilityValue(percent.map { "\($0) percent" } ?? "Not available")
 
+    }
+
+    private func updateProgress() {
+        if let device = manager.device {
+            if let percent = device.battery.percent {
+                progress = percent / 100
+                self.percent = Int(percent)
+            } else {
+                progress = 0.0
+                percent = nil
+            }
+        } else {
+            progress = battery.percentage / 100
+            percent = Int(battery.percentage)
+        }
+    }
+
+    private func updateProgressForDevice(_ device: BluetoothObject?) {
+        if let device {
+            if let devicePercent = device.battery.percent {
+                progress = devicePercent / 100
+                percent = Int(devicePercent)
+            } else {
+                progress = 0.0
+                percent = nil
+            }
+        } else {
+            progress = battery.percentage / 100
+            percent = Int(battery.percentage)
+        }
     }
 
 }
