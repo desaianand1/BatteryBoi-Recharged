@@ -39,13 +39,21 @@ public enum SystemSoundEffects: String {
     case low = "lownote"
 
     public func play(_ force: Bool = false) {
-        if SettingsManager.shared.enabledSoundEffects == .enabled || force == true {
-            NSSound(named: rawValue)?.play()
+        guard SettingsManager.shared.enabledSoundEffects == .enabled || force else { return }
 
+        guard let sound = NSSound(named: rawValue) else {
+            #if DEBUG
+                print("Warning: Sound file '\(rawValue)' not found in bundle")
+            #endif
+            return
         }
 
+        if !sound.play() {
+            #if DEBUG
+                print("Warning: Failed to play sound '\(rawValue)'")
+            #endif
+        }
     }
-
 }
 
 enum SystemDeviceTypes: String, Codable {
@@ -202,6 +210,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     private var globalMouseMonitor: Any?
     private var windowMoveObserver: NSObjectProtocol?
     private var displayObserverTask: Task<Void, Never>?
+    private var wakeRefreshTask: Task<Void, Never>?
 
     func applicationDidFinishLaunching(_: Notification) {
         status = NSStatusBar.system.statusItem(withLength: 45)
@@ -357,8 +366,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
     @objc
     private func applicationDidWakeNotification(_: Notification) {
-        BatteryManager.shared.powerForceRefresh()
-
+        // Cancel any pending wake refresh task
+        wakeRefreshTask?.cancel()
+        wakeRefreshTask = Task { @MainActor [weak self] in
+            // Short delay to let system stabilize after wake
+            try? await Task.sleep(for: .seconds(0.5))
+            guard self != nil, !Task.isCancelled else { return }
+            BatteryManager.shared.powerForceRefresh()
+        }
     }
 
     @objc
@@ -378,6 +393,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         }
 
         displayObserverTask?.cancel()
+        wakeRefreshTask?.cancel()
         NSWorkspace.shared.notificationCenter.removeObserver(self)
     }
 
