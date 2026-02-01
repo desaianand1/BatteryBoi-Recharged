@@ -1,12 +1,10 @@
-//
-//  BBStatsManager.swift
-//  BatteryBoi
-//
-//  Created by Joe Barbour on 8/28/23.
-//
-
 import CoreData
 import Foundation
+import Logging
+
+#if canImport(Sentry)
+    import Sentry
+#endif
 
 struct StatsIcon {
     var name: String
@@ -72,12 +70,18 @@ final class StatsManager {
 
                 subdirectory = parent
             } catch {
-                print("Error creating or setting SQLite store URL: \(error)")
+                BBLogger.stats.error("Error creating or setting SQLite store URL: \(error)")
+                #if canImport(Sentry)
+                    SentrySDK.capture(error: error)
+                #endif
 
             }
 
         } else {
-            print("Error retrieving Application Support directory URL.")
+            BBLogger.stats.error("Error retrieving Application Support directory URL.")
+            #if canImport(Sentry)
+                SentrySDK.capture(message: "Failed to retrieve Application Support directory URL")
+            #endif
 
         }
 
@@ -86,18 +90,24 @@ final class StatsManager {
             description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
 
         } else {
-            print("Error: No persistent store description found.")
+            BBLogger.stats.warning("No persistent store description found.")
+            #if canImport(Sentry)
+                SentrySDK.capture(message: "No persistent store description found")
+            #endif
         }
 
         container.loadPersistentStores(completionHandler: { storeDescription, error in
             if let error {
-                print("Error loading persistent stores: \(error)")
+                BBLogger.stats.error("Error loading persistent stores: \(error)")
+                #if canImport(Sentry)
+                    SentrySDK.capture(error: error)
+                #endif
 
             }
 
             if let path = directory {
                 directory = storeDescription.url
-                print("directory", directory ?? "")
+                BBLogger.stats.debug("CoreData directory: \(directory?.absoluteString ?? "nil")")
 
             }
 
@@ -475,7 +485,10 @@ final class StatsManager {
                     try context.save()
                 }
             } catch {
-                print("Error storing activity: \(error)")
+                BBLogger.stats.error("Error storing activity: \(error)")
+                #if canImport(Sentry)
+                    SentrySDK.capture(error: error)
+                #endif
             }
         }
     }
@@ -507,7 +520,10 @@ final class StatsManager {
                     try context.save()
                 }
             } catch {
-                print("Failed to save CoreData wattage: \(error.localizedDescription)")
+                BBLogger.stats.error("Failed to save CoreData wattage: \(error.localizedDescription)")
+                #if canImport(Sentry)
+                    SentrySDK.capture(error: error)
+                #endif
             }
         }
     }

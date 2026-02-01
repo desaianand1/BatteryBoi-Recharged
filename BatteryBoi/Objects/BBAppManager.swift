@@ -1,12 +1,6 @@
-//
-//  BBAppManager.swift
-//  BatteryBoi
-//
-//  Created by Joe Barbour on 8/9/23.
-//
-
 import Combine
 import Foundation
+import Logging
 import Sparkle
 import SwiftUI
 
@@ -245,7 +239,7 @@ final class AppManager {
                     }
                 }
             } catch {
-                print("Profile Error: ", error)
+                BBLogger.app.error("Profile script error: \(error)")
             }
 
         }

@@ -1,12 +1,6 @@
-//
-//  BBExtensions.swift
-//  BatteryBoi
-//
-//  Created by Joe Barbour on 8/6/23.
-//
-
 import Combine
 import Foundation
+import Logging
 import SwiftUI
 
 struct ViewScrollMask: ViewModifier {
@@ -256,8 +250,9 @@ extension UserDefaults {
                 continuation.yield(key)
             }
 
-            continuation.onTermination = { _ in
-                cancellable.cancel()
+            continuation.onTermination = { @Sendable _ in
+                // Hold reference to prevent deallocation
+                _ = cancellable
             }
         }
     }
@@ -288,7 +283,7 @@ extension UserDefaults {
 
             }
 
-            print("\n\n💾 Saved \(value) to '\(key)'\n\n")
+            BBLogger.settings.debug("Saved \(String(describing: value)) to '\(key)'")
 
         } else {
             main.removeObject(forKey: key)
@@ -334,4 +329,19 @@ extension NSWindow: SystemMainWindow {
 protocol SystemMainWindow {
     var canBecomeKeyWindow: Bool { get }
 
+}
+
+extension String {
+    /// Normalizes a Bluetooth MAC address to a consistent format.
+    /// Converts to lowercase and replaces colons with dashes.
+    /// Example: "AA:BB:CC:DD:EE:FF" -> "aa-bb-cc-dd-ee-ff"
+    var normalizedBluetoothAddress: String {
+        lowercased().replacingOccurrences(of: ":", with: "-")
+    }
+
+    /// Converts a normalized Bluetooth address back to colon-separated format.
+    /// Example: "aa-bb-cc-dd-ee-ff" -> "aa:bb:cc:dd:ee:ff"
+    var colonSeparatedBluetoothAddress: String {
+        replacingOccurrences(of: "-", with: ":")
+    }
 }

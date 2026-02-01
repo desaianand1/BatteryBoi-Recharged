@@ -1,12 +1,6 @@
-//
-//  BBEventManager.swift
-//  BatteryBoi
-//
-//  Created by Joe Barbour on 9/18/23.
-//
-
 import EventKit
 import Foundation
+import Logging
 
 struct EventObject: Equatable {
     var id: String
@@ -74,7 +68,7 @@ final class EventManager {
         let end = Calendar.current.date(byAdding: .day, value: 1, to: start) ?? start
         let predicate = EKEventStore().predicateForEvents(withStart: Date(), end: end, calendars: nil)
 
-        print("start \(start) end \(end)")
+        BBLogger.events.debug("Fetching events from \(start) to \(end)")
 
         for event in EKEventStore().events(matching: predicate) {
             if let notes = event.notes, notes.contains("http://") || notes.contains("https://") {
