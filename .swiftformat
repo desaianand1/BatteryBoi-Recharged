@@ -1,0 +1,36 @@
+# SwiftFormat configuration for BatteryBoi
+
+# File options
+--swiftversion 6.2
+--exclude build,DerivedData,.build,**/*.app
+
+# Format options
+--indent 4
+--indentcase false
+--linebreaks lf
+--maxwidth 120
+--tabwidth 4
+--wraparguments before-first
+--wrapparameters before-first
+--wrapcollections before-first
+
+# Rules
+--enable isEmpty
+--enable redundantSelf
+--enable sortImports
+--enable trailingCommas
+--enable wrapMultilineStatementBraces
+
+--disable blankLinesAtStartOfScope
+--disable blankLinesAtEndOfScope
+
+# Self
+--self remove
+
+# Imports
+--importgrouping alpha
+
+# Wrapping
+--funcattributes prev-line
+--typeattributes prev-line
+--varattributes prev-line

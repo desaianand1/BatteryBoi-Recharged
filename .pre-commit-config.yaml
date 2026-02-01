@@ -1,0 +1,38 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.svg$'
+      - id: end-of-file-fixer
+        exclude: '\.svg$'
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ['--maxkb=1024']
+        exclude: '\.(png|jpg|jpeg|gif|ico|wav|mp3|ttf|otf)$'
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: detect-private-key
+
+  - repo: local
+    hooks:
+      - id: commitlint
+        name: commitlint
+        entry: npx --no -- commitlint --edit
+        language: system
+        stages: [commit-msg]
+        always_run: true
+
+      - id: swiftformat-lint
+        name: SwiftFormat (lint)
+        entry: swiftformat --lint BatteryBoi/
+        language: system
+        types: [swift]
+        pass_filenames: false
+
+      - id: swiftlint
+        name: SwiftLint
+        entry: swiftlint lint --strict --quiet
+        language: system
+        types: [swift]
+        pass_filenames: false
