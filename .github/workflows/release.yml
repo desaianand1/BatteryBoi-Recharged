@@ -1,0 +1,181 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+env:
+  XCODE_VERSION: '16.2'
+  NODE_VERSION: '22'
+  SCHEME: 'BatteryBoi - Recharged'
+  PROJECT: 'BatteryBoi.xcodeproj'
+  APP_NAME: 'BatteryBoi - Recharged'
+
+jobs:
+  semantic-release:
+    name: Semantic Release
+    runs-on: ubuntu-latest
+    outputs:
+      new_release_published: ${{ steps.semantic.outputs.new_release_published }}
+      new_release_version: ${{ steps.semantic.outputs.new_release_version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Semantic Release
+        id: semantic
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
+
+  build-release:
+    name: Build Release
+    runs-on: macos-15
+    needs: semantic-release
+    if: needs.semantic-release.outputs.new_release_published == 'true'
+    env:
+      VERSION: ${{ needs.semantic-release.outputs.new_release_version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Pull latest changes
+        run: git pull origin main
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+
+      - name: Build Release Archive
+        run: |
+          xcodebuild archive \
+            -project "${{ env.PROJECT }}" \
+            -scheme "${{ env.SCHEME }}" \
+            -configuration Release \
+            -archivePath "build/${{ env.APP_NAME }}.xcarchive" \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Export App
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath "build/${{ env.APP_NAME }}.xcarchive" \
+            -exportPath build/export \
+            -exportOptionsPlist ExportOptions.plist
+
+      - name: Create DMG
+        run: |
+          DMG_NAME="${{ env.APP_NAME }}-${{ env.VERSION }}.dmg"
+
+          # Create DMG folder structure
+          mkdir -p build/dmg
+          cp -R "build/export/${{ env.APP_NAME }}.app" build/dmg/
+
+          # Create symlink to Applications
+          ln -s /Applications build/dmg/Applications
+
+          # Create DMG
+          hdiutil create -volname "${{ env.APP_NAME }}" \
+            -srcfolder build/dmg \
+            -ov -format UDZO \
+            "build/${DMG_NAME}"
+
+          echo "DMG_PATH=build/${DMG_NAME}" >> $GITHUB_ENV
+          echo "DMG_NAME=${DMG_NAME}" >> $GITHUB_ENV
+
+      - name: Install Sparkle
+        run: |
+          # Download Sparkle 2.x
+          SPARKLE_VERSION="2.6.4"
+          curl -L -o /tmp/Sparkle.tar.xz "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz"
+          mkdir -p /tmp/Sparkle
+          tar -xf /tmp/Sparkle.tar.xz -C /tmp/Sparkle
+
+          # Make tools available
+          echo "/tmp/Sparkle/bin" >> $GITHUB_PATH
+
+      - name: Sign DMG with Sparkle
+        if: ${{ secrets.SPARKLE_PRIVATE_KEY != '' }}
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          # Sign the DMG and get signature
+          SIGNATURE=$(/tmp/Sparkle/bin/sign_update "${{ env.DMG_PATH }}" --ed-key-file <(echo "$SPARKLE_PRIVATE_KEY"))
+          echo "SPARKLE_SIGNATURE=${SIGNATURE}" >> $GITHUB_ENV
+
+      - name: Generate Appcast
+        run: |
+          # Get DMG size
+          DMG_SIZE=$(stat -f%z "${{ env.DMG_PATH }}")
+
+          # Calculate build number (major*10000 + minor*100 + patch)
+          IFS='.' read -r MAJOR MINOR PATCH <<< "${{ env.VERSION }}"
+          BUILD_NUMBER=$((MAJOR * 10000 + MINOR * 100 + PATCH))
+
+          # Get current date in RFC 2822 format
+          PUB_DATE=$(date -R)
+
+          # DMG download URL
+          DMG_URL="https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}/${{ env.DMG_NAME }}"
+
+          # Create appcast.xml
+          cat > build/appcast.xml << EOF
+          <?xml version="1.0" encoding="utf-8"?>
+          <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+            <channel>
+              <title>${{ env.APP_NAME }}</title>
+              <link>https://github.com/${{ github.repository }}</link>
+              <description>Most recent updates for ${{ env.APP_NAME }}</description>
+              <language>en</language>
+              <item>
+                <title>Version ${{ env.VERSION }}</title>
+                <link>https://github.com/${{ github.repository }}/releases/tag/v${{ env.VERSION }}</link>
+                <sparkle:version>${BUILD_NUMBER}</sparkle:version>
+                <sparkle:shortVersionString>${{ env.VERSION }}</sparkle:shortVersionString>
+                <pubDate>${PUB_DATE}</pubDate>
+                <enclosure
+                  url="${DMG_URL}"
+                  sparkle:edSignature="${SPARKLE_SIGNATURE:-}"
+                  length="${DMG_SIZE}"
+                  type="application/octet-stream"/>
+                <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+              </item>
+            </channel>
+          </rss>
+          EOF
+
+          echo "Generated appcast.xml:"
+          cat build/appcast.xml
+
+      - name: Upload Release Assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Upload DMG
+          gh release upload "v${{ env.VERSION }}" \
+            "${{ env.DMG_PATH }}" \
+            --clobber
+
+          # Upload appcast.xml
+          gh release upload "v${{ env.VERSION }}" \
+            "build/appcast.xml" \
+            --clobber
+
+          echo "Release assets uploaded successfully!"
+          echo "DMG: https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}/${{ env.DMG_NAME }}"
+          echo "Appcast: https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}/appcast.xml"
