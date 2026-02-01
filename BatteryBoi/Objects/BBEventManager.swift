@@ -5,15 +5,8 @@
 //  Created by Joe Barbour on 9/18/23.
 //
 
-import Combine
 import EventKit
 import Foundation
-
-struct EventRecipients: Equatable {
-    var email: String
-    var avatar: String
-
-}
 
 struct EventObject: Equatable {
     var id: String
@@ -36,21 +29,28 @@ struct EventObject: Equatable {
 final class EventManager {
     static let shared = EventManager()
 
-    private var updates = Set<AnyCancellable>()
+    private var timerTask: Task<Void, Never>?
 
     var events = [EventObject]()
 
     init() {
-        AppManager.shared.appTimer(1800).sink { _ in
-            self.eventAuthorizeStatus()
-
-        }.store(in: &updates)
-
+        // Initial check after delay
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(10.0))
             self.eventAuthorizeStatus()
         }
 
+        // Periodic check every 30 minutes (1800 seconds)
+        timerTask = Task { @MainActor [weak self] in
+            for await _ in AppManager.shared.appTimerAsync(1800) {
+                guard let self, !Task.isCancelled else { break }
+                eventAuthorizeStatus()
+            }
+        }
+    }
+
+    deinit {
+        timerTask?.cancel()
     }
 
     private func eventAuthorizeStatus() {
