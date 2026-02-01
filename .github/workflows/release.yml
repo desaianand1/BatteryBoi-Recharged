@@ -5,8 +5,9 @@ on:
     branches: [main]
 
 env:
-  XCODE_VERSION: '16.2'
-  NODE_VERSION: '22'
+  XCODE_VERSION: '26'
+  NODE_VERSION: '24'
+  SPARKLE_VERSION: '2.8.1'
   SCHEME: 'BatteryBoi - Recharged'
   PROJECT: 'BatteryBoi.xcodeproj'
   APP_NAME: 'BatteryBoi - Recharged'
@@ -20,13 +21,13 @@ jobs:
       new_release_version: ${{ steps.semantic.outputs.new_release_version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -49,7 +50,7 @@ jobs:
       VERSION: ${{ needs.semantic-release.outputs.new_release_version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: main
           fetch-depth: 0
@@ -101,8 +102,7 @@ jobs:
       - name: Install Sparkle
         run: |
           # Download Sparkle 2.x
-          SPARKLE_VERSION="2.6.4"
-          curl -L -o /tmp/Sparkle.tar.xz "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz"
+          curl -L -o /tmp/Sparkle.tar.xz "https://github.com/sparkle-project/Sparkle/releases/download/${{env.SPARKLE_VERSION}}/Sparkle-${{env.SPARKLE_VERSION}}.tar.xz"
           mkdir -p /tmp/Sparkle
           tar -xf /tmp/Sparkle.tar.xz -C /tmp/Sparkle
 
