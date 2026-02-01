@@ -57,6 +57,7 @@ class WindowManager: ObservableObject {
     
     private var updates = Set<AnyCancellable>()
     private var triggered:Int = 0;
+    private var notifiedThresholds: Set<Int> = []
     private var screen:CGSize {
         if let activeScreen = NSScreen.screens.first(where: {
             NSMouseInRect(NSEvent.mouseLocation, $0.frame, false)
@@ -75,36 +76,44 @@ class WindowManager: ObservableObject {
         BatteryManager.shared.$charging.dropFirst().removeDuplicates().sink { charging in
             switch charging.state {
                 case .battery : self.windowOpen(.chargingStopped, device: nil)
-                case .charging : self.windowOpen(.chargingBegan, device: nil)
-                
+                case .charging :
+                    self.notifiedThresholds.removeAll()
+                    self.windowOpen(.chargingBegan, device: nil)
+
             }
-            
+
         }.store(in: &updates)
         
         BatteryManager.shared.$percentage.dropFirst().removeDuplicates().sink { percent in
             if BatteryManager.shared.charging.state == .battery {
-                switch percent {
-                    case 25 : self.windowOpen(.percentTwentyFive, device: nil)
-                    case 10 : self.windowOpen(.percentTen, device: nil)
-                    case 5 : self.windowOpen(.percentFive, device: nil)
-                    case 1 : self.windowOpen(.percentOne, device: nil)
-                    default : break
-                    
+                let thresholds: [(Int, HUDAlertTypes)] = [
+                    (25, .percentTwentyFive),
+                    (10, .percentTen),
+                    (5, .percentFive),
+                    (1, .percentOne)
+                ]
+
+                for (threshold, alertType) in thresholds {
+                    if percent <= Double(threshold) && !self.notifiedThresholds.contains(threshold) {
+                        self.notifiedThresholds.insert(threshold)
+                        self.windowOpen(alertType, device: nil)
+                        break
+                    }
                 }
-                
+
             }
             else {
-                if percent == 100 && SettingsManager.shared.enabledChargeEighty == .disabled {
+                if percent >= 100 && SettingsManager.shared.enabledChargeEighty == .disabled {
                     self.windowOpen(.chargingComplete, device: nil)
-                    
+
                 }
-                else if percent == 80 && SettingsManager.shared.enabledChargeEighty == .enabled {
+                else if percent >= 80 && SettingsManager.shared.enabledChargeEighty == .enabled {
                     self.windowOpen(.chargingComplete, device: nil)
-                    
+
                 }
-                
+
             }
-            
+
         }.store(in: &updates)
         
         BatteryManager.shared.$thermal.dropFirst().removeDuplicates().sink { state in
