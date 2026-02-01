@@ -11,6 +11,7 @@ import SwiftUI
 
 /// Dependency injection container holding all service references.
 /// Provides centralized access to app services for SwiftUI views.
+/// Services are accessed via protocol types to enable testability.
 @MainActor
 @Observable
 final class AppEnvironment {
@@ -19,19 +20,19 @@ final class AppEnvironment {
     /// Shared environment instance for production use.
     static let shared = AppEnvironment()
 
-    // MARK: - Services
+    // MARK: - Services (Protocol Types for Testability)
 
     /// Battery monitoring service
-    let battery: BatteryManager
+    let battery: any BatteryServiceProtocol
 
     /// Bluetooth device service
-    let bluetooth: BluetoothManager
+    let bluetooth: any BluetoothServiceProtocol
 
     /// Settings service
-    let settings: SettingsManager
+    let settings: any SettingsServiceProtocol
 
     /// Window management service
-    let window: WindowManager
+    let window: any WindowServiceProtocol
 
     /// App lifecycle manager
     let app: AppManager
@@ -49,14 +50,14 @@ final class AppEnvironment {
 
     /// Initialize with default production services.
     init() {
-        self.battery = BatteryManager.shared
-        self.bluetooth = BluetoothManager.shared
-        self.settings = SettingsManager.shared
-        self.window = WindowManager.shared
-        self.app = AppManager.shared
-        self.stats = StatsManager.shared
-        self.update = UpdateManager.shared
-        self.event = EventManager.shared
+        battery = BatteryManager.shared
+        bluetooth = BluetoothManager.shared
+        settings = SettingsManager.shared
+        window = WindowManager.shared
+        app = AppManager.shared
+        stats = StatsManager.shared
+        update = UpdateManager.shared
+        event = EventManager.shared
     }
 
     /// Initialize with custom services for testing.
@@ -70,14 +71,14 @@ final class AppEnvironment {
     ///   - update: Custom update manager
     ///   - event: Custom event manager
     init(
-        battery: BatteryManager,
-        bluetooth: BluetoothManager,
-        settings: SettingsManager,
-        window: WindowManager,
+        battery: any BatteryServiceProtocol,
+        bluetooth: any BluetoothServiceProtocol,
+        settings: any SettingsServiceProtocol,
+        window: any WindowServiceProtocol,
         app: AppManager,
         stats: StatsManager,
         update: UpdateManager,
-        event: EventManager
+        event: EventManager,
     ) {
         self.battery = battery
         self.bluetooth = bluetooth
@@ -90,27 +91,12 @@ final class AppEnvironment {
     }
 }
 
-// MARK: - Environment Key
-
-/// Environment key for accessing the app environment container.
-private struct AppEnvironmentKey: EnvironmentKey {
-    // Using nonisolated(unsafe) as EnvironmentKey requires a non-isolated defaultValue
-    // but AppEnvironment is @MainActor. This is safe because SwiftUI views always
-    // access Environment values on the main thread.
-    nonisolated(unsafe) static let defaultValue: AppEnvironment = {
-        // Create on main actor synchronously since app launch is on main thread
+extension EnvironmentValues {
+    /// Access to the app environment container for dependency injection.
+    @Entry var appEnvironment: AppEnvironment = // Create on main actor synchronously since app launch is on main thread
         MainActor.assumeIsolated {
             AppEnvironment.shared
         }
-    }()
-}
-
-extension EnvironmentValues {
-    /// Access to the app environment container for dependency injection.
-    var appEnvironment: AppEnvironment {
-        get { self[AppEnvironmentKey.self] }
-        set { self[AppEnvironmentKey.self] = newValue }
-    }
 }
 
 // MARK: - SwiftUI View Extension
