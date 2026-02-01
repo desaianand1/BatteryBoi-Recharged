@@ -70,6 +70,3 @@ BBEnviroments.xcconfig
 *.swp
 *.swo
 *~
-
-# Local docs for my reference only
-docs/
