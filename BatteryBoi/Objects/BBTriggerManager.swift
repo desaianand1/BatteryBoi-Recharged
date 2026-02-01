@@ -9,7 +9,7 @@ import Combine
 import Foundation
 
 class TriggerClass {
-    static var shared = Self()
+    nonisolated(unsafe) static var shared = TriggerClass()
 
     private var updates = Set<AnyCancellable>()
 

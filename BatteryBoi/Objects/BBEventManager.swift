@@ -32,7 +32,7 @@ struct EventObject: Equatable {
 }
 
 class EventManager: ObservableObject {
-    static var shared = EventManager()
+    nonisolated(unsafe) static var shared = EventManager()
 
     private var updates = Set<AnyCancellable>()
 

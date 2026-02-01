@@ -10,8 +10,9 @@ import Foundation
 import Sparkle
 import SwiftUI
 
+@MainActor
 class AppManager: ObservableObject {
-    static var shared = AppManager()
+    static let shared = AppManager()
 
     @Published var counter = 0
     @Published var device: BluetoothObject?

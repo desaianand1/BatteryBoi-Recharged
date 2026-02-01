@@ -284,7 +284,7 @@ enum BluetoothState: Int {
 }
 
 class BluetoothManager: ObservableObject {
-    static var shared = Self()
+    nonisolated(unsafe) static var shared = BluetoothManager()
 
     @Published var list = [BluetoothObject]()
     @Published var connected = [BluetoothObject]()

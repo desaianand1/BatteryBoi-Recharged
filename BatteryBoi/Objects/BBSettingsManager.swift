@@ -250,7 +250,7 @@ enum SettingsStateValue: String {
 }
 
 class SettingsManager: ObservableObject {
-    static var shared = Self()
+    nonisolated(unsafe) static var shared = SettingsManager()
 
     @Published var menu: [SettingsActionObject] = []
     @Published var display: SettingsDisplayType = .countdown

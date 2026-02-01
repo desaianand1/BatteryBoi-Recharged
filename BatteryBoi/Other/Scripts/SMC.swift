@@ -311,12 +311,12 @@ public enum DataTypes {
         DataType(type: FourCharCode(fromStaticString: "ui32"), size: 4)
 }
 
-public struct SMCKey {
+public struct SMCKey: Sendable {
     let code: FourCharCode
     let info: DataType
 }
 
-public struct DataType: Equatable {
+public struct DataType: Equatable, Sendable {
     let type: FourCharCode
     let size: IOByteCount
 }
@@ -355,7 +355,7 @@ public enum SMCKit {
     }
 
     /// Connection to the SMC driver
-    fileprivate static var connection: io_connect_t = 0
+    nonisolated(unsafe) fileprivate static var connection: io_connect_t = 0
 
     /// Open connection to the SMC driver. This must be done first before any
     /// other calls
@@ -699,7 +699,7 @@ public enum TemperatureSensors {
     ]
 }
 
-public struct TemperatureSensor {
+public struct TemperatureSensor: Sendable {
     public let name: String
     public let code: FourCharCode
 }
@@ -767,7 +767,7 @@ public extension SMCKit {
 
 // ------------------------------------------------------------------------------
 
-public struct Fan {
+public struct Fan: Sendable {
     // TODO: Should we start the fan id from 1 instead of 0?
     public let id: Int
     public let name: String

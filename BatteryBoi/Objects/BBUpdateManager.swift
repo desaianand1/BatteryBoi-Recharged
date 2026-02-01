@@ -52,7 +52,7 @@ enum UpdateStateType {
 }
 
 class UpdateManager: NSObject, SPUUpdaterDelegate, ObservableObject {
-    static var shared = UpdateManager()
+    nonisolated(unsafe) static var shared = UpdateManager()
 
     @Published var state: UpdateStateType = .completed
     @Published var available: UpdatePayloadObject?

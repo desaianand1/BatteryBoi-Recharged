@@ -254,7 +254,7 @@ extension View {
 }
 
 extension UserDefaults {
-    static let changed = PassthroughSubject<SystemDefaultsKeys, Never>()
+    nonisolated(unsafe) static let changed = PassthroughSubject<SystemDefaultsKeys, Never>()
 
     static var main: UserDefaults {
         UserDefaults()
@@ -324,6 +324,7 @@ extension NSWindow: SystemMainWindow {
 
 }
 
+@MainActor
 protocol SystemMainWindow {
     var canBecomeKeyWindow: Bool { get }
 

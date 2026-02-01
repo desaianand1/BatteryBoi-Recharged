@@ -37,7 +37,7 @@ struct StatsContainerObject {
 }
 
 class StatsManager: ObservableObject {
-    static var shared = Self()
+    nonisolated(unsafe) static var shared = StatsManager()
 
     @Published var display: String?
     @Published var overlay: String?
@@ -46,7 +46,7 @@ class StatsManager: ObservableObject {
 
     private var updates = Set<AnyCancellable>()
 
-    static var container: StatsContainerObject = {
+    nonisolated(unsafe) static var container: StatsContainerObject = {
         let object = "BBDataObject"
         let container = NSPersistentCloudKitContainer(name: object)
 
@@ -390,7 +390,7 @@ class StatsManager: ObservableObject {
     private func statsContext() -> NSManagedObjectContext? {
         if let container = Self.container.container {
             let context = container.newBackgroundContext()
-            context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+            context.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
 
             return context
 

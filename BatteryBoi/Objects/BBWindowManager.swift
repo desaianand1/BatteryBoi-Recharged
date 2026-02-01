@@ -50,7 +50,7 @@ enum WindowPosition: String {
 }
 
 class WindowManager: ObservableObject {
-    static var shared = Self()
+    nonisolated(unsafe) static var shared = WindowManager()
 
     private var updates = Set<AnyCancellable>()
     private var triggered: Int = 0

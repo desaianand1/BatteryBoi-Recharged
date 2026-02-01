@@ -193,7 +193,7 @@ struct BatteryEstimateObject {
 }
 
 class BatteryManager: ObservableObject {
-    static var shared = Self()
+    nonisolated(unsafe) static var shared = BatteryManager()
 
     @Published var charging: BatteryCharging = .init(.battery)
     @Published var percentage: Double = 100
