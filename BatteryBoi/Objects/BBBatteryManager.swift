@@ -382,23 +382,23 @@ class BatteryManager:ObservableObject {
     }
 
     public var powerUntilFull:Date? {
+        guard percentage < 100 else { return nil }
+        guard charging.state == .charging else { return nil }
+
         var seconds = 180.0
         let remainder = 100 - self.percentage
 
-        if self.charging.state == .charging {
-            if let exists = self.rate {
-                if self.percentage > exists.percent {
-                    seconds = Date().timeIntervalSince(exists.timestamp)
+        if let exists = self.rate {
+            if self.percentage > exists.percent {
+                seconds = Date().timeIntervalSince(exists.timestamp)
 
-                    UserDefaults.save(.batteryUntilFull, value: seconds)
-
-                }
+                UserDefaults.save(.batteryUntilFull, value: seconds)
 
             }
 
-            self.rate = .init(percentage)
-
         }
+
+        self.rate = .init(percentage)
 
         return Date(timeIntervalSinceNow: Double(seconds) * Double(remainder))
 
