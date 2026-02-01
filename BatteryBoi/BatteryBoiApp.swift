@@ -163,7 +163,7 @@ enum SystemDefaultsKeys: String {
         case .batteryUntilFull: "Seconds until Charged"
         case .batteryLastCharged: "Seconds until Charged"
         case .batteryDepletionRate: "Battery Depletion Rate"
-        case .batteryWindowPosition: "Battery Window Positio"
+        case .batteryWindowPosition: "Battery Window Position"
         case .versionInstalled: "Installed on"
         case .versionCurrent: "Active Version"
         case .versionIdenfiyer: "App ID"
@@ -200,6 +200,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     var status: NSStatusItem?
     var hosting: NSHostingView = .init(rootView: MenuContainer())
     var updates = Set<AnyCancellable>()
+
+    private var globalMouseMonitor: Any?
+    private var windowMoveObserver: NSObjectProtocol?
 
     func applicationDidFinishLaunching(_: Notification) {
         status = NSStatusBar.system.statusItem(withLength: 45)
@@ -256,12 +259,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             name: NSWorkspace.screensDidSleepNotification,
             object: nil,
         )
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(applicationFocusDidMove(notification:)),
-            name: NSWindow.didMoveNotification,
+        windowMoveObserver = NotificationCenter.default.addObserver(
+            forName: NSWindow.didMoveNotification,
             object: nil,
-        )
+            queue: .main,
+        ) { [weak self] notification in
+            self?.applicationFocusDidMove(notification: notification)
+        }
 
     }
 
@@ -317,14 +321,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
     }
 
-    @objc
-    func applicationFocusDidMove(notification: NSNotification) {
+    func applicationFocusDidMove(notification: Notification) {
         if let window = notification.object as? NSWindow {
             if window.title == "modalwindow" {
-                NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseUp]) { _ in
-                    window.animator().alphaValue = 1.0
-                    window.animator().setFrame(WindowManager.shared.windowHandleFrame(), display: true, animate: true)
-
+                // Only add monitor if not already added
+                if globalMouseMonitor == nil {
+                    globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseUp]) { [weak self] _ in
+                        guard self != nil else { return }
+                        window.animator().alphaValue = 1.0
+                        window.animator().setFrame(
+                            WindowManager.shared.windowHandleFrame(),
+                            display: true,
+                            animate: true,
+                        )
+                    }
                 }
 
                 _ = WindowManager.shared.windowHandleFrame(moved: window.frame)
@@ -343,5 +353,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
     @objc
     private func applicationDidSleepNotification(_: Notification) {}
+
+    func applicationWillTerminate(_: Notification) {
+        // Remove global mouse monitor
+        if let monitor = globalMouseMonitor {
+            NSEvent.removeMonitor(monitor)
+            globalMouseMonitor = nil
+        }
+
+        // Remove notification observers
+        if let observer = windowMoveObserver {
+            NotificationCenter.default.removeObserver(observer)
+            windowMoveObserver = nil
+        }
+
+        NSWorkspace.shared.notificationCenter.removeObserver(self)
+        updates.forEach { $0.cancel() }
+    }
 
 }

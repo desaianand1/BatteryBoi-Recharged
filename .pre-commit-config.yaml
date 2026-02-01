@@ -25,14 +25,12 @@ repos:
 
       - id: swiftformat-lint
         name: SwiftFormat (lint)
-        entry: swiftformat --lint BatteryBoi/
+        entry: swiftformat --lint
         language: system
         types: [swift]
-        pass_filenames: false
 
       - id: swiftlint
         name: SwiftLint
         entry: swiftlint lint --strict --quiet
         language: system
         types: [swift]
-        pass_filenames: false
