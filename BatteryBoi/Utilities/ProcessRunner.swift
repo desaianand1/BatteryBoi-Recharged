@@ -9,6 +9,7 @@ enum ProcessRunnerError: Error {
     case timeout
     case executionFailed(String)
     case invalidOutput
+    case nonZeroExitCode(Int32, String)
 }
 
 actor ProcessRunner {
@@ -57,12 +58,21 @@ actor ProcessRunner {
                 return
             }
 
-            process.terminationHandler = { _ in
+            process.terminationHandler = { terminatedProcess in
                 let data = pipe.fileHandleForReading.readDataToEndOfFile()
-                if let output = String(data: data, encoding: .utf8) {
-                    continuation.resume(returning: output.trimmingCharacters(in: .whitespacesAndNewlines))
-                } else {
+                let exitCode = terminatedProcess.terminationStatus
+
+                guard let output = String(data: data, encoding: .utf8) else {
                     continuation.resume(throwing: ProcessRunnerError.invalidOutput)
+                    return
+                }
+
+                let trimmedOutput = output.trimmingCharacters(in: .whitespacesAndNewlines)
+
+                if exitCode != 0 {
+                    continuation.resume(throwing: ProcessRunnerError.nonZeroExitCode(exitCode, trimmedOutput))
+                } else {
+                    continuation.resume(returning: trimmedOutput)
                 }
             }
         }
