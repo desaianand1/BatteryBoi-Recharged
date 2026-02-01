@@ -10,13 +10,6 @@ import Foundation
 import IOKit.ps
 import IOKit.pwr_mgt
 
-enum BatteryWattageType {
-    case current
-    case max
-    case voltage
-
-}
-
 enum BatteryThemalState {
     case optimal
     case suboptimal
@@ -60,9 +53,12 @@ struct BatteryMetricsObject {
     init(cycles: String, health: String) {
         self.cycles = BatteryCycleObject(Int(cycles) ?? 0)
         heath = BatteryCondition(rawValue: health) ?? .optimal
-
     }
 
+    init(cycleCount: Int, condition: String) {
+        cycles = BatteryCycleObject(cycleCount)
+        heath = BatteryCondition(rawValue: condition) ?? .optimal
+    }
 }
 
 enum BatteryModeType {
@@ -207,7 +203,7 @@ final class BatteryManager: BatteryServiceProtocol {
     var thermal: BatteryThemalState = .optimal
 
     private var counter: Int?
-    private var fallbackTimer: Timer?
+    private var fallbackTimerTask: Task<Void, Never>?
     private var initialTimer: Timer?
     private var statusTask: Task<Void, Never>?
     private var remainingTask: Task<Void, Never>?
@@ -257,22 +253,22 @@ final class BatteryManager: BatteryServiceProtocol {
             }
         }
 
-        // Battery status check every 1 second (skip first 5 ticks)
+        // Battery status check every 5 seconds (optimized from 1s)
         statusTask = Task { @MainActor [weak self] in
             var tickCount = 0
-            for await _ in AppManager.shared.appTimerAsync(1) {
+            for await _ in AppManager.shared.appTimerAsync(5) {
                 guard let self, !Task.isCancelled else { break }
                 tickCount += 1
-                if tickCount > 5 {
+                if tickCount > 1 {
                     powerStatus(true)
                     counter = nil
                 }
             }
         }
 
-        // Remaining time check every 6 seconds
+        // Remaining time check every 30 seconds (optimized from 6s)
         remainingTask = Task { @MainActor [weak self] in
-            for await _ in AppManager.shared.appTimerAsync(6) {
+            for await _ in AppManager.shared.appTimerAsync(30) {
                 guard let self, !Task.isCancelled else { break }
                 remaining = await fetchPowerRemaining()
                 counter = nil
@@ -289,9 +285,9 @@ final class BatteryManager: BatteryServiceProtocol {
             }
         #endif
 
-        // Metrics check every 60 seconds
+        // Metrics check every 300 seconds (optimized from 60s)
         metricsTask = Task { @MainActor [weak self] in
-            for await _ in AppManager.shared.appTimerAsync(60) {
+            for await _ in AppManager.shared.appTimerAsync(300) {
                 guard let self, !Task.isCancelled else { break }
                 saver = await fetchPowerSaveModeStatus()
                 metrics = await fetchPowerProfilerDetails()
@@ -304,7 +300,7 @@ final class BatteryManager: BatteryServiceProtocol {
 
     deinit {
         initialTimer?.invalidate()
-        fallbackTimer?.invalidate()
+        fallbackTimerTask?.cancel()
         statusTask?.cancel()
         remainingTask?.cancel()
         metricsTask?.cancel()
@@ -328,27 +324,25 @@ final class BatteryManager: BatteryServiceProtocol {
     }
 
     private func powerUpdaterFallback() {
-        fallbackTimer?.invalidate()
-        fallbackTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-            if let counter = self.counter {
-                if counter.isMultiple(of: 1) {
-                    self.powerStatus(true)
+        fallbackTimerTask?.cancel()
+        fallbackTimerTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1))
+                guard let self, !Task.isCancelled else { return }
 
-                }
-
-                if counter.isMultiple(of: 6) {
-                    Task { @MainActor in
-                        self.remaining = await self.fetchPowerRemaining()
+                if let counter {
+                    if counter.isMultiple(of: 1) {
+                        powerStatus(true)
                     }
 
+                    if counter.isMultiple(of: 6) {
+                        remaining = await fetchPowerRemaining()
+                    }
                 }
 
+                counter = (counter ?? 0) + 1
             }
-
-            self.counter = (self.counter ?? 0) + 1
-
         }
-
     }
 
     private func powerStatus(_ force: Bool = false) {
@@ -392,35 +386,22 @@ final class BatteryManager: BatteryServiceProtocol {
     }
 
     private func fetchPowerRemaining() async -> BatteryRemaining? {
-        do {
-            let output = try await ProcessRunner.shared.runShell(
-                command: "pmset -g batt | grep -o '[0-9]\\{1,2\\}:[0-9]\\{2\\}'",
-                timeout: .seconds(10),
-            )
-
-            let components = output.components(separatedBy: ":")
-            if let hour = components.first.flatMap({ Int($0) }),
-               let minute = components.last.flatMap({ Int($0) })
-            {
-                await MainActor.run {
-                    self.powerDepetionAverage = (Double(hour) * 60.0 * 60.0) + (Double(minute) * 60.0)
-                }
-                return .init(hour: hour, minute: minute)
-            } else if let rate = powerDepetionAverage {
-                let date = Date().addingTimeInterval(rate * percentage)
-                let components = Calendar.current.dateComponents([.hour, .minute], from: Date(), to: date)
-                return .init(hour: components.hour ?? 0, minute: components.minute ?? 0)
-            }
-
-            return .init(hour: 0, minute: 0)
-        } catch {
-            if let rate = powerDepetionAverage {
-                let date = Date().addingTimeInterval(rate * percentage)
-                let components = Calendar.current.dateComponents([.hour, .minute], from: Date(), to: date)
-                return .init(hour: components.hour ?? 0, minute: components.minute ?? 0)
-            }
-            return nil
+        // Use native IOKit API instead of shell command
+        if let timeRemaining = await IOKitBatteryService.shared.getTimeRemaining() {
+            let hour = timeRemaining.hours
+            let minute = timeRemaining.minutes
+            powerDepetionAverage = (Double(hour) * 60.0 * 60.0) + (Double(minute) * 60.0)
+            return .init(hour: hour, minute: minute)
         }
+
+        // Fallback to depletion rate estimate if IOKit returns nil (calculating)
+        if let rate = powerDepetionAverage {
+            let date = Date().addingTimeInterval(rate * percentage)
+            let components = Calendar.current.dateComponents([.hour, .minute], from: Date(), to: date)
+            return .init(hour: components.hour ?? 0, minute: components.minute ?? 0)
+        }
+
+        return .init(hour: 0, minute: 0)
     }
 
     var powerUntilFull: Date? {
@@ -482,25 +463,9 @@ final class BatteryManager: BatteryServiceProtocol {
     }
 
     private func fetchPowerSaveModeStatus() async -> BatteryModeType {
-        do {
-            let output = try await ProcessRunner.shared.run(
-                executable: "/usr/bin/env",
-                arguments: ["bash", "-c", "pmset -g | grep lowpowermode"],
-                timeout: .seconds(10),
-            )
-
-            if output.contains("lowpowermode") {
-                if output.contains("1") {
-                    return .efficient
-                } else if output.contains("0") {
-                    return .normal
-                }
-            }
-
-            return .unavailable
-        } catch {
-            return .unavailable
-        }
+        // Use native ProcessInfo API instead of shell command
+        let isLowPowerMode = await IOKitBatteryService.shared.isLowPowerModeEnabled()
+        return isLowPowerMode ? .efficient : .normal
     }
 
     func powerSaveMode() {
@@ -522,129 +487,22 @@ final class BatteryManager: BatteryServiceProtocol {
     }
 
     private func powerThermalCheck() async {
-        do {
-            let output = try await ProcessRunner.shared.run(
-                executable: "/usr/bin/env",
-                arguments: ["pmset", "-g", "therm"],
-                timeout: .seconds(10),
-            )
-
-            let cores = await fetchCPUCores()
-            var isSuboptimal = false
-
-            if let match = output.range(of: "CPU_Scheduler_Limit\\s+=\\s+(\\d+)", options: .regularExpression) {
-                let value = Int(output[match].components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ??
-                    0
-
-                if value < 100 {
-                    isSuboptimal = true
-
-                }
-
-            }
-
-            if let match = output.range(of: "CPU_Available_CPUs\\s+=\\s+(\\d+)", options: .regularExpression) {
-                let value = Int(output[match].components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ??
-                    0
-
-                if value < cores {
-                    isSuboptimal = true
-
-                }
-
-            }
-
-            if let match = output.range(of: "CPU_Speed_Limit\\s+=\\s+(\\d+)", options: .regularExpression) {
-                let value = Int(output[match].components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ??
-                    0
-
-                if value < 100 {
-                    isSuboptimal = true
-
-                }
-
-            }
-
-            await MainActor.run {
-                self.thermal = isSuboptimal ? .suboptimal : .optimal
-            }
-
-        } catch {
-            print("Thermal check failed: \(error)")
-        }
-
-    }
-
-    private func fetchCPUCores() async -> Int {
-        do {
-            let output = try await ProcessRunner.shared.run(
-                executable: "/usr/bin/env",
-                arguments: ["sysctl", "-n", "hw.physicalcpu"],
-                timeout: .seconds(5),
-            )
-            return Int(output) ?? 1
-        } catch {
-            return 1
-        }
+        // Use native ProcessInfo API instead of shell command
+        let isThrottled = await IOKitBatteryService.shared.getThermalState()
+        thermal = isThrottled ? .suboptimal : .optimal
     }
 
     private func fetchPowerProfilerDetails() async -> BatteryMetricsObject? {
-        do {
-            let output = try await ProcessRunner.shared.run(
-                executable: "/usr/bin/env",
-                arguments: ["system_profiler", "SPPowerDataType"],
-                timeout: .seconds(30),
-            )
-
-            let lines = output.split(separator: "\n")
-
-            var cycles: String?
-            var health: String?
-
-            for line in lines {
-                if line.contains("Cycle Count") {
-                    cycles = String(line.split(separator: ":").last ?? "").trimmingCharacters(in: .whitespaces)
-                }
-
-                if line.contains("Condition") {
-                    health = String(line.split(separator: ":").last ?? "").trimmingCharacters(in: .whitespaces)
-                }
-
-                if let cycles, let health {
-                    return .init(cycles: cycles, health: health)
-                }
-            }
-
-            return nil
-        } catch {
+        // Use native IOKit API instead of system_profiler command
+        guard let metrics = await IOKitBatteryService.shared.getBatteryMetrics() else {
             return nil
         }
-    }
-
-    private func fetchPowerWattage(_ type: BatteryWattageType) async -> Int? {
-        let command = switch type {
-        case .current: "ioreg -l | grep CurrentCapacity | awk '{print $5}'"
-        case .max: "ioreg -l | grep MaxCapacity | awk '{print $5}'"
-        case .voltage: "ioreg -l | grep Voltage | awk '{print $5}'"
-        }
-
-        do {
-            let output = try await ProcessRunner.shared.runShell(command: command, timeout: .seconds(10))
-            return Int(output)
-        } catch {
-            return nil
-        }
+        return BatteryMetricsObject(cycleCount: metrics.cycleCount, condition: metrics.condition)
     }
 
     func fetchPowerHourWattage() async -> Double? {
-        async let mAh = fetchPowerWattage(.max)
-        async let mV = fetchPowerWattage(.voltage)
-
-        if let maxCapacity = await mAh, let voltage = await mV {
-            return (Double(maxCapacity) / 1000.0) * (Double(voltage) / 1000.0)
-        }
-
-        return nil
+        // Use native IOKit API instead of shell commands
+        await IOKitBatteryService.shared.getWattHours()
     }
 
 }
