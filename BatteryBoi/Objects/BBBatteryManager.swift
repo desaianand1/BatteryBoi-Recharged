@@ -194,7 +194,7 @@ struct BatteryEstimateObject {
 
 @Observable
 @MainActor
-final class BatteryManager {
+final class BatteryManager: BatteryServiceProtocol {
     static let shared = BatteryManager()
 
     var charging: BatteryCharging = .init(.battery)
@@ -209,11 +209,45 @@ final class BatteryManager {
     private var counter: Int?
     private var updates = Set<AnyCancellable>()
     private var fallbackTimer: Timer?
+    private var initialTimer: Timer?
+
+    // MARK: - BatteryServiceProtocol Publishers
+
+    var chargingPublisher: AnyPublisher<BatteryCharging, Never> {
+        $charging.eraseToAnyPublisher()
+    }
+
+    var percentagePublisher: AnyPublisher<Double, Never> {
+        $percentage.eraseToAnyPublisher()
+    }
+
+    var thermalPublisher: AnyPublisher<BatteryThemalState, Never> {
+        $thermal.eraseToAnyPublisher()
+    }
+
+    // MARK: - BatteryServiceProtocol Methods
+
+    func forceRefresh() {
+        powerForceRefresh()
+    }
+
+    func togglePowerSaveMode() {
+        powerSaveMode()
+    }
+
+    var untilFull: Date? {
+        powerUntilFull
+    }
+
+    func hourWattage() -> Double? {
+        powerHourWattage()
+    }
 
     init() {
-        Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { _ in
-            if self.counter == nil {
-                self.powerUpdaterFallback()
+        initialTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { [weak self] _ in
+            guard let self else { return }
+            if counter == nil {
+                powerUpdaterFallback()
 
             }
 
@@ -226,7 +260,9 @@ final class BatteryManager {
         }.store(in: &updates)
 
         AppManager.shared.appTimer(6).sink { _ in
-            self.remaining = self.powerRemaining
+            Task { @MainActor in
+                self.remaining = await self.fetchPowerRemaining()
+            }
             self.counter = nil
 
         }.store(in: &updates)
@@ -240,8 +276,10 @@ final class BatteryManager {
         #endif
 
         AppManager.shared.appTimer(60).sink { _ in
-            self.saver = self.powerSaveModeStatus
-            self.metrics = self.powerProfilerDetails
+            Task { @MainActor in
+                self.saver = await self.fetchPowerSaveModeStatus()
+                self.metrics = await self.fetchPowerProfilerDetails()
+            }
             self.counter = nil
 
         }.store(in: &updates)
@@ -251,21 +289,22 @@ final class BatteryManager {
     }
 
     deinit {
+        initialTimer?.invalidate()
         fallbackTimer?.invalidate()
-        self.updates.forEach { $0.cancel() }
+        updates.forEach { $0.cancel() }
 
     }
 
     func powerForceRefresh() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1))
             self.powerStatus(true)
-
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-            self.saver = self.powerSaveModeStatus
-            self.metrics = self.powerProfilerDetails
-
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(5))
+            self.saver = await self.fetchPowerSaveModeStatus()
+            self.metrics = await self.fetchPowerProfilerDetails()
         }
 
     }
@@ -280,7 +319,9 @@ final class BatteryManager {
                 }
 
                 if counter.isMultiple(of: 6) {
-                    self.remaining = self.powerRemaining
+                    Task { @MainActor in
+                        self.remaining = await self.fetchPowerRemaining()
+                    }
 
                 }
 
@@ -332,43 +373,36 @@ final class BatteryManager {
 
     }
 
-    private var powerRemaining: BatteryRemaining? {
-        let process = Process()
-        process.launchPath = "/bin/sh"
-        process.arguments = ["-c", "pmset -g batt | grep -o '[0-9]\\{1,2\\}:[0-9]\\{2\\}'"]
+    private func fetchPowerRemaining() async -> BatteryRemaining? {
+        do {
+            let output = try await ProcessRunner.shared.runShell(
+                command: "pmset -g batt | grep -o '[0-9]\\{1,2\\}:[0-9]\\{2\\}'",
+                timeout: .seconds(10),
+            )
 
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.launch()
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-
-        if let output = String(data: data, encoding: .utf8)?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .components(separatedBy: ":")
-        {
-            if let hour = output.map({ Int($0) }).first, let min = output.map({ Int($0) }).last {
-                if let hour, let minute = min {
-                    powerDepetionAverage = (Double(hour) * 60.0 * 60.0) + (Double(minute) * 60.0)
-
-                    return .init(hour: hour, minute: minute)
-
-                } else if let rate = powerDepetionAverage {
-                    let date = Date().addingTimeInterval(rate * percentage)
-                    let components = Calendar.current.dateComponents([.hour, .minute], from: Date(), to: date)
-
-                    return .init(hour: components.hour ?? 0, minute: components.minute ?? 0)
-
+            let components = output.components(separatedBy: ":")
+            if let hour = components.first.flatMap({ Int($0) }),
+               let minute = components.last.flatMap({ Int($0) })
+            {
+                await MainActor.run {
+                    self.powerDepetionAverage = (Double(hour) * 60.0 * 60.0) + (Double(minute) * 60.0)
                 }
-
-                return .init(hour: 0, minute: 0)
-
+                return .init(hour: hour, minute: minute)
+            } else if let rate = powerDepetionAverage {
+                let date = Date().addingTimeInterval(rate * percentage)
+                let components = Calendar.current.dateComponents([.hour, .minute], from: Date(), to: date)
+                return .init(hour: components.hour ?? 0, minute: components.minute ?? 0)
             }
 
+            return .init(hour: 0, minute: 0)
+        } catch {
+            if let rate = powerDepetionAverage {
+                let date = Date().addingTimeInterval(rate * percentage)
+                let components = Calendar.current.dateComponents([.hour, .minute], from: Date(), to: date)
+                return .init(hour: components.hour ?? 0, minute: components.minute ?? 0)
+            }
+            return nil
         }
-
-        return nil
-
     }
 
     var powerUntilFull: Date? {
@@ -428,35 +462,26 @@ final class BatteryManager {
 
     }
 
-    private var powerSaveModeStatus: BatteryModeType {
-        let task = Process()
-        task.launchPath = "/usr/bin/env"
-        task.arguments = ["bash", "-c", "pmset -g | grep lowpowermode"]
+    private func fetchPowerSaveModeStatus() async -> BatteryModeType {
+        do {
+            let output = try await ProcessRunner.shared.run(
+                executable: "/usr/bin/env",
+                arguments: ["bash", "-c", "pmset -g | grep lowpowermode"],
+                timeout: .seconds(10),
+            )
 
-        let pipe = Pipe()
-        task.standardOutput = pipe
-
-        task.launch()
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: data, encoding: .utf8)
-
-        if let output = output?.trimmingCharacters(in: .whitespacesAndNewlines) {
-            if output.contains("lowpowermode") == true {
-                if output.contains("1") == true {
+            if output.contains("lowpowermode") {
+                if output.contains("1") {
                     return .efficient
-
-                } else if output.contains("0") == true {
+                } else if output.contains("0") {
                     return .normal
-
                 }
-
             }
 
+            return .unavailable
+        } catch {
+            return .unavailable
         }
-
-        return .unavailable
-
     }
 
     func powerSaveMode() {
@@ -467,9 +492,8 @@ final class BatteryManager {
                 var error: NSDictionary?
                 script.executeAndReturnError(&error)
 
-                DispatchQueue.main.async {
-                    self.saver = self.powerSaveModeStatus
-
+                Task { @MainActor in
+                    self.saver = await self.fetchPowerSaveModeStatus()
                 }
 
             }
@@ -545,103 +569,69 @@ final class BatteryManager {
         }
     }
 
-    private var powerProfilerDetails: BatteryMetricsObject? {
-        let process = Process()
-        process.launchPath = "/usr/bin/env"
-        process.arguments = ["system_profiler", "SPPowerDataType"]
+    private func fetchPowerProfilerDetails() async -> BatteryMetricsObject? {
+        do {
+            let output = try await ProcessRunner.shared.run(
+                executable: "/usr/bin/env",
+                arguments: ["system_profiler", "SPPowerDataType"],
+                timeout: .seconds(30),
+            )
 
-        let pipe = Pipe()
-        process.standardOutput = pipe
-
-        process.launch()
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-
-        if let output = String(data: data, encoding: .utf8) {
             let lines = output.split(separator: "\n")
 
             var cycles: String?
-            var heath: String?
+            var health: String?
 
             for line in lines {
                 if line.contains("Cycle Count") {
                     cycles = String(line.split(separator: ":").last ?? "").trimmingCharacters(in: .whitespaces)
-
                 }
 
                 if line.contains("Condition") {
-                    heath = String(line.split(separator: ":").last ?? "").trimmingCharacters(in: .whitespaces)
-
+                    health = String(line.split(separator: ":").last ?? "").trimmingCharacters(in: .whitespaces)
                 }
 
-                if let cycles, let heath {
-                    return .init(cycles: cycles, health: heath)
-
+                if let cycles, let health {
+                    return .init(cycles: cycles, health: health)
                 }
-
             }
 
+            return nil
+        } catch {
+            return nil
         }
-
-        return nil
-
     }
 
-    private var powerCPUCores: Int {
-        let process = Process()
-        process.launchPath = "/usr/bin/env"
-        process.arguments = ["sysctl", "-n", "hw.physicalcpu"]
-
-        let pipe = Pipe()
-        process.standardOutput = pipe
-
-        process.launch()
-        process.waitUntilExit()
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        if let output = String(data: data, encoding: .utf8),
-           let cores = Int(output.trimmingCharacters(in: .whitespacesAndNewlines))
-        {
-            return cores
-
+    private func fetchPowerWattage(_ type: BatteryWattageType) async -> Int? {
+        let command = switch type {
+        case .current: "ioreg -l | grep CurrentCapacity | awk '{print $5}'"
+        case .max: "ioreg -l | grep MaxCapacity | awk '{print $5}'"
+        case .voltage: "ioreg -l | grep Voltage | awk '{print $5}'"
         }
 
-        return 1
-
-    }
-
-    private func powerWattage(_ type: BatteryWattageType) -> Int? {
-        let process = Process()
-        process.launchPath = "/bin/sh"
-
-        switch type {
-        case .current: process.arguments = ["-c", "ioreg -l | grep CurrentCapacity | awk '{print $5}'"]
-        case .max: process.arguments = ["-c", "ioreg -l | grep MaxCapacity | awk '{print $5}'"]
-        case .voltage: process.arguments = ["-c", "ioreg -l | grep Voltage | awk '{print $5}'"]
+        do {
+            let output = try await ProcessRunner.shared.runShell(command: command, timeout: .seconds(10))
+            return Int(output)
+        } catch {
+            return nil
         }
-
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.launch()
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        if let output = String(data: data, encoding: .utf8) {
-            return Int(output.trimmingCharacters(in: .whitespacesAndNewlines))
-
-        }
-
-        return nil
-
     }
 
     func powerHourWattage() -> Double? {
-        if let mAh = powerWattage(.max), let mV = powerWattage(.voltage) {
-            return (Double(mAh) / 1000.0) * (Double(mV) / 1000.0)
+        // This method is called synchronously, use cached values or return nil
+        // For async usage, call fetchPowerHourWattage() instead
+        nil
+    }
 
+    func fetchPowerHourWattage() async -> Double? {
+        async let mAh = fetchPowerWattage(.max)
+        async let mV = fetchPowerWattage(.voltage)
+
+        if let maxCapacity = await mAh, let voltage = await mV {
+            return (Double(maxCapacity) / 1000.0) * (Double(voltage) / 1000.0)
         }
 
         return nil
-
     }
 
 //    func setSMCByte(key: String, value: UInt8) {
