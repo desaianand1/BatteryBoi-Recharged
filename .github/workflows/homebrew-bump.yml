@@ -1,0 +1,17 @@
+name: Bump Homebrew Cask
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  bump-cask:
+    name: Bump Homebrew Cask
+    runs-on: ubuntu-latest
+    steps:
+      - name: Bump Homebrew Cask
+        uses: macauley/action-homebrew-bump-cask@v1
+        with:
+          token: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
+          cask: batteryboi-recharged
+          tap: homebrew/homebrew-cask
