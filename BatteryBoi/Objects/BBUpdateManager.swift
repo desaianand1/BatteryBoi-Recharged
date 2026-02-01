@@ -120,28 +120,26 @@ class UpdateManager: NSObject,SPUUpdaterDelegate,ObservableObject {
     }
 
     func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
-        if let title = item.title {
-            let id = item.propertiesDictionary["id"] as! String
-            let build = item.propertiesDictionary["sparkle:shortVersionString"] as? Double ?? 0.0
-            let version:UpdateVersionObject = .init(formatted: title, numerical: build)
-            
-            DispatchQueue.main.async {
-                self.available = .init(id: id, name: title, version: version)
-                self.state = .completed
-                self.checked = self.updater?.lastUpdateCheckDate
-
-            }
-                        
-        }
-        else {
+        guard let title = item.title,
+              let id = item.propertiesDictionary["id"] as? String else {
             DispatchQueue.main.async {
                 self.state = .failed
                 self.checked = self.updater?.lastUpdateCheckDate
 
             }
-            
+            return
         }
-      
+
+        let build = item.propertiesDictionary["sparkle:shortVersionString"] as? Double ?? 0.0
+        let version:UpdateVersionObject = .init(formatted: title, numerical: build)
+
+        DispatchQueue.main.async {
+            self.available = .init(id: id, name: title, version: version)
+            self.state = .completed
+            self.checked = self.updater?.lastUpdateCheckDate
+
+        }
+
     }
     
     func updater(_ updater: SPUUpdater, failedToDownloadUpdate item: SUAppcastItem, error: Error) {
