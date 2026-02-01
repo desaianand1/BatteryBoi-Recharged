@@ -104,16 +104,8 @@ struct ViewTextStyle: ViewModifier {
     @State var size: CGFloat
 
     func body(content: Content) -> some View {
-        if #available(iOS 14.0, macOS 13.0, watchOS 7.0, tvOS 14.0, *) {
-            content.font(.system(size: size, weight: .bold)).lineLimit(1).tracking(-0.4)
-
-        } else {
-            content.font(.system(size: size, weight: .bold)).lineLimit(1)
-
-        }
-
+        content.font(.system(size: size, weight: .bold)).lineLimit(1).tracking(-0.4)
     }
-
 }
 
 public extension String {

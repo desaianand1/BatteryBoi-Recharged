@@ -361,7 +361,7 @@ public enum SMCKit {
     /// other calls
     public static func open() throws {
         let service = IOServiceGetMatchingService(
-            kIOMasterPortDefault,
+            kIOMainPortDefault,
             IOServiceMatching("AppleSMC"),
         )
 

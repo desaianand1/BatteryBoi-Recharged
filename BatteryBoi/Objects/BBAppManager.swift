@@ -156,7 +156,7 @@ final class AppManager {
     }
 
     var appDeviceType: SystemDeviceTypes {
-        let platform = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
+        let platform = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
 
         if let model = IORegistryEntryCreateCFProperty(platform, "model" as CFString, kCFAllocatorDefault, 0)
             .takeRetainedValue() as? Data,

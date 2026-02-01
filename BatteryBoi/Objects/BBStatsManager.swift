@@ -467,10 +467,10 @@ final class StatsManager {
                             store.wattage = BatteryManager.shared.powerHourWattage() ?? 0.0
 
                             try context.save()
-
                         }
-
-                    } catch {}
+                    } catch {
+                        print("Failed to save CoreData wattage: \(error.localizedDescription)")
+                    }
 
                 }
 

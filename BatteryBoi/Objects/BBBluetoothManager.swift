@@ -199,10 +199,8 @@ struct BluetoothObject: Decodable, Equatable {
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
 
-        // swiftlint:disable:next force_try
-        battery = try! BluetoothBatteryObject(from: decoder)
-        // swiftlint:disable:next force_try
-        address = try! values.decode(String.self, forKey: .address).lowercased().replacingOccurrences(
+        battery = try BluetoothBatteryObject(from: decoder)
+        address = try values.decode(String.self, forKey: .address).lowercased().replacingOccurrences(
             of: ":",
             with: "-",
         )

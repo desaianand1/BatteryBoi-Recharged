@@ -231,12 +231,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
             }.store(in: &self.updates)
 
-            if #available(macOS 13.0, *) {
-                if SettingsManager.shared.enabledAutoLaunch == .undetermined {
-                    SettingsManager.shared.enabledAutoLaunch = .enabled
-
-                }
-
+            if SettingsManager.shared.enabledAutoLaunch == .undetermined {
+                SettingsManager.shared.enabledAutoLaunch = .enabled
             }
 
         }

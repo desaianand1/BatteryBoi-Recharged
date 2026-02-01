@@ -56,13 +56,20 @@ enum UpdateStateType {
 final class UpdateManager: NSObject, SPUUpdaterDelegate {
     static let shared = UpdateManager()
 
-    var state: UpdateStateType = .completed
+    var state: UpdateStateType = .completed {
+        didSet {
+            if state == .completed || state == .failed {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+                    self?.state = .idle
+                }
+            }
+        }
+    }
     var available: UpdatePayloadObject?
     var checked: Date?
 
     private let driver = SPUStandardUserDriver(hostBundle: Bundle.main, delegate: nil)
 
-    private var updates = Set<AnyCancellable>()
     private var updater: SPUUpdater?
 
     override init() {
@@ -80,16 +87,9 @@ final class UpdateManager: NSObject, SPUUpdaterDelegate {
 
         do {
             try updater?.start()
-
-        } catch {}
-
-        $state.delay(for: 5, scheduler: RunLoop.main).sink { newValue in
-            if newValue == .completed || newValue == .failed {
-                self.state = .idle
-
-            }
-
-        }.store(in: &updates)
+        } catch {
+            print("Failed to start Sparkle updater: \(error.localizedDescription)")
+        }
 
         checked = updater?.lastUpdateCheckDate
 
