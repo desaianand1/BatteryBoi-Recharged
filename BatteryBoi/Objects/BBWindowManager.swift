@@ -58,11 +58,12 @@ class WindowManager: ObservableObject {
     private var updates = Set<AnyCancellable>()
     private var triggered:Int = 0;
     private var screen:CGSize {
-        if let display = CGMainDisplayID() as CGDirectDisplayID? {
-            return .init(width: CGFloat(CGDisplayPixelsWide(display)), height:CGFloat(CGDisplayPixelsHigh(display)))
-
+        if let activeScreen = NSScreen.screens.first(where: {
+            NSMouseInRect(NSEvent.mouseLocation, $0.frame, false)
+        }) ?? NSScreen.main {
+            return activeScreen.frame.size
         }
-        
+        return CGSize(width: 1920, height: 1080)
     }
     
     @Published public var hover: Bool = false
