@@ -13,9 +13,13 @@ A beautiful, powerful battery indicator for your macOS menu bar.
 
 - Real-time battery percentage and time remaining in your menu bar
 - Beautiful Dynamic Island-style notifications for charging events
-- Bluetooth device battery monitoring
+- Bluetooth device battery monitoring (AirPods, mice, keyboards, etc.)
+- Charge limit notification (80% threshold)
 - Support for both Intel and Apple Silicon Macs
-- Customizable display options and sound effects
+- Customizable display options (percentage, time, cycle count, hidden)
+- Sound effects for battery events
+- Automatic updates via Sparkle
+- Full keyboard navigation and VoiceOver accessibility
 - Localized in 15+ languages
 
 ## Installation
@@ -23,7 +27,7 @@ A beautiful, powerful battery indicator for your macOS menu bar.
 ### Homebrew (Recommended)
 
 ```bash
-brew install batteryboi
+brew install --cask batteryboi-recharged
 ```
 
 ### Manual Download
@@ -88,7 +92,7 @@ Contributions are welcome! Please feel free to submit issues and pull requests.
 
 ## Credits
 
-**Original App:** [Joe Barbour (@thebarbican19)](https://github.com/thebarbican19) - Creator of the original BatteryBoi
+**Original App:** [Joe Barbour (@thebarbican19)](https://github.com/thebarbican19) - Creator of the original [BatteryBoi](https://github.com/thebarbican19/BatteryBoi)
 
 **Maintained by:** [Anand Desai (@desaianand1)](https://github.com/desaianand1)
 
