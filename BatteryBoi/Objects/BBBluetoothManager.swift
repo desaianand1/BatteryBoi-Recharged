@@ -234,7 +234,7 @@ struct BluetoothObject: Decodable, Equatable {
 
         if let type = try? values.decode(String.self, forKey: .type) {
             let subtype = try? values.decode(String.self, forKey: .product)
-            let vendor = try? values.decode(String.self, forKey: .product)
+            let vendor = try? values.decode(String.self, forKey: .vendor)
 
             self.type = BluetoothDeviceObject(type, subtype: subtype, vendor: vendor)
 
@@ -302,7 +302,7 @@ final class BluetoothManager: BluetoothServiceProtocol {
     var icons = [String]()
 
     private var connectionNotification: IOBluetoothUserNotification?
-    private var disconnectionNotifications: [IOBluetoothUserNotification] = []
+    private var disconnectionNotifications: [String: IOBluetoothUserNotification] = [:]
     private var scanTimerTask: Task<Void, Never>?
     private var deviceObserverTask: Task<Void, Never>?
 
@@ -350,7 +350,7 @@ final class BluetoothManager: BluetoothServiceProtocol {
                 let currentDevice = AppManager.shared.device
                 if let device = currentDevice, device.address != previousDevice?.address {
                     if device.connected == .disconnected {
-                        _ = bluetoothUpdateConnetion(device, state: .connected)
+                        _ = bluetoothUpdateConnection(device, state: .connected)
                     }
                 }
                 previousDevice = currentDevice
@@ -371,12 +371,12 @@ final class BluetoothManager: BluetoothServiceProtocol {
 
     deinit {
         connectionNotification?.unregister()
-        disconnectionNotifications.forEach { $0.unregister() }
+        disconnectionNotifications.values.forEach { $0.unregister() }
         scanTimerTask?.cancel()
         deviceObserverTask?.cancel()
     }
 
-    func bluetoothUpdateConnetion(_ device: BluetoothObject, state: BluetoothState) -> BluetoothConnectionState {
+    func bluetoothUpdateConnection(_ device: BluetoothObject, state: BluetoothState) -> BluetoothConnectionState {
         if let device = IOBluetoothDevice(addressString: device.address) {
             if device.isConnected() {
                 if state == .connected {
@@ -494,11 +494,14 @@ final class BluetoothManager: BluetoothServiceProtocol {
 
                                 }
 
-                                if let notification = device.register(
-                                    forDisconnectNotification: self,
-                                    selector: #selector(self.bluetoothDeviceUpdated),
-                                ) {
-                                    self.disconnectionNotifications.append(notification)
+                                // Only register if we don't already have a notification for this device
+                                if self.disconnectionNotifications[device.addressString] == nil,
+                                   let notification = device.register(
+                                       forDisconnectNotification: self,
+                                       selector: #selector(self.bluetoothDeviceUpdated),
+                                   )
+                                {
+                                    self.disconnectionNotifications[device.addressString] = notification
                                 }
 
                             }
