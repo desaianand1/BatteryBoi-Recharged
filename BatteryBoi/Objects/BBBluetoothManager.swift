@@ -283,7 +283,7 @@ enum BluetoothState: Int {
 
 @Observable
 @MainActor
-final class BluetoothManager {
+final class BluetoothManager: BluetoothServiceProtocol {
     static let shared = BluetoothManager()
 
     var list = [BluetoothObject]()
@@ -293,6 +293,27 @@ final class BluetoothManager {
     private var updates = Set<AnyCancellable>()
     private var connectionNotification: IOBluetoothUserNotification?
     private var disconnectionNotifications: [IOBluetoothUserNotification] = []
+
+    // MARK: - BluetoothServiceProtocol Publishers
+
+    var listPublisher: AnyPublisher<[BluetoothObject], Never> {
+        $list.eraseToAnyPublisher()
+    }
+
+    var connectedPublisher: AnyPublisher<[BluetoothObject], Never> {
+        $connected.eraseToAnyPublisher()
+    }
+
+    // MARK: - BluetoothServiceProtocol Methods
+
+    func updateConnection(_ device: BluetoothObject, state: BluetoothState) -> BluetoothConnectionState {
+        bluetoothUpdateConnection(device, state: state)
+    }
+
+    func refreshDeviceList() async {
+        await bluetoothList(.oreg)
+        await bluetoothList(.profiler)
+    }
 
     init() {
         AppManager.shared.appTimer(15).dropFirst(1).receive(on: DispatchQueue.main).sink { _ in

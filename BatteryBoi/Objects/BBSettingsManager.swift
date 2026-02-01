@@ -251,7 +251,7 @@ enum SettingsStateValue: String {
 
 @Observable
 @MainActor
-final class SettingsManager {
+final class SettingsManager: SettingsServiceProtocol {
     static let shared = SettingsManager()
 
     var menu: [SettingsActionObject] = []
@@ -262,6 +262,65 @@ final class SettingsManager {
     var charge: SettingsCharged = .disabled
 
     private var updates = Set<AnyCancellable>()
+
+    // MARK: - SettingsServiceProtocol Publishers
+
+    var displayPublisher: AnyPublisher<SettingsDisplayType, Never> {
+        $display.eraseToAnyPublisher()
+    }
+
+    var sfxPublisher: AnyPublisher<SettingsSoundEffects, Never> {
+        $sfx.eraseToAnyPublisher()
+    }
+
+    var pinnedPublisher: AnyPublisher<SettingsPinned, Never> {
+        $pinned.eraseToAnyPublisher()
+    }
+
+    // MARK: - SettingsServiceProtocol Computed Properties
+
+    var autoLaunch: SettingsStateValue {
+        get { enabledAutoLaunch }
+        set { enabledAutoLaunch = newValue }
+    }
+
+    var style: BatteryStyle {
+        get { enabledStyle }
+        set { enabledStyle = newValue }
+    }
+
+    var chargeEighty: SettingsCharged {
+        get { enabledChargeEighty }
+        set { enabledChargeEighty = newValue }
+    }
+
+    var progressBar: Bool {
+        get { enabledProgress }
+        set { enabledProgress = newValue }
+    }
+
+    var soundEffects: SettingsSoundEffects {
+        get { enabledSoundEffects }
+        set { enabledSoundEffects = newValue }
+    }
+
+    var bluetoothStatus: SettingsStateValue {
+        get { enabledBluetooth }
+        set { enabledBluetooth = newValue }
+    }
+
+    // MARK: - SettingsServiceProtocol Methods
+
+    @discardableResult
+    func toggleDisplay() -> SettingsDisplayType {
+        let newDisplay = enabledDisplay()
+        display = newDisplay
+        return newDisplay
+    }
+
+    func performAction(_ action: SettingsActionObject) {
+        settingsAction(action)
+    }
 
     init() {
         menu = settingsMenu
@@ -293,11 +352,11 @@ final class SettingsManager {
     var enabledAutoLaunch: SettingsStateValue {
         get {
             if UserDefaults.main.object(forKey: SystemDefaultsKeys.enabledLogin.rawValue) == nil {
-                return .undetermined
+                .undetermined
             } else {
                 switch SMAppService.mainApp.status == .enabled {
-                case true: return .enabled
-                case false: return .disabled
+                case true: .enabled
+                case false: .disabled
                 }
             }
         }
@@ -561,7 +620,8 @@ final class SettingsManager {
         } else if action.type == .appQuit {
             WindowManager.shared.state = .dismissed
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(0.8))
                 NSApp.terminate(self)
             }
         } else if action.type == .appInstallUpdate {
