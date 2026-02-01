@@ -8,11 +8,15 @@
 "AlertDeviceDisconnectedTitle" = "'%@' getrennt"; // 'Joe's Headphones' Disconnected
 "AlertDeviceUnknownTitle" = "Unbekannt";
 "AlertDeviceCalculatingTitle" = "Berechne...";
+"AlertOverheatingTitle" = "Überhitzung";
+"AlertLimitedTitle" = "Nicht genug Akku...";
 
 "AlertEstimateSummary" = "**%@** bis leer"; // 1 hour, 32 minutes until empty
 "AlertPercentSummary" = "Zeit, das Kabel zu holen!";
 "AlertStartedChargeSummary" = "Vollständig geladen um **%@**."; // Vollständig geladen um 14:32 Uhr
 "AlertChargedSummary" = "Dein Akku ist vollständig geladen.";
+"AlertOverheatingSummary" = "Hohe Temperaturen können deinen Akku schneller entladen und langfristige Schäden verursachen.";
+"AlertLimitedSummary" = "Dein Akku könnte für das Ereignis '%@' nicht ausreichen.";
 
 "TimestampHourFullLabel_Plural" = "%d Stunden";
 "TimestampHourFullLabel_Single" = "%d Stunde";
@@ -61,10 +65,10 @@
 "UpdateStatusNewLabel" = "Neues Update verfügbar!";
 
 "AboutTitle" = "BatteryBoi, kostenlos, für immer, für alle...";
-"AboutBodyOne" = "In der hektischen App-Landschaft, wo Geldbeutel oft wegen wiederkehrenden Abonnements leiden, ist BatteryBoi 100% kostenlos & Open-Source, für immer!";
-"AboutBodyTwo" = "Die Erstellung einer so gut aussehenden App ist das Ergebnis vieler Tage Arbeit, Blut, Schweiß und manchmal Tränen. Deshalb bitte ich Menschen und Unternehmen, die es sich leisten können, eine Spende in Erwägung zu ziehen.";
-"AboutBodyThree" = "Spenden halten die Lichter an und sorgen für kontinuierliche Updates und Fehlerbehebungen.";
-"AboutBodyFooter" = "Danke - Joe (Gründer von BatteryBoi)";
+"AboutBodyOne" = "In einem von Abos dominierten App-Ökosystem bleibt BatteryBoi 100% kostenlos und Open Source. Für immer.";
+"AboutBodyTwo" = "Dieses Projekt ist eine gemeinschaftlich gepflegte Wiederbelebung der ursprünglichen BatteryBoi-App. Wenn Sie es nützlich finden, unterstützen Sie bitte die Entwicklung.";
+"AboutBodyThree" = "Ihre Beiträge helfen, Updates und Verbesserungen zu ermöglichen.";
+"AboutBodyFooter" = "Gepflegt von Anand Desai, Nirnshard LLP";
 "AboutGithubAction" = "GitHub";
 "AboutDonateAction" = "Spenden";
 "AboutShareAction" = "Teilen";
@@ -80,3 +84,25 @@
 "BluetoothDistanceProximateLabel" = "Auf dem Tisch";
 "BluetoothDistanceNearLabel" = "Im selben Raum";
 "BluetoothDistanceFarLabel" = "In einem anderen Reich";
+"BluetoothDisconnectedLabel" = "Nicht gekoppelt";
+"BluetoothNotConnectedLabel" = "Getrennt";
+"BluetoothInvalidLabel" = "Keine Batterieinformationen";
+"BluetoothBatteryLeftLabel" = "L: %d%%";
+"BluetoothBatteryRightLabel" = "R: %d%%";
+
+// Accessibility strings
+"AccessibilityPercentLabel" = "%d Prozent";
+"AccessibilityPercentChargingLabel" = "%d Prozent, lädt";
+"AccessibilityBatteryLeftRightLabel" = "Links %d Prozent, Rechts %d Prozent";
+"AccessibilityBatteryLevelUnavailable" = "Akkuladestand nicht verfügbar";
+"AccessibilityBatteryProgress" = "Akkufortschritt";
+"AccessibilityBatteryNotification" = "Akkustatusbenachrichtigung";
+"AccessibilityDoubleTapActivate" = "Doppeltippen zum Aktivieren";
+"AccessibilityDoubleTapSelect" = "Doppeltippen zum Auswählen dieses Geräts";
+
+// Settings navigation
+"SettingsThemeLabel" = "Design";
+"SettingsDevicesLabel" = "Geräte";
+"SettingsSettingsLabel" = "Einstellungen";
+"SettingsDisplayHiddenLabel" = "Versteckt";
+"TimestampMinuteDaysLabel_Single" = "%d Tag";

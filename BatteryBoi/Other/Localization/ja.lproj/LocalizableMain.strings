@@ -9,11 +9,15 @@
 "AlertDeviceDisconnectedTitle" = "'%@'の接続が解除されました"; //'Joe's Headphones'の接続が解除されました
 "AlertDeviceUnknownTitle" = "不明";
 "AlertDeviceCalculatingTitle" = "計算中...";
+"AlertOverheatingTitle" = "過熱";
+"AlertLimitedTitle" = "バッテリー不足...";
 
 "AlertEstimateSummary" = "充電が無くなるまで %@"; // 充電が無くなるまで 1時間32分
 "AlertPercentSummary" = "ケーブルに繋ぐ時間です！";
 "AlertStartedChargeSummary" = "%@ に充電完了"; // 2:32pm に充電完了
 "AlertChargedSummary" = "バッテリーは完全に充電されています。";
+"AlertOverheatingSummary" = "高温はバッテリーの消耗を早め、長期的なダメージを与える可能性があります。";
+"AlertLimitedSummary" = "バッテリーがイベント '%@' に不十分な可能性があります。";
 
 "TimestampHourFullLabel_Plural" = "%d時間";
 "TimestampHourFullLabel_Single" = "%d時間";
@@ -59,10 +63,47 @@
 "UpdateStatusNewLabel" = "新しいアップデートが利用可能です！";
 
 "AboutTitle" = "BatteryBoi、無料、いつまでも、誰にでも...";
-"AboutBodyOne" = "アプリの喧騒に揉まれ、繰り返すサブスクリプションに財布が泣いている中、BatteryBoiはいつまでも100%無料＆オープンソースです！";
-"AboutBodyTwo" = "このアプリをここまで仕上げるために、多くの日々を費やし、血と汗と、時には涙を流してきました。だから、皆さんや企業の方々には余裕があれば寄付をお願いしているのです。";
-"AboutBodyThree" = "寄付によって、明かりは灯ったままになり、アップデートや修正を続けることができるでしょう。";
-"AboutBodyFooter" = "ありがとう - Joe（BatteryBoiの創設者）";
+"AboutBodyOne" = "サブスクリプション中心のアプリ環境の中で、BatteryBoiは100%無料でオープンソースであり続けます。永遠に。";
+"AboutBodyTwo" = "このプロジェクトは、オリジナルのBatteryBoiアプリのコミュニティによるリバイバル版です。役立つと思われたら、開発をサポートしてください。";
+"AboutBodyThree" = "あなたの貢献がアップデートと改善の継続を支えます。";
+"AboutBodyFooter" = "Anand Desai, Nirnshard LLP がメンテナンス";
 "AboutGithubAction" = "GitHub";
 "AboutDonateAction" = "寄付";
 "AboutShareAction" = "共有";
+
+"BluetoothDeviceHeadphonesLabel" = "ヘッドフォン";
+"BluetoothDeviceMouseLabel" = "マウス";
+"BluetoothDeviceGamepadLabel" = "ゲームパッド";
+"BluetoothDeviceSpeakerLabel" = "スピーカー";
+"BluetoothDeviceKeyboardLabel" = "キーボード";
+"BluetoothDeviceOtherLabel" = "その他";
+"BluetoothConnectLabel" = "接続";
+"BluetoothDisconnectLabel" = "切断";
+"BluetoothDisconnectedLabel" = "ペアリングされていません";
+"BluetoothNotConnectedLabel" = "接続されていません";
+"BluetoothInvalidLabel" = "バッテリー情報なし";
+"BluetoothBatteryLeftLabel" = "L: %d%%";
+"BluetoothBatteryRightLabel" = "R: %d%%";
+"BluetoothDistanceProximateLabel" = "デスク上";
+"BluetoothDistanceNearLabel" = "同じ部屋";
+"BluetoothDistanceFarLabel" = "別の場所";
+
+// Accessibility strings
+"AccessibilityPercentLabel" = "%dパーセント";
+"AccessibilityPercentChargingLabel" = "%dパーセント、充電中";
+"AccessibilityBatteryLeftRightLabel" = "左 %dパーセント、右 %dパーセント";
+"AccessibilityBatteryLevelUnavailable" = "バッテリー残量不明";
+"AccessibilityBatteryProgress" = "バッテリー進捗";
+"AccessibilityBatteryNotification" = "バッテリー状態通知";
+"AccessibilityDoubleTapActivate" = "ダブルタップでアクティベート";
+"AccessibilityDoubleTapSelect" = "ダブルタップでこのデバイスを選択";
+
+// Settings navigation
+"SettingsPinnedLabel" = "画面に固定";
+"SettingsEightyLabel" = "80%まで充電";
+"SettingsRateLabel" = "BatteryBoiを評価";
+"SettingsDisplayCycleLabel" = "サイクル数";
+"SettingsDisplayHiddenLabel" = "非表示";
+"SettingsDevicesLabel" = "デバイス";
+"SettingsSettingsLabel" = "設定";
+"TimestampMinuteDaysLabel_Single" = "%d日";

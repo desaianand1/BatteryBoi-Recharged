@@ -7,7 +7,7 @@
 "AlertLimitedTitle" = "Niet genoeg batterij...";
 "AlertDeviceConnectedTitle" = "'%@' Verbonden"; // 'Joe's Headphones' Connected
 "AlertDeviceDisconnectedTitle" = "'%@' Ontkoppeld"; // 'Joe's Headphones' Disconnected
-"" = "Onbekend";
+"AlertDeviceUnknownTitle" = "Onbekend";
 "AlertDeviceCalculatingTitle" = "Aan het rekenen...";
 
 "AlertEstimateSummary" = "%@ totdat de batterij leeg is"; // 1 hour, 32 minutes until empty
@@ -17,9 +17,8 @@
 "AlertOverheatingSummary" = "Hoge temperaturen kunnen je batterij sneller leegmaken en langdurige schade veroorzaken.";
 "AlertLimitedSummary" = "Je batterij is is waarschijnlijk onvoldoende opgeladen voor taak '%@'";
 
-"TimestampHourFullAlertDeviceUnknownTitleLabel_Plural" = "%d uren";
-"TimestampHourFullLabel_Single" = "%d uur";
 "TimestampHourFullLabel_Plural" = "%d uren";
+"TimestampHourFullLabel_Single" = "%d uur";
 "TimestampMinuteFullLabel_Plural" = "%d minuten";
 "TimestampMinuteFullLabel_Single" = "%d minuut";
 "TimestampMinuteDaysLabel_Plural" = "%d dagen";
@@ -66,10 +65,10 @@
 "UpdateStatusNewLabel" = "Nieuwe Update Beschikbaar!";
 
 "AboutTitle" = "BatteryBoi, Gratis, Altijd, voor Iedereen..";
-"AboutBodyOne" = "In het drukke app-landschap waar portemonnees vaak huilen door terugkerende abonnementen. BatteryBoi is 100% gratis & Open-Source, voor altijd!";
-"AboutBodyTwo" = "Het is vele dagen werk, bloed, zweet en soms tranen om deze app te ontwikkelen die er zo goed uitziet. Daarom vraag ik mensen en bedrijven die het zich kunnen veroorloven om een donatie te overwegen.";
-"AboutBodyThree" = "Donaties zorgen ervoor dat het licht blijft branden en dat er updates/fixes blijven komen.";
-"AboutBodyFooter" = "Bedankt - Joe (Oprichter van BatteryBoi)";
+"AboutBodyOne" = "In een app-ecosysteem gedomineerd door abonnementen, blijft BatteryBoi 100% gratis en open-source. Voor altijd.";
+"AboutBodyTwo" = "Dit project is een door de community onderhouden versie van de originele BatteryBoi-app. Als je het nuttig vindt, overweeg dan de ontwikkeling te steunen.";
+"AboutBodyThree" = "Je bijdragen helpen om updates en verbeteringen te blijven leveren.";
+"AboutBodyFooter" = "Onderhouden door Anand Desai, Nirnshard LLP";
 "AboutGithubAction" = "GitHub";
 "AboutDonateAction" = "Doneer";
 "AboutShareAction" = "Deel";
@@ -87,6 +86,9 @@
 "BluetoothDistanceNearLabel" = "In dezelfde ruimte";
 "BluetoothDistanceFarLabel" = "In een ander gedeelte";
 "BluetoothInvalidLabel" = "Geen informatie over accu";
+"BluetoothNotConnectedLabel" = "Verbroken";
+"BluetoothBatteryLeftLabel" = "L: %d%%";
+"BluetoothBatteryRightLabel" = "R: %d%%";
 
 "OnboardingNotificationsTitle" = "";
 "OnboardingNotificationsBody" = "";
@@ -94,3 +96,18 @@
 "OnboardingInsightsBody" = "";
 "OnboardingBluetoothTitle" = "";
 "OnboardingBluetoothBody" = "";
+
+// Accessibility strings
+"AccessibilityPercentLabel" = "%d procent";
+"AccessibilityPercentChargingLabel" = "%d procent, opladen";
+"AccessibilityBatteryLeftRightLabel" = "Links %d procent, Rechts %d procent";
+"AccessibilityBatteryLevelUnavailable" = "Batterijniveau niet beschikbaar";
+"AccessibilityBatteryProgress" = "Batterijvoortgang";
+"AccessibilityBatteryNotification" = "Batterijstatusmelding";
+"AccessibilityDoubleTapActivate" = "Dubbeltik om te activeren";
+"AccessibilityDoubleTapSelect" = "Dubbeltik om dit apparaat te selecteren";
+
+// Settings navigation
+"SettingsThemeLabel" = "Thema";
+"SettingsDevicesLabel" = "Apparaten";
+"SettingsSettingsLabel" = "Instellingen";

@@ -7,7 +7,7 @@
 "AlertLimitedTitle" = "Yetersiz Batarya...";
 "AlertDeviceConnectedTitle" = "'%@' Bağlandı"; // 'Joe's Headphones' Connected
 "AlertDeviceDisconnectedTitle" = "'%@' Bağlantısı Kesildi"; // 'Joe's Headphones' Disconnected
-"" = "Bilinmiyor";
+"AlertDeviceUnknownTitle" = "Bilinmiyor";
 "AlertDeviceCalculatingTitle" = "Hesaplanıyor...";
 
 "AlertEstimateSummary" = "%@ kaldı"; // 1 hour, 32 minutes until empty
@@ -17,9 +17,8 @@
 "AlertOverheatingSummary" = "Yüksek sıcaklıklar bataryanızı daha hızlı tüketebilir ve uzun vadede zarar verebilir.";
 "AlertLimitedSummary" = "Bataryanız '%@' etkinliği için yetersiz olabilir.";
 
-"TimestampHourFullAlertDeviceUnknownTitleLabel_Plural" = "%d saat";
-"TimestampHourFullLabel_Single" = "%d saat";
 "TimestampHourFullLabel_Plural" = "%d saat";
+"TimestampHourFullLabel_Single" = "%d saat";
 "TimestampMinuteFullLabel_Plural" = "%d dakika";
 "TimestampMinuteFullLabel_Single" = "%d dakika";
 "TimestampMinuteDaysLabel_Plural" = "%d gün";
@@ -66,10 +65,10 @@
 "UpdateStatusNewLabel" = "Yeni Güncelleme Mevcut!";
 
 "AboutTitle" = "BatteryBoi, Herkes için ücretsiz, sınırsız...";
-"AboutBodyOne" = "Cüzdanların tekrarlayan abonelikler karşısında sık sık inlediği yoğun uygulama dünyasında, BatteryBoi sonuna dek %100 ücretsiz ve Açık-Kaynak!";
-"AboutBodyTwo" = "Bu kalitede bir uygulamanın hazırlanması, günler süren çalışmanın, kan ve terin, bazen de gözyaşlarının sonucudur. Bu yüzden, lütfen, maddi durumu elverişli olan kişi ve işletmelerden bağış yapmayı düşünmelerini rica ediyorum.";
-"AboutBodyThree" = "Bağışlar, projemizin ayakta kalmasını sağlayacak ve güncellemelerin/duzeltmelerin devam etmesine yardımcı olacaktır.";
-"AboutBodyFooter" = "Teşekkürler - Joe (BatteryBoi'nin Kurucusu)";
+"AboutBodyOne" = "Aboneliklerin hakim olduğu uygulama ekosisteminde BatteryBoi %100 ücretsiz ve açık kaynak olmaya devam ediyor. Sonsuza dek.";
+"AboutBodyTwo" = "Bu proje, orijinal BatteryBoi uygulamasının topluluk tarafından sürdürülen bir canlandırmasıdır. Faydalı bulursanız, lütfen geliştirmeyi desteklemeyi düşünün.";
+"AboutBodyThree" = "Katkılarınız güncellemelerin ve iyileştirmelerin devam etmesine yardımcı olur.";
+"AboutBodyFooter" = "Anand Desai, Nirnshard LLP tarafından sürdürülmektedir";
 "AboutGithubAction" = "GitHub";
 "AboutDonateAction" = "Bağış Yap";
 "AboutShareAction" = "Paylaş";
@@ -87,6 +86,9 @@
 "BluetoothDistanceNearLabel" = "Aynı Odada";
 "BluetoothDistanceFarLabel" = "Başka bir Diyarda";
 "BluetoothInvalidLabel" = "Pil Bilgisi Yok";
+"BluetoothNotConnectedLabel" = "Bağlantı Kesildi";
+"BluetoothBatteryLeftLabel" = "L: %d%%";
+"BluetoothBatteryRightLabel" = "R: %d%%";
 
 "OnboardingNotificationsTitle" = "";
 "OnboardingNotificationsBody" = "";
@@ -94,3 +96,18 @@
 "OnboardingInsightsBody" = "";
 "OnboardingBluetoothTitle" = "";
 "OnboardingBluetoothBody" = "";
+
+// Accessibility strings
+"AccessibilityPercentLabel" = "%d yüzde";
+"AccessibilityPercentChargingLabel" = "%d yüzde, şarj oluyor";
+"AccessibilityBatteryLeftRightLabel" = "Sol %d yüzde, Sağ %d yüzde";
+"AccessibilityBatteryLevelUnavailable" = "Pil seviyesi mevcut değil";
+"AccessibilityBatteryProgress" = "Pil durumu";
+"AccessibilityBatteryNotification" = "Pil durum bildirimi";
+"AccessibilityDoubleTapActivate" = "Etkinleştirmek için iki kez dokunun";
+"AccessibilityDoubleTapSelect" = "Bu cihazı seçmek için iki kez dokunun";
+
+// Settings navigation
+"SettingsThemeLabel" = "Tema";
+"SettingsDevicesLabel" = "Cihazlar";
+"SettingsSettingsLabel" = "Ayarlar";

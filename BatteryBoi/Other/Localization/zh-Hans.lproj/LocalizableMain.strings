@@ -7,11 +7,15 @@
 "AlertDeviceDisconnectedTitle" = "'%@' 已断开"; // 'Joe's Headphones' Disconnected
 "AlertDeviceUnknownTitle" = "未知设备";
 "AlertDeviceCalculatingTitle" = "正在计算...";
+"AlertOverheatingTitle" = "过热";
+"AlertLimitedTitle" = "电量不足...";
 
 "AlertEstimateSummary" = "剩余可用 %@"; // 1 hour, 32 minutes until empty
 "AlertPercentSummary" = "请连接电源!";
 "AlertStartedChargeSummary" = "已于 %@ 完成充电."; // Fully charged at 2:32pm
 "AlertChargedSummary" = "您的Mac电量已满.";
+"AlertOverheatingSummary" = "高温会加速电池消耗并可能造成长期损坏。";
+"AlertLimitedSummary" = "您的电池可能不足以支撑活动 '%@'。";
 
 "TimestampHourFullLabel_Plural" = "%d 时";
 "TimestampHourFullLabel_Single" = "%d 时";
@@ -60,10 +64,10 @@
 "UpdateStatusNewLabel" = "更新可用";
 
 "AboutTitle" = "BatteryBoi, 无偿, 无限, 无边...";
-"AboutBodyOne" = "在使用万千程序的过程中, 钱包常常因为扣款而啜泣. 不过BatteryBoi 会向你保证永久免费, 永久开源!";
-"AboutBodyTwo" = "创造出这个小东西让我好几天没合眼, 直接能把我累趴的. 这就是为甚我会希望一些个人或者商户能够稍稍捐赠一下我, 十分感谢.";
-"AboutBodyThree" = "您的捐赠会帮助本程序的后续维护和更新, 以及我每天让我多喝上一小杯咖啡.";
-"AboutBodyFooter" = "谢谢 - Joe (BatteryBoi 开发者)";
+"AboutBodyOne" = "在订阅主导的应用生态中，BatteryBoi保持100%免费和开源。永远如此。";
+"AboutBodyTwo" = "这个项目是原BatteryBoi应用的社区维护版本。如果您觉得有用，请考虑支持开发。";
+"AboutBodyThree" = "您的贡献将帮助我们持续更新和改进。";
+"AboutBodyFooter" = "由 Anand Desai, Nirnshard LLP 维护";
 "AboutGithubAction" = "Github";
 "AboutDonateAction" = "捐赠";
 "AboutShareAction" = "分享";
@@ -79,4 +83,24 @@
 "BluetoothDistanceProximateLabel" = "在桌子上";
 "BluetoothDistanceNearLabel" = "在当前房间";
 "BluetoothDistanceFarLabel" = "在其他地方";
+"BluetoothDisconnectedLabel" = "未配对";
+"BluetoothNotConnectedLabel" = "已断开连接";
+"BluetoothInvalidLabel" = "无电池信息";
+"BluetoothBatteryLeftLabel" = "L: %d%%";
+"BluetoothBatteryRightLabel" = "R: %d%%";
 
+// Accessibility strings
+"AccessibilityPercentLabel" = "%d百分比";
+"AccessibilityPercentChargingLabel" = "%d百分比，正在充电";
+"AccessibilityBatteryLeftRightLabel" = "左 %d百分比，右 %d百分比";
+"AccessibilityBatteryLevelUnavailable" = "电量信息不可用";
+"AccessibilityBatteryProgress" = "电池进度";
+"AccessibilityBatteryNotification" = "电池状态通知";
+"AccessibilityDoubleTapActivate" = "双击激活";
+"AccessibilityDoubleTapSelect" = "双击选择此设备";
+
+// Settings navigation
+"SettingsThemeLabel" = "主题";
+"SettingsDisplayHiddenLabel" = "隐藏";
+"SettingsDevicesLabel" = "设备";
+"SettingsSettingsLabel" = "设置";

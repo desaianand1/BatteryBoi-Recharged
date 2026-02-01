@@ -7,13 +7,17 @@
 "AlertDeviceDisconnectedTitle" = "'%@' déconnecté"; // 'Écouteurs de Joe' déconnectés
 "AlertDeviceUnknownTitle" = "Inconnu";
 "AlertDeviceCalculatingTitle" = "Calcul en cours...";
+"AlertOverheatingTitle" = "Surchauffe";
+"AlertLimitedTitle" = "Batterie insuffisante...";
 
 "AlertEstimateSummary" = "**%@** jusqu'à épuisement"; // 1 heure, 32 minutes jusqu'à épuisement
 "AlertPercentSummary" = "Il est temps de prendre le câble!";
 "AlertStartedChargeSummary" = "Complètement chargé à **%@**."; // Complètement chargé à 14h32
 "AlertChargedSummary" = "Votre batterie est complètement chargée.";
+"AlertOverheatingSummary" = "Les températures élevées peuvent épuiser votre batterie plus rapidement et causer des dommages à long terme.";
+"AlertLimitedSummary" = "Votre batterie pourrait être insuffisante pour l'événement '%@'.";
 
-"TimestampHourFullLabel_Plural" = "%d heures"; 
+"TimestampHourFullLabel_Plural" = "%d heures";
 "TimestampHourFullLabel_Single" = "%d heure";
 "TimestampMinuteFullLabel_Plural" = "%d minutes";
 "TimestampMinuteFullLabel_Single" = "%d minute";
@@ -56,10 +60,47 @@
 "UpdateStatusNewLabel" = "Nouvelle mise à jour disponible !";
 
 "AboutTitle" = "BatteryBoi, gratuit, pour toujours, pour tout le monde...";
-"AboutBodyOne" = "Dans le paysage des applications où les portefeuilles souffrent souvent d'abonnements récurrents, BatteryBoi est 100% gratuit et Open Source, pour toujours !";
-"AboutBodyTwo" = "Créer une application qui a cet aspect demande beaucoup de jours de travail, de sueur et parfois de larmes. C'est pourquoi je demande aux personnes et aux entreprises qui le peuvent de bien vouloir envisager de faire un don.";
-"AboutBodyThree" = "Les dons maintiendront le projet en vie et permettront des mises à jour et des corrections.";
-"AboutBodyFooter" = "Merci - Joe (Fondateur de BatteryBoi)";
+"AboutBodyOne" = "Dans un écosystème d'apps dominé par les abonnements, BatteryBoi reste 100% gratuit et open-source. Pour toujours.";
+"AboutBodyTwo" = "Ce projet est une version maintenue par la communauté de l'application BatteryBoi originale. Si vous la trouvez utile, pensez à soutenir le développement.";
+"AboutBodyThree" = "Vos contributions aident à maintenir les mises à jour et améliorations.";
+"AboutBodyFooter" = "Maintenu par Anand Desai, Nirnshard LLP";
 "AboutGithubAction" = "GitHub";
 "AboutDonateAction" = "Faire un don";
 "AboutShareAction" = "Partager";
+
+"BluetoothDeviceHeadphonesLabel" = "Écouteurs";
+"BluetoothDeviceMouseLabel" = "Souris";
+"BluetoothDeviceGamepadLabel" = "Manette de jeu";
+"BluetoothDeviceSpeakerLabel" = "Haut-parleur";
+"BluetoothDeviceKeyboardLabel" = "Clavier";
+"BluetoothDeviceOtherLabel" = "Autre";
+"BluetoothConnectLabel" = "Connecter";
+"BluetoothDisconnectLabel" = "Déconnecter";
+"BluetoothDisconnectedLabel" = "Non appairé";
+"BluetoothNotConnectedLabel" = "Déconnecté";
+"BluetoothInvalidLabel" = "Pas d'information de batterie";
+"BluetoothBatteryLeftLabel" = "L: %d%%";
+"BluetoothBatteryRightLabel" = "R: %d%%";
+"BluetoothDistanceProximateLabel" = "Sur le bureau";
+"BluetoothDistanceNearLabel" = "Dans la même pièce";
+"BluetoothDistanceFarLabel" = "Dans un autre endroit";
+
+// Accessibility strings
+"AccessibilityPercentLabel" = "%d pour cent";
+"AccessibilityPercentChargingLabel" = "%d pour cent, en charge";
+"AccessibilityBatteryLeftRightLabel" = "Gauche %d pour cent, Droite %d pour cent";
+"AccessibilityBatteryLevelUnavailable" = "Niveau de batterie indisponible";
+"AccessibilityBatteryProgress" = "Progression de la batterie";
+"AccessibilityBatteryNotification" = "Notification d'état de batterie";
+"AccessibilityDoubleTapActivate" = "Double touchez pour activer";
+"AccessibilityDoubleTapSelect" = "Double touchez pour sélectionner cet appareil";
+
+// Settings navigation
+"SettingsPinnedLabel" = "Épingler à l'écran";
+"SettingsEightyLabel" = "Charger jusqu'à 80%";
+"SettingsRateLabel" = "Évaluer BatteryBoi";
+"SettingsDisplayCycleLabel" = "Nombre de cycles";
+"SettingsDisplayHiddenLabel" = "Caché";
+"SettingsDevicesLabel" = "Appareils";
+"SettingsSettingsLabel" = "Paramètres";
+"TimestampMinuteDaysLabel_Single" = "%d jour";

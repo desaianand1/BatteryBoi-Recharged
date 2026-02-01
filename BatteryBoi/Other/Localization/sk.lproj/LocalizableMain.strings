@@ -7,7 +7,7 @@
 "AlertLimitedTitle" = "Nedostatočná batéria...";
 "AlertDeviceConnectedTitle" = "'%@' pripojené"; // 'Joe's Headphones' Connected
 "AlertDeviceDisconnectedTitle" = "'%@' odpojené"; // 'Joe's Headphones' Disconnected
-"" = "Neznáme";
+"AlertDeviceUnknownTitle" = "Neznáme";
 "AlertDeviceCalculatingTitle" = "Prebieha výpočet...";
 
 "AlertEstimateSummary" = "%@ do vybitia"; // 1 hour, 32 minutes until empty
@@ -17,9 +17,8 @@
 "AlertOverheatingSummary" = "Vysoké teploty môžu batériu rýchlejšie vybiť a spôsobiť dlhodobé poškodenie.";
 "AlertLimitedSummary" = "Vaša batéria nemusí byť dostatočná pre udalosť '%@'.";
 
-"TimestampHourFullAlertDeviceUnknownTitleLabel_Plural" = "%d hodín";
-"TimestampHourFullLabel_Single" = "%d hodina";
 "TimestampHourFullLabel_Plural" = "%d hodín";
+"TimestampHourFullLabel_Single" = "%d hodina";
 "TimestampMinuteFullLabel_Plural" = "%d minút";
 "TimestampMinuteFullLabel_Single" = "%d minúta";
 "TimestampMinuteDaysLabel_Plural" = "%d dní";
@@ -66,10 +65,10 @@
 "UpdateStatusNewLabel" = "Dostupná nová aktualizácia!";
 
 "AboutTitle" = "BatteryBoi, zadarmo, navždy, pre každého...";
-"AboutBodyOne" = "V rušnom prostredí aplikácií, kde peňaženky často plačú nad opakujúcimi sa mesačnými platbami... BatteryBoi je 100% navždy zadarmo a open-source!";
-"AboutBodyTwo" = "Vytvorenie tejto aplikácie, ktorá vyzerá takto dobre, znamená veľa dní práce, potenia krvi a niekedy aj sĺz. Preto prosím ľudí a firmy, ktoré si to môžu dovoliť, aby zvážili príspevok.";
-"AboutBodyThree" = "Vďaka Vašim príspevkom bude aplikácia fungovať a aktualizácie/opravy pribúdať.";
-"AboutBodyFooter" = "Ďakujem - Joe (autor BatteryBoi)";
+"AboutBodyOne" = "V ekosystéme aplikácií ovládanom predplatným zostáva BatteryBoi 100% bezplatný a open-source. Navždy.";
+"AboutBodyTwo" = "Tento projekt je komunitne udržiavaná verzia pôvodnej aplikácie BatteryBoi. Ak vám je užitočná, zvážte podporu vývoja.";
+"AboutBodyThree" = "Vaše príspevky pomáhajú pokračovať v aktualizáciách a vylepšeniach.";
+"AboutBodyFooter" = "Spravuje Anand Desai, Nirnshard LLP";
 "AboutGithubAction" = "GitHub";
 "AboutDonateAction" = "Prispieť";
 "AboutShareAction" = "Zdieľať";
@@ -87,6 +86,9 @@
 "BluetoothDistanceNearLabel" = "V tej istej miestnosti";
 "BluetoothDistanceFarLabel" = "V inej ríši";
 "BluetoothInvalidLabel" = "Žiadne informácie o batérii";
+"BluetoothNotConnectedLabel" = "Odpojené";
+"BluetoothBatteryLeftLabel" = "L: %d%%";
+"BluetoothBatteryRightLabel" = "R: %d%%";
 
 "OnboardingNotificationsTitle" = "";
 "OnboardingNotificationsBody" = "";
@@ -94,3 +96,18 @@
 "OnboardingInsightsBody" = "";
 "OnboardingBluetoothTitle" = "";
 "OnboardingBluetoothBody" = "";
+
+// Accessibility strings
+"AccessibilityPercentLabel" = "%d percent";
+"AccessibilityPercentChargingLabel" = "%d percent, nabíjanie";
+"AccessibilityBatteryLeftRightLabel" = "Ľavé %d percent, Pravé %d percent";
+"AccessibilityBatteryLevelUnavailable" = "Úroveň batérie nie je k dispozícii";
+"AccessibilityBatteryProgress" = "Priebeh batérie";
+"AccessibilityBatteryNotification" = "Oznámenie o stave batérie";
+"AccessibilityDoubleTapActivate" = "Aktivujte dvojitým ťuknutím";
+"AccessibilityDoubleTapSelect" = "Dvojitým ťuknutím vyberte toto zariadenie";
+
+// Settings navigation
+"SettingsThemeLabel" = "Téma";
+"SettingsDevicesLabel" = "Zariadenia";
+"SettingsSettingsLabel" = "Nastavenia";

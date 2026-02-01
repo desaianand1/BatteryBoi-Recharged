@@ -7,11 +7,15 @@
 "AlertDeviceDisconnectedTitle" = "Odłączono '%@'"; //'Odłączono słuchawki Joe'
 "AlertDeviceUnknownTitle" = "Nieznane";
 "AlertDeviceCalculatingTitle" = "Obliczanie...";
+"AlertOverheatingTitle" = "Przegrzewanie";
+"AlertLimitedTitle" = "Za mało baterii...";
 
 "AlertEstimateSummary" = "%@ do wyczerpania"; // 1 godzina, 32 minuty do wyczerpania
 "AlertPercentSummary" = "Czas podłączyć ładowarkę!";
 "AlertStartedChargeSummary" = "Pełne naładowanie o %@."; // Pełne naładowanie o 14:32
 "AlertChargedSummary" = "Twoja bateria jest w pełni naładowana.";
+"AlertOverheatingSummary" = "Wysokie temperatury mogą szybciej wyczerpać baterię i spowodować długotrwałe uszkodzenia.";
+"AlertLimitedSummary" = "Twoja bateria może być niewystarczająca na wydarzenie '%@'.";
 
 "TimestampHourFullLabel_Plural" = "%d godzin";
 "TimestampHourFullLabel_Single" = "%d godzina";
@@ -42,3 +46,51 @@
 "UpdateStatusIdleLabel" = "Ostatnio sprawdzane: %@"; // Ostatnio sprawdzane: 4 godziny temu
 "UpdateStatusEmptyLabel" = "Brak dostępnych aktualizacji";
 "UpdateStatusNewLabel" = "Dostępna nowa aktualizacja!";
+
+"AboutTitle" = "BatteryBoi, bezpłatne, na zawsze, dla każdego...";
+"AboutBodyOne" = "W ekosystemie aplikacji zdominowanym przez subskrypcje, BatteryBoi pozostaje w 100% darmowy i open-source. Na zawsze.";
+"AboutBodyTwo" = "Ten projekt to utrzymywana przez społeczność wersja oryginalnej aplikacji BatteryBoi. Jeśli uważasz ją za przydatną, rozważ wsparcie rozwoju.";
+"AboutBodyThree" = "Twoje wpłaty pomagają w kontynuowaniu aktualizacji i ulepszeń.";
+"AboutBodyFooter" = "Utrzymywane przez Anand Desai, Nirnshard LLP";
+"AboutGithubAction" = "GitHub";
+"AboutDonateAction" = "Wspieraj";
+"AboutShareAction" = "Udostępnij";
+
+"BluetoothDeviceHeadphonesLabel" = "Słuchawki";
+"BluetoothDeviceMouseLabel" = "Myszka";
+"BluetoothDeviceGamepadLabel" = "Kontroler gier";
+"BluetoothDeviceSpeakerLabel" = "Głośnik";
+"BluetoothDeviceKeyboardLabel" = "Klawiatura";
+"BluetoothDeviceOtherLabel" = "Inne";
+"BluetoothConnectLabel" = "Połącz";
+"BluetoothDisconnectLabel" = "Odłącz";
+"BluetoothDisconnectedLabel" = "Nie sparowane";
+"BluetoothNotConnectedLabel" = "Odłączone";
+"BluetoothInvalidLabel" = "Brak informacji o baterii";
+"BluetoothBatteryLeftLabel" = "L: %d%%";
+"BluetoothBatteryRightLabel" = "R: %d%%";
+"BluetoothDistanceProximateLabel" = "Na biurku";
+"BluetoothDistanceNearLabel" = "W tym samym pokoju";
+"BluetoothDistanceFarLabel" = "W innym miejscu";
+
+// Accessibility strings
+"AccessibilityPercentLabel" = "%d procent";
+"AccessibilityPercentChargingLabel" = "%d procent, ładowanie";
+"AccessibilityBatteryLeftRightLabel" = "Lewa %d procent, Prawa %d procent";
+"AccessibilityBatteryLevelUnavailable" = "Poziom baterii niedostępny";
+"AccessibilityBatteryProgress" = "Postęp baterii";
+"AccessibilityBatteryNotification" = "Powiadomienie o stanie baterii";
+"AccessibilityDoubleTapActivate" = "Dotknij dwukrotnie, aby aktywować";
+"AccessibilityDoubleTapSelect" = "Dotknij dwukrotnie, aby wybrać to urządzenie";
+
+// Settings navigation
+"SettingsPinnedLabel" = "Przypnij do ekranu";
+"SettingsEightyLabel" = "Ładuj do 80%";
+"SettingsRateLabel" = "Oceń BatteryBoi";
+"SettingsDisplayCycleLabel" = "Liczba cykli";
+"SettingsDisplayHiddenLabel" = "Ukryte";
+"SettingsDevicesLabel" = "Urządzenia";
+"SettingsSettingsLabel" = "Ustawienia";
+"SettingsAboutLabel" = "O aplikacji";
+"SettingsCustomizationLabel" = "Personalizacja";
+"TimestampMinuteDaysLabel_Single" = "%d dzień";

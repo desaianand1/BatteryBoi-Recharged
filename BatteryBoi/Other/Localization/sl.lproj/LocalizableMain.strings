@@ -7,18 +7,22 @@
 "AlertDeviceDisconnectedTitle" = "'%@' odvezane"; // 'Joe's Headphones' Disconnected
 "AlertDeviceUnknownTitle" = "Neznano";
 "AlertDeviceCalculatingTitle" = "Računanje...";
+"AlertOverheatingTitle" = "Pregrevanje";
+"AlertLimitedTitle" = "Premalo baterije...";
 
 "AlertEstimateSummary" = "%@ dokler se baterija ne sprazni"; // 1 hour, 32 minutes until empty
 "AlertPercentSummary" = "Čas je da vzameš kabel!";
 "AlertStartedChargeSummary" = "Napolnjeno ob %@."; // Fully charged at 2:32pm
 "AlertChargedSummary" = "Tvoja baterija je napolnjena.";
+"AlertOverheatingSummary" = "Visoke temperature lahko hitreje izpraznijo baterijo in povzročijo dolgoročno škodo.";
+"AlertLimitedSummary" = "Vaša baterija morda ne bo zadostovala za dogodek '%@'.";
 
 "TimestampHourFullLabel_Plural" = "%d ur";
 "TimestampHourFullLabel_Single" = "%d ura";
 "TimestampMinuteFullLabel_Plural" = "%d minut";
 "TimestampMinuteFullLabel_Single" = "%d minuta";
 "TimestampMinuteDaysLabel_Plural" = "%d dni";
-"TimestampMinuteDaysLabel_Single" = "%d day";
+"TimestampMinuteDaysLabel_Single" = "%d dan";
 "TimestampHourAbbriviatedLabel" = "h";
 "TimestampMinuteAbbriviatedLabel" = "m";
 "TimestampDayAbbriviatedLabel" = "d";
@@ -27,9 +31,9 @@
 
 "SettingsWebsiteLabel" = "Spletna stran";
 "SettingsQuitLabel" = "Izhod";
-"SettingsPinnedLabel" = "Pin to Screen";
-"SettingsEightyLabel" = "Charge to 80%";
-"SettingsRateLabel" = "Rate BatteryBoi";
+"SettingsPinnedLabel" = "Pripni na zaslon";
+"SettingsEightyLabel" = "Polni do 80%";
+"SettingsRateLabel" = "Oceni BatteryBoi";
 "SettingsEfficiencyLabel" = "Nizkoenergijski način";
 "SettingsCheckUpdatesLabel" = "Preveri posodobitve";
 "SettingsNewUpdateLabel" = "Namesti posodobitev";
@@ -60,10 +64,10 @@
 "UpdateStatusNewLabel" = "Na voljo nova različica!";
 
 "AboutTitle" = "BatteryBoi, Brezplačno, Za vedno, za vse...";
-"AboutBodyOne" = "V svetu, kjer aplikacije pogosto zahtevajo naročnine. BatteryBoi je 100% brezplačen in odprtokodni, za vedno!";
-"AboutBodyTwo" = "Ustvarjanje te aplikacije, ki izgleda tako dobro, je mnogo dni dela, krvnega znoja in včasih solz. Zato prosim ljudi in podjetja, ki si to lahko privoščijo, da razmislijo o doniranju.";
-"AboutBodyThree" = "Donacije bodo omogočile, da luči ostanejo prižgane in da bodo posodobitve tekle.";
-"AboutBodyFooter" = "Hvala - Joe (Ustanovitelj aplikacije BatteryBoi)";
+"AboutBodyOne" = "V ekosistemu aplikacij, ki ga obvladujejo naročnine, BatteryBoi ostaja 100% brezplačen in odprtokoden. Za vedno.";
+"AboutBodyTwo" = "Ta projekt je različica izvirne aplikacije BatteryBoi, ki jo vzdržuje skupnost. Če jo najdete koristno, razmislite o podpori razvoja.";
+"AboutBodyThree" = "Vaši prispevki pomagajo ohranjati posodobitve in izboljšave.";
+"AboutBodyFooter" = "Vzdržuje Anand Desai, Nirnshard LLP";
 "AboutGithubAction" = "GitHub";
 "AboutDonateAction" = "Doniraj";
 "AboutShareAction" = "Deli";
@@ -79,3 +83,24 @@
 "BluetoothDistanceProximateLabel" = "Na mizi";
 "BluetoothDistanceNearLabel" = "V istem prostoru";
 "BluetoothDistanceFarLabel" = "Ne tako blizu";
+"BluetoothDisconnectedLabel" = "Nepovezano";
+"BluetoothNotConnectedLabel" = "Prekinjeno";
+"BluetoothInvalidLabel" = "Ni informacij o bateriji";
+"BluetoothBatteryLeftLabel" = "L: %d%%";
+"BluetoothBatteryRightLabel" = "R: %d%%";
+
+// Accessibility strings
+"AccessibilityPercentLabel" = "%d odstotkov";
+"AccessibilityPercentChargingLabel" = "%d odstotkov, polnjenje";
+"AccessibilityBatteryLeftRightLabel" = "Levo %d odstotkov, Desno %d odstotkov";
+"AccessibilityBatteryLevelUnavailable" = "Nivo baterije ni na voljo";
+"AccessibilityBatteryProgress" = "Napredek baterije";
+"AccessibilityBatteryNotification" = "Obvestilo o stanju baterije";
+"AccessibilityDoubleTapActivate" = "Dvojni dotik za aktivacijo";
+"AccessibilityDoubleTapSelect" = "Dvojni dotik za izbiro te naprave";
+
+// Settings navigation
+"SettingsThemeLabel" = "Tema";
+"SettingsDevicesLabel" = "Naprave";
+"SettingsSettingsLabel" = "Nastavitve";
+"SettingsDisplayHiddenLabel" = "Skrito";

@@ -7,7 +7,7 @@
 "AlertLimitedTitle" = "Недостаточно батареи...";
 "AlertDeviceConnectedTitle" = "'%@' Подключено"; // 'Joe's Headphones' Connected
 "AlertDeviceDisconnectedTitle" = "'%@' Отключено"; // 'Joe's Headphones' Disconnected
-"" = "Неизвестно";
+"AlertDeviceUnknownTitle" = "Неизвестно";
 "AlertDeviceCalculatingTitle" = "Идёт рассчёт...";
 
 "AlertEstimateSummary" = "Заряда хватит на %@"; // 1 hour, 32 minutes until empty
@@ -17,9 +17,8 @@
 "AlertOverheatingSummary" = "Высокая температура может быстрее истощать аккумулятор и вызывать его деградацию в долгосрочной перспективе.";
 "AlertLimitedSummary" = "Ваш заряд батареи может быть недостаточным для события '%@'.";
 
-"TimestampHourFullAlertDeviceUnknownTitleLabel_Plural" = "%d часа(ов)";
-"TimestampHourFullLabel_Single" = "%d час";
 "TimestampHourFullLabel_Plural" = "%d часа(ов)";
+"TimestampHourFullLabel_Single" = "%d час";
 "TimestampMinuteFullLabel_Plural" = "%d минут(ы)";
 "TimestampMinuteFullLabel_Single" = "%d минута";
 "TimestampMinuteDaysLabel_Plural" = "%d дней";
@@ -66,10 +65,10 @@
 "UpdateStatusNewLabel" = "Доступно обновление!";
 
 "AboutTitle" = "BatteryBoi, Бесплатный, Навсегда, для Всех...";
-"AboutBodyOne" = "В мире приложений, где наши кошельки страдают от всевозможных подписок, BatteryBoi на 100% бесплатный и c открытым исходным кодом навсегда!";
-"AboutBodyTwo" = "Создание приложения с такими красивым интерфейсом потребовало много дней усердной работы, пота и иногда даже слез. Поэтому я прошу людей и компании, которые могут себе позволить, сделать пожертвования.";
-"AboutBodyThree" = "Пожертвования позволят и дальше поддерживать выпуск правок и обновлений для приложения.";
-"AboutBodyFooter" = "Спасибо тебе - Joe (Основатель BatteryBoi)";
+"AboutBodyOne" = "В экосистеме приложений, где доминируют подписки, BatteryBoi остаётся на 100% бесплатным и открытым. Навсегда.";
+"AboutBodyTwo" = "Этот проект — поддерживаемая сообществом версия оригинального приложения BatteryBoi. Если оно вам полезно, рассмотрите возможность поддержать разработку.";
+"AboutBodyThree" = "Ваши вклады помогают продолжать обновления и улучшения.";
+"AboutBodyFooter" = "Поддерживается Anand Desai, Nirnshard LLP";
 "AboutGithubAction" = "GitHub";
 "AboutDonateAction" = "Пожертвовать";
 "AboutShareAction" = "Поделиться";
@@ -87,6 +86,9 @@
 "BluetoothDistanceNearLabel" = "В той же комнате";
 "BluetoothDistanceFarLabel" = "В другом пространстве";
 "BluetoothInvalidLabel" = "Нет информации о батареи";
+"BluetoothNotConnectedLabel" = "Отключено";
+"BluetoothBatteryLeftLabel" = "L: %d%%";
+"BluetoothBatteryRightLabel" = "R: %d%%";
 
 "OnboardingNotificationsTitle" = "";
 "OnboardingNotificationsBody" = "";
@@ -94,3 +96,18 @@
 "OnboardingInsightsBody" = "";
 "OnboardingBluetoothTitle" = "";
 "OnboardingBluetoothBody" = "";
+
+// Accessibility strings
+"AccessibilityPercentLabel" = "%d процентов";
+"AccessibilityPercentChargingLabel" = "%d процентов, зарядка";
+"AccessibilityBatteryLeftRightLabel" = "Левый %d процентов, Правый %d процентов";
+"AccessibilityBatteryLevelUnavailable" = "Уровень заряда недоступен";
+"AccessibilityBatteryProgress" = "Прогресс батареи";
+"AccessibilityBatteryNotification" = "Уведомление о состоянии батареи";
+"AccessibilityDoubleTapActivate" = "Дважды коснитесь для активации";
+"AccessibilityDoubleTapSelect" = "Дважды коснитесь, чтобы выбрать это устройство";
+
+// Settings navigation
+"SettingsThemeLabel" = "Тема";
+"SettingsDevicesLabel" = "Устройства";
+"SettingsSettingsLabel" = "Настройки";
