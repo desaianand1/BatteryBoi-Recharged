@@ -1,13 +1,10 @@
-//
-//  BatteryBoiApp.swift
-//  BatteryBoi
-//
-//  Created by Joe Barbour on 8/4/23.
-//
-
 import Foundation
 import Sparkle
 import SwiftUI
+
+#if canImport(Sentry)
+    import Sentry
+#endif
 
 public enum SystemDistribution {
     case direct
@@ -42,17 +39,10 @@ public enum SystemSoundEffects: String {
         guard SettingsManager.shared.enabledSoundEffects == .enabled || force else { return }
 
         guard let sound = NSSound(named: rawValue) else {
-            #if DEBUG
-                print("Warning: Sound file '\(rawValue)' not found in bundle")
-            #endif
             return
         }
 
-        if !sound.play() {
-            #if DEBUG
-                print("Warning: Failed to play sound '\(rawValue)'")
-            #endif
-        }
+        _ = sound.play()
     }
 }
 
@@ -213,6 +203,47 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     private var wakeRefreshTask: Task<Void, Never>?
 
     func applicationDidFinishLaunching(_: Notification) {
+        // Initialize Sentry FIRST for crash reporting
+        #if canImport(Sentry)
+            if let dsn = Bundle.main.infoDictionary?["SentryDSN"] as? String, !dsn.isEmpty {
+                SentrySDK.start { options in
+                    options.dsn = dsn
+                    options.debug = false
+
+                    // Crash reporting (critical for macOS)
+                    options.enableCrashHandler = true
+                    options.enableUncaughtNSExceptionReporting = true
+
+                    // Performance monitoring
+                    if let traceRate = Bundle.main.infoDictionary?["SentryTracesSampleRate"] as? String,
+                       let rate = Double(traceRate)
+                    {
+                        options.tracesSampleRate = NSNumber(value: rate)
+                    }
+                    options.enableAutoPerformanceTracing = true
+
+                    // Profiling
+                    if let profileRate = Bundle.main.infoDictionary?["SentryProfilesSampleRate"] as? String,
+                       let rate = Double(profileRate)
+                    {
+                        options.profilesSampleRate = NSNumber(value: rate)
+                    }
+
+                    // Release version
+                    if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
+                       let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
+                    {
+                        options.releaseName = "\(version)+\(build)"
+                    }
+
+                    // Environment
+                    if let env = Bundle.main.infoDictionary?["SentryEnvironment"] as? String, !env.isEmpty {
+                        options.environment = env
+                    }
+                }
+            }
+        #endif
+
         status = NSStatusBar.system.statusItem(withLength: 45)
         hosting.frame.size = NSSize(width: 45, height: 22)
 
@@ -226,9 +257,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             _ = SettingsManager.shared.enabledDisplay()
 
             _ = EventManager.shared
-
-            print("\n\nApp Installed: \(AppManager.shared.appInstalled)\n\n")
-            print("App Usage (Days): \(AppManager.shared.appUsage?.day ?? 0)\n\n")
 
             UpdateManager.shared.updateCheck()
 

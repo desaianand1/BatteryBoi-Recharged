@@ -27,5 +27,13 @@
 	<string>https://github.com/desaianand1/BatteryBoi-Recharged/releases/latest/download/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>luVX4/2YuPZ5Ly2UfWCf+Mr+63xxC642sFONANdzGek=</string>
+	<key>SentryDSN</key>
+	<string>$(SENTRY_DSN)</string>
+	<key>SentryTracesSampleRate</key>
+	<string>$(SENTRY_TRACES_SAMPLE_RATE)</string>
+	<key>SentryProfilesSampleRate</key>
+	<string>$(SENTRY_PROFILES_SAMPLE_RATE)</string>
+	<key>SentryEnvironment</key>
+	<string>$(SENTRY_ENVIRONMENT)</string>
 </dict>
 </plist>
