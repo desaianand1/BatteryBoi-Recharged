@@ -328,7 +328,7 @@ public func == (lhs: DataType, rhs: DataType) -> Bool {
 /// Apple System Management Controller (SMC) user-space client for Intel-based
 /// Macs. Works by talking to the AppleSMC.kext (kernel extension), the closed
 /// source driver for the SMC.
-public enum SMCKit {
+nonisolated(unsafe) public enum SMCKit {
 
     public enum SMCError: Error {
 
