@@ -17,27 +17,27 @@ tasks:
   lint:
     desc: Run SwiftLint
     cmds:
-      - swiftlint lint BatteryBoi/
+      - swiftlint lint BatteryBoi/ "BatteryBoi - RechargedTests/"
 
   lint:strict:
     desc: Run SwiftLint in strict mode
     cmds:
-      - swiftlint lint --strict BatteryBoi/
+      - swiftlint lint --strict BatteryBoi/ "BatteryBoi - RechargedTests/"
 
   lint:fix:
     desc: Run SwiftLint autocorrect
     cmds:
-      - swiftlint --fix BatteryBoi/
+      - swiftlint --fix BatteryBoi/ "BatteryBoi - RechargedTests/"
 
   format:
     desc: Run SwiftFormat
     cmds:
-      - swiftformat BatteryBoi/
+      - swiftformat BatteryBoi/ "BatteryBoi - RechargedTests/"
 
   format:check:
     desc: Check SwiftFormat
     cmds:
-      - swiftformat --lint BatteryBoi/
+      - swiftformat --lint BatteryBoi/ "BatteryBoi - RechargedTests/"
 
   fix:
     desc: Run SwiftFormat & SwiftLint

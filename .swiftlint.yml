@@ -1,5 +1,6 @@
 included:
   - BatteryBoi
+  - BatteryBoi - RechargedTests
 
 excluded:
   - build
