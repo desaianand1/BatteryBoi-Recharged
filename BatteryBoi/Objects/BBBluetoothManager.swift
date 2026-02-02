@@ -336,9 +336,9 @@ final class BluetoothManager: BluetoothServiceProtocol {
 
     nonisolated(unsafe) private var connectionNotification: IOBluetoothUserNotification?
     nonisolated(unsafe) private var disconnectionNotifications: [String: IOBluetoothUserNotification] = [:]
-    nonisolated private var scanTimerTask: Task<Void, Never>?
-    nonisolated private var deviceObserverTask: Task<Void, Never>?
-    nonisolated private var bluetoothUpdateDebounceTask: Task<Void, Never>?
+    nonisolated(unsafe) private var scanTimerTask: Task<Void, Never>?
+    nonisolated(unsafe) private var deviceObserverTask: Task<Void, Never>?
+    nonisolated(unsafe) private var bluetoothUpdateDebounceTask: Task<Void, Never>?
 
     // MARK: - BluetoothServiceProtocol Methods
 

@@ -23,7 +23,7 @@ struct EventObject: Equatable {
 final class EventManager {
     static let shared = EventManager()
 
-    nonisolated private var timerTask: Task<Void, Never>?
+    nonisolated(unsafe) private var timerTask: Task<Void, Never>?
 
     var events = [EventObject]()
 

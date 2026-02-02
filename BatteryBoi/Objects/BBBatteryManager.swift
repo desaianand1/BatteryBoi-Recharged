@@ -196,12 +196,12 @@ final class BatteryManager: BatteryServiceProtocol {
     var metrics: BatteryMetricsObject?
     var thermal: BatteryThemalState = .optimal
 
-    nonisolated private var fallbackTimerTask: Task<Void, Never>?
+    nonisolated(unsafe) private var fallbackTimerTask: Task<Void, Never>?
     nonisolated(unsafe) private var initialTimer: Timer?
-    nonisolated private var statusTask: Task<Void, Never>?
-    nonisolated private var remainingTask: Task<Void, Never>?
-    nonisolated private var metricsTask: Task<Void, Never>?
-    nonisolated private var thermalTask: Task<Void, Never>?
+    nonisolated(unsafe) private var statusTask: Task<Void, Never>?
+    nonisolated(unsafe) private var remainingTask: Task<Void, Never>?
+    nonisolated(unsafe) private var metricsTask: Task<Void, Never>?
+    nonisolated(unsafe) private var thermalTask: Task<Void, Never>?
 
     // MARK: - BatteryServiceProtocol Methods
 

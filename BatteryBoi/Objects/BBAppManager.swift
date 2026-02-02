@@ -14,7 +14,7 @@ final class AppManager {
     var menu: SystemMenuView = .devices
     var profile: SystemProfileObject?
 
-    nonisolated private var timerTask: Task<Void, Never>?
+    nonisolated(unsafe) private var timerTask: Task<Void, Never>?
 
     init() {
         // Start the main timer using async/await
@@ -151,7 +151,7 @@ final class AppManager {
             return id
 
         } else {
-            let id = "\(Locale.current.regionCode?.uppercased() ?? "US")-\(UUID().uuidString)"
+            let id = "\(Locale.current.region?.identifier.uppercased() ?? "US")-\(UUID().uuidString)"
 
             UserDefaults.save(.versionIdenfiyer, value: id)
 
@@ -167,10 +167,13 @@ final class AppManager {
         defer { IOObjectRelease(platform) }
 
         if let model = IORegistryEntryCreateCFProperty(platform, "model" as CFString, kCFAllocatorDefault, 0)
-            .takeRetainedValue() as? Data,
-            let type = String(data: model, encoding: .utf8)?.cString(using: .utf8)
+            .takeRetainedValue() as? Data
         {
-            let typeString = String(cString: type).lowercased()
+            // Truncate null termination before decoding
+            let cleanedModel = model.prefix(while: { $0 != 0 })
+            guard let typeString = String(bytes: cleanedModel, encoding: .utf8)?.lowercased() else {
+                return .unknown
+            }
             if typeString.contains("macbookpro") {
                 return .macbookPro
             } else if typeString.contains("macbookair") {
