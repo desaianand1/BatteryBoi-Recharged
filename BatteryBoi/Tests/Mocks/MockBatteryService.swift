@@ -5,7 +5,6 @@
 //  Mock implementation for unit testing.
 //
 
-import Combine
 import Foundation
 
 #if DEBUG
@@ -13,7 +12,7 @@ import Foundation
     /// Mock battery service for unit testing.
     @MainActor
     final class MockBatteryService: BatteryServiceProtocol {
-        // MARK: - Published Properties
+        // MARK: - Observable Properties
 
         var charging: BatteryCharging
         var percentage: Double
@@ -22,24 +21,6 @@ import Foundation
         var rate: BatteryEstimateObject?
         var metrics: BatteryMetricsObject?
         var thermal: BatteryThemalState
-
-        // MARK: - Publishers
-
-        private let chargingSubject = PassthroughSubject<BatteryCharging, Never>()
-        private let percentageSubject = PassthroughSubject<Double, Never>()
-        private let thermalSubject = PassthroughSubject<BatteryThemalState, Never>()
-
-        var chargingPublisher: AnyPublisher<BatteryCharging, Never> {
-            chargingSubject.eraseToAnyPublisher()
-        }
-
-        var percentagePublisher: AnyPublisher<Double, Never> {
-            percentageSubject.eraseToAnyPublisher()
-        }
-
-        var thermalPublisher: AnyPublisher<BatteryThemalState, Never> {
-            thermalSubject.eraseToAnyPublisher()
-        }
 
         // MARK: - Test Helpers
 
@@ -89,17 +70,14 @@ import Foundation
 
         func simulateChargingChange(_ newCharging: BatteryCharging) {
             charging = newCharging
-            chargingSubject.send(newCharging)
         }
 
         func simulatePercentageChange(_ newPercentage: Double) {
             percentage = newPercentage
-            percentageSubject.send(newPercentage)
         }
 
         func simulateThermalChange(_ newThermal: BatteryThemalState) {
             thermal = newThermal
-            thermalSubject.send(newThermal)
         }
     }
 

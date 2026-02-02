@@ -5,7 +5,6 @@
 //  Created for architecture modernization.
 //
 
-import Combine
 import CoreGraphics
 import Foundation
 
@@ -13,7 +12,7 @@ import Foundation
 /// Enables dependency injection and testability for HUD window management.
 @MainActor
 protocol WindowServiceProtocol: AnyObject {
-    // MARK: - Published Properties
+    // MARK: - Observable Properties
 
     /// Whether the window is being hovered
     var hover: Bool { get set }
@@ -26,14 +25,6 @@ protocol WindowServiceProtocol: AnyObject {
 
     /// Current window opacity
     var opacity: CGFloat { get set }
-
-    // MARK: - Publishers
-
-    /// Publisher for HUD state changes
-    var statePublisher: AnyPublisher<HUDState, Never> { get }
-
-    /// Publisher for hover state changes
-    var hoverPublisher: AnyPublisher<Bool, Never> { get }
 
     // MARK: - Methods
 

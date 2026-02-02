@@ -253,21 +253,11 @@ final class SettingsManager: SettingsServiceProtocol {
     var pinned: SettingsPinned = .disabled
     var charge: SettingsCharged = .disabled
 
-    private var settingsTask: Task<Void, Never>?
+    /// Cached distribution type to avoid async call in computed property.
+    /// Direct distribution shows update check option; App Store handles updates itself.
+    private let isDirectDistribution: Bool
 
-    // MARK: - SettingsServiceProtocol Publishers
-
-    var displayPublisher: AnyPublisher<SettingsDisplayType, Never> {
-        $display.eraseToAnyPublisher()
-    }
-
-    var sfxPublisher: AnyPublisher<SettingsSoundEffects, Never> {
-        $sfx.eraseToAnyPublisher()
-    }
-
-    var pinnedPublisher: AnyPublisher<SettingsPinned, Never> {
-        $pinned.eraseToAnyPublisher()
-    }
+    nonisolated(unsafe) private var settingsTask: Task<Void, Never>?
 
     // MARK: - SettingsServiceProtocol Computed Properties
 
@@ -287,8 +277,8 @@ final class SettingsManager: SettingsServiceProtocol {
     }
 
     var progressBar: Bool {
-        get { enabledProgress }
-        set { enabledProgress = newValue }
+        get { enabledProgressBar }
+        set { enabledProgressBar = newValue }
     }
 
     var soundEffects: SettingsSoundEffects {
@@ -297,8 +287,8 @@ final class SettingsManager: SettingsServiceProtocol {
     }
 
     var bluetoothStatus: SettingsStateValue {
-        get { enabledBluetooth }
-        set { enabledBluetooth = newValue }
+        get { enabledBluetoothStatus }
+        set { enabledBluetoothStatus = newValue }
     }
 
     // MARK: - SettingsServiceProtocol Methods
@@ -315,6 +305,10 @@ final class SettingsManager: SettingsServiceProtocol {
     }
 
     init() {
+        // Cache distribution type synchronously at init.
+        // App Store apps have a receipt; direct distribution doesn't.
+        isDirectDistribution = !Self.isAppStoreDistribution()
+
         menu = settingsMenu
         display = enabledDisplay(false)
         theme = enabledTheme
@@ -336,6 +330,13 @@ final class SettingsManager: SettingsServiceProtocol {
                 }
             }
         }
+    }
+
+    /// Synchronous check for App Store distribution.
+    /// Returns true if the app appears to be from the App Store (has valid receipt).
+    private static func isAppStoreDistribution() -> Bool {
+        guard let receiptURL = Bundle.main.appStoreReceiptURL else { return false }
+        return FileManager.default.fileExists(atPath: receiptURL.path)
     }
 
     deinit {
@@ -623,11 +624,7 @@ final class SettingsManager: SettingsServiceProtocol {
         } else if action.type == .appUpdateCheck {
             UpdateManager.shared.updateCheck()
         } else if action.type == .appEfficencyMode {
-            DispatchQueue.main.async {
-                BatteryManager.shared.powerSaveMode()
-
-            }
-
+            BatteryManager.shared.powerSaveMode()
         } else if action.type == .appBeta {} else if action.type == .appPinned {
             switch enabledPinned {
             case .enabled: enabledPinned = .disabled
@@ -660,16 +657,14 @@ final class SettingsManager: SettingsServiceProtocol {
         output.append(.init(.customiseSoundEffects))
         output.append(.init(.customiseCharge))
 
-        if AppManager.shared.appDistribution() == .direct {
+        if isDirectDistribution {
             output.append(.init(.appUpdateCheck))
-
         }
 
         output.append(.init(.appWebsite))
         output.append(.init(.appRate))
 
         return output
-
     }
 
 }

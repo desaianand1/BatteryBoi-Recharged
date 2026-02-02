@@ -246,13 +246,13 @@ extension UserDefaults {
     /// Async stream for observing UserDefaults changes.
     static func changedAsync() -> AsyncStream<SystemDefaultsKeys> {
         AsyncStream { continuation in
-            let cancellable = changed.sink { key in
+            nonisolated(unsafe) let cancellable = changed.sink { key in
                 continuation.yield(key)
             }
 
             continuation.onTermination = { @Sendable _ in
                 // Hold reference to prevent deallocation
-                _ = cancellable
+                cancellable.cancel()
             }
         }
     }

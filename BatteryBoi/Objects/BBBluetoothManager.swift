@@ -1,5 +1,4 @@
 import Cocoa
-import Combine
 import CoreBluetooth
 import Foundation
 import IOBluetooth
@@ -29,8 +28,20 @@ enum BluetoothVendor: String {
     case beats = "0x1006"
     case jabra = "0x1007"
     case audioTechnica = "0x1008"
+    // Additional audiophile/gaming brands
+    case earfun = "0x3535"
+    case akg = "0x0087"
+    case plantronics = "0x0047"
+    case logitech = "0x046D"
+    case corsair = "0x1B1C"
+    case anker = "0x3536"
+    case bangOlufsen = "0x0089"
+    case shure = "0x0088"
+    case beyerdynamic = "0x008A"
+    case razer = "0x1532"
+    case steelseries = "0x1038"
+    case hyperx = "0x0951"
     case unknown = ""
-
 }
 
 enum BluetoothDistanceType: Int {
@@ -323,20 +334,11 @@ final class BluetoothManager: BluetoothServiceProtocol {
         }
     }
 
-    private var connectionNotification: IOBluetoothUserNotification?
-    private var disconnectionNotifications: [String: IOBluetoothUserNotification] = [:]
-    private var scanTimerTask: Task<Void, Never>?
-    private var deviceObserverTask: Task<Void, Never>?
-
-    // MARK: - BluetoothServiceProtocol Publishers
-
-    var listPublisher: AnyPublisher<[BluetoothObject], Never> {
-        $list.eraseToAnyPublisher()
-    }
-
-    var connectedPublisher: AnyPublisher<[BluetoothObject], Never> {
-        $connected.eraseToAnyPublisher()
-    }
+    nonisolated(unsafe) private var connectionNotification: IOBluetoothUserNotification?
+    nonisolated(unsafe) private var disconnectionNotifications: [String: IOBluetoothUserNotification] = [:]
+    nonisolated(unsafe) private var scanTimerTask: Task<Void, Never>?
+    nonisolated(unsafe) private var deviceObserverTask: Task<Void, Never>?
+    nonisolated(unsafe) private var bluetoothUpdateDebounceTask: Task<Void, Never>?
 
     // MARK: - BluetoothServiceProtocol Methods
 
@@ -393,6 +395,7 @@ final class BluetoothManager: BluetoothServiceProtocol {
         disconnectionNotifications.values.forEach { $0.unregister() }
         scanTimerTask?.cancel()
         deviceObserverTask?.cancel()
+        bluetoothUpdateDebounceTask?.cancel()
     }
 
     func bluetoothUpdateConnection(_ device: BluetoothObject, state: BluetoothState) -> BluetoothConnectionState {
@@ -453,9 +456,9 @@ final class BluetoothManager: BluetoothServiceProtocol {
         let devices = await IOKitBluetoothService.shared.getConnectedDevices()
 
         for deviceInfo in devices {
-            // Skip devices without a valid type (other than "other")
-            let deviceType = BluetoothDeviceType(rawValue: deviceInfo.deviceType) ?? .other
-            guard deviceType != .other else { continue }
+            // Include all devices regardless of type classification
+            // Previously filtered out .other types, but users reported missing devices
+            _ = BluetoothDeviceType(rawValue: deviceInfo.deviceType) ?? .other
 
             let normalizedAddress = deviceInfo.address
 
@@ -513,8 +516,11 @@ final class BluetoothManager: BluetoothServiceProtocol {
 
     @objc
     private func bluetoothDeviceUpdated() {
-        Task { @MainActor [weak self] in
-            guard let self else { return }
+        // Debounce rapid callbacks to prevent race conditions
+        bluetoothUpdateDebounceTask?.cancel()
+        bluetoothUpdateDebounceTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(100))
+            guard let self, !Task.isCancelled else { return }
 
             var didUpdate = false
             for item in IOBluetoothDevice.pairedDevices() {

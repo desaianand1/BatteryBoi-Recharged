@@ -5,7 +5,6 @@
 //  Mock implementation for unit testing.
 //
 
-import Combine
 import Foundation
 
 #if DEBUG
@@ -13,7 +12,7 @@ import Foundation
     /// Mock settings service for unit testing.
     @MainActor
     final class MockSettingsService: SettingsServiceProtocol {
-        // MARK: - Published Properties
+        // MARK: - Observable Properties
 
         var menu: [SettingsActionObject]
         var display: SettingsDisplayType
@@ -21,24 +20,6 @@ import Foundation
         var theme: SettingsTheme
         var pinned: SettingsPinned
         var charge: SettingsCharged
-
-        // MARK: - Publishers
-
-        private let displaySubject = PassthroughSubject<SettingsDisplayType, Never>()
-        private let sfxSubject = PassthroughSubject<SettingsSoundEffects, Never>()
-        private let pinnedSubject = PassthroughSubject<SettingsPinned, Never>()
-
-        var displayPublisher: AnyPublisher<SettingsDisplayType, Never> {
-            displaySubject.eraseToAnyPublisher()
-        }
-
-        var sfxPublisher: AnyPublisher<SettingsSoundEffects, Never> {
-            sfxSubject.eraseToAnyPublisher()
-        }
-
-        var pinnedPublisher: AnyPublisher<SettingsPinned, Never> {
-            pinnedSubject.eraseToAnyPublisher()
-        }
 
         // MARK: - Computed Properties
 
@@ -103,7 +84,6 @@ import Foundation
             case .hidden:
                 display = .countdown
             }
-            displaySubject.send(display)
             return display
         }
 
@@ -116,12 +96,10 @@ import Foundation
 
         func simulateDisplayChange(_ newDisplay: SettingsDisplayType) {
             display = newDisplay
-            displaySubject.send(newDisplay)
         }
 
         func simulatePinnedChange(_ newPinned: SettingsPinned) {
             pinned = newPinned
-            pinnedSubject.send(newPinned)
         }
     }
 

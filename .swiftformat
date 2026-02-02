@@ -23,6 +23,7 @@
 
 --disable blankLinesAtStartOfScope
 --disable blankLinesAtEndOfScope
+--disable modifierOrder
 
 # Self
 --self remove

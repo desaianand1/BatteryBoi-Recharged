@@ -143,11 +143,16 @@ actor IOKitBatteryService {
     /// Stores the run loop source to keep it alive
     private var runLoopSource: CFRunLoopSource?
 
+    /// Static callback storage for C function pointer compatibility
+    nonisolated(unsafe) private static var powerSourceCallback: (@Sendable () -> Void)?
+
     /// Starts monitoring for power source changes (AC/battery, charge level).
     /// The callback fires on the main run loop when power source state changes.
     nonisolated func startPowerSourceNotifications(onChange: @escaping @Sendable () -> Void) {
+        IOKitBatteryService.powerSourceCallback = onChange
+
         let source = IOPSNotificationCreateRunLoopSource({ _ in
-            onChange()
+            IOKitBatteryService.powerSourceCallback?()
         }, nil).takeRetainedValue()
 
         CFRunLoopAddSource(CFRunLoopGetMain(), source, .defaultMode)

@@ -5,14 +5,13 @@
 //  Created for architecture modernization.
 //
 
-import Combine
 import Foundation
 
 /// Protocol defining the settings service interface.
 /// Enables dependency injection and testability for user preferences.
 @MainActor
 protocol SettingsServiceProtocol: AnyObject {
-    // MARK: - Published Properties
+    // MARK: - Observable Properties
 
     /// Available menu actions
     var menu: [SettingsActionObject] { get }
@@ -31,17 +30,6 @@ protocol SettingsServiceProtocol: AnyObject {
 
     /// Charge notification setting
     var charge: SettingsCharged { get set }
-
-    // MARK: - Publishers
-
-    /// Publisher for display type changes
-    var displayPublisher: AnyPublisher<SettingsDisplayType, Never> { get }
-
-    /// Publisher for sound effects changes
-    var sfxPublisher: AnyPublisher<SettingsSoundEffects, Never> { get }
-
-    /// Publisher for pinned mode changes
-    var pinnedPublisher: AnyPublisher<SettingsPinned, Never> { get }
 
     // MARK: - Computed Properties
 

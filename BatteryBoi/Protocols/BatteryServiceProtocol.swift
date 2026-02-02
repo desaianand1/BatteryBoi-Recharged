@@ -5,14 +5,13 @@
 //  Created for architecture modernization.
 //
 
-import Combine
 import Foundation
 
 /// Protocol defining the battery monitoring service interface.
 /// Enables dependency injection and testability for battery-related functionality.
 @MainActor
 protocol BatteryServiceProtocol: AnyObject {
-    // MARK: - Published Properties
+    // MARK: - Observable Properties
 
     /// Current charging state
     var charging: BatteryCharging { get }
@@ -34,17 +33,6 @@ protocol BatteryServiceProtocol: AnyObject {
 
     /// Current thermal state
     var thermal: BatteryThemalState { get }
-
-    // MARK: - Publishers
-
-    /// Publisher for charging state changes
-    var chargingPublisher: AnyPublisher<BatteryCharging, Never> { get }
-
-    /// Publisher for percentage changes
-    var percentagePublisher: AnyPublisher<Double, Never> { get }
-
-    /// Publisher for thermal state changes
-    var thermalPublisher: AnyPublisher<BatteryThemalState, Never> { get }
 
     // MARK: - Methods
 

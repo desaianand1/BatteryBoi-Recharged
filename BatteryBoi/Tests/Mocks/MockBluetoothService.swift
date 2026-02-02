@@ -5,7 +5,6 @@
 //  Mock implementation for unit testing.
 //
 
-import Combine
 import Foundation
 
 #if DEBUG
@@ -13,24 +12,11 @@ import Foundation
     /// Mock Bluetooth service for unit testing.
     @MainActor
     final class MockBluetoothService: BluetoothServiceProtocol {
-        // MARK: - Published Properties
+        // MARK: - Observable Properties
 
         var list: [BluetoothObject]
         var connected: [BluetoothObject]
         var icons: [String]
-
-        // MARK: - Publishers
-
-        private let listSubject = PassthroughSubject<[BluetoothObject], Never>()
-        private let connectedSubject = PassthroughSubject<[BluetoothObject], Never>()
-
-        var listPublisher: AnyPublisher<[BluetoothObject], Never> {
-            listSubject.eraseToAnyPublisher()
-        }
-
-        var connectedPublisher: AnyPublisher<[BluetoothObject], Never> {
-            connectedSubject.eraseToAnyPublisher()
-        }
 
         // MARK: - Test Helpers
 
@@ -68,12 +54,10 @@ import Foundation
 
         func simulateListChange(_ newList: [BluetoothObject]) {
             list = newList
-            listSubject.send(newList)
         }
 
         func simulateConnectedChange(_ newConnected: [BluetoothObject]) {
             connected = newConnected
-            connectedSubject.send(newConnected)
         }
     }
 

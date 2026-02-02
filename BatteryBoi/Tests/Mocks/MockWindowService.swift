@@ -5,7 +5,6 @@
 //  Mock implementation for unit testing.
 //
 
-import Combine
 import CoreGraphics
 import Foundation
 
@@ -14,25 +13,12 @@ import Foundation
     /// Mock window service for unit testing.
     @MainActor
     final class MockWindowService: WindowServiceProtocol {
-        // MARK: - Published Properties
+        // MARK: - Observable Properties
 
         var hover: Bool
         var state: HUDState
         var position: WindowPosition
         var opacity: CGFloat
-
-        // MARK: - Publishers
-
-        private let stateSubject = PassthroughSubject<HUDState, Never>()
-        private let hoverSubject = PassthroughSubject<Bool, Never>()
-
-        var statePublisher: AnyPublisher<HUDState, Never> {
-            stateSubject.eraseToAnyPublisher()
-        }
-
-        var hoverPublisher: AnyPublisher<Bool, Never> {
-            hoverSubject.eraseToAnyPublisher()
-        }
 
         // MARK: - Test Helpers
 
@@ -68,7 +54,6 @@ import Foundation
             lastSetState = state
             lastSetStateAnimated = animated
             self.state = state
-            stateSubject.send(state)
         }
 
         func isVisible(_ type: HUDAlertTypes) -> Bool {
@@ -82,7 +67,6 @@ import Foundation
             lastOpenType = type
             lastOpenDevice = device
             state = .revealed
-            stateSubject.send(.revealed)
         }
 
         func calculateFrame(moved: NSRect?) -> NSRect {
@@ -97,12 +81,19 @@ import Foundation
 
         func simulateHoverChange(_ newHover: Bool) {
             hover = newHover
-            hoverSubject.send(newHover)
         }
 
         func simulateStateChange(_ newState: HUDState) {
             state = newState
-            stateSubject.send(newState)
+        }
+
+        /// Simulates a mouse event (for testing debounce behavior)
+        func simulateMouseEvent() {
+            // In real implementation, this would trigger state changes
+            // Here we just track that it was called
+            if state == .revealed || state == .progress {
+                setState(.detailed, animated: false)
+            }
         }
     }
 

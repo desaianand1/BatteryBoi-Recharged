@@ -5,14 +5,13 @@
 //  Created for architecture modernization.
 //
 
-import Combine
 import Foundation
 
 /// Protocol defining the Bluetooth device monitoring service interface.
 /// Enables dependency injection and testability for Bluetooth-related functionality.
 @MainActor
 protocol BluetoothServiceProtocol: AnyObject {
-    // MARK: - Published Properties
+    // MARK: - Observable Properties
 
     /// All discovered Bluetooth devices
     var list: [BluetoothObject] { get }
@@ -22,14 +21,6 @@ protocol BluetoothServiceProtocol: AnyObject {
 
     /// Icons for connected devices
     var icons: [String] { get }
-
-    // MARK: - Publishers
-
-    /// Publisher for device list changes
-    var listPublisher: AnyPublisher<[BluetoothObject], Never> { get }
-
-    /// Publisher for connected device changes
-    var connectedPublisher: AnyPublisher<[BluetoothObject], Never> { get }
 
     // MARK: - Methods
 

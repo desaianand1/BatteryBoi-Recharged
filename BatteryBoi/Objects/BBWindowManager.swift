@@ -1,5 +1,4 @@
 import Cocoa
-import Combine
 import CoreGraphics
 import Foundation
 import SwiftUI
@@ -50,37 +49,27 @@ final class WindowManager: WindowServiceProtocol {
     private var triggered: Int = 0
     private var notifiedThresholds: Set<Int> = []
     private var notifiedBluetoothThresholds: [String: Set<Int>] = [:]
-    private var globalMouseMonitor: Any?
+    nonisolated(unsafe) private var globalMouseMonitor: Any?
     /// Task for auto-dismissing the HUD after a timeout. Cancelled when a new alert appears.
-    private var dismissalTask: Task<Void, Never>?
+    nonisolated(unsafe) private var dismissalTask: Task<Void, Never>?
     /// Task for handling state transitions. Cancelled when a new state change occurs.
-    private var stateTransitionTask: Task<Void, Never>?
+    nonisolated(unsafe) private var stateTransitionTask: Task<Void, Never>?
 
     // Async observation tasks
-    private var chargingObserverTask: Task<Void, Never>?
-    private var percentageObserverTask: Task<Void, Never>?
-    private var thermalObserverTask: Task<Void, Never>?
-    private var bluetoothTimerTask: Task<Void, Never>?
-    private var eventTimerTask: Task<Void, Never>?
-    private var pinnedObserverTask: Task<Void, Never>?
+    nonisolated(unsafe) private var chargingObserverTask: Task<Void, Never>?
+    nonisolated(unsafe) private var percentageObserverTask: Task<Void, Never>?
+    nonisolated(unsafe) private var thermalObserverTask: Task<Void, Never>?
+    nonisolated(unsafe) private var bluetoothTimerTask: Task<Void, Never>?
+    nonisolated(unsafe) private var eventTimerTask: Task<Void, Never>?
+    nonisolated(unsafe) private var pinnedObserverTask: Task<Void, Never>?
 
     // Debounce tracking for charging state changes
     private var lastChargingState: BatteryChargingState?
-    private var chargingDebounceTask: Task<Void, Never>?
+    nonisolated(unsafe) private var chargingDebounceTask: Task<Void, Never>?
 
     // Mouse event debouncing
     private var lastMouseEventTime: Date = .distantPast
     private let mouseEventDebounceInterval: TimeInterval = 0.1
-
-    // MARK: - WindowServiceProtocol Publishers
-
-    var statePublisher: AnyPublisher<HUDState, Never> {
-        $state.eraseToAnyPublisher()
-    }
-
-    var hoverPublisher: AnyPublisher<Bool, Never> {
-        $hover.eraseToAnyPublisher()
-    }
 
     // MARK: - WindowServiceProtocol Methods
 
@@ -234,7 +223,7 @@ final class WindowManager: WindowServiceProtocol {
                     ]
 
                     for (threshold, alertType) in thresholds {
-                        if percent <= threshold,
+                        if percent <= Double(threshold),
                            !(notifiedBluetoothThresholds[deviceId]?.contains(threshold) ?? false)
                         {
                             notifiedBluetoothThresholds[deviceId]?.insert(threshold)
@@ -287,24 +276,26 @@ final class WindowManager: WindowServiceProtocol {
             .leftMouseUp,
             .rightMouseUp,
         ]) { [weak self] _ in
-            guard let self else { return }
+            Task { @MainActor [weak self] in
+                guard let self else { return }
 
-            // Debounce mouse events
-            let now = Date()
-            guard now.timeIntervalSince(lastMouseEventTime) > mouseEventDebounceInterval else { return }
-            lastMouseEventTime = now
+                // Debounce mouse events
+                let now = Date()
+                guard now.timeIntervalSince(lastMouseEventTime) > mouseEventDebounceInterval else { return }
+                lastMouseEventTime = now
 
-            if NSRunningApplication.current == NSWorkspace.shared.frontmostApplication {
-                if state == .revealed || state == .progress {
-                    windowSetState(.detailed)
-                }
-            } else {
-                if SettingsManager.shared.enabledPinned == .disabled {
-                    if state.visible == true {
-                        windowSetState(.dismissed)
+                if NSRunningApplication.current == NSWorkspace.shared.frontmostApplication {
+                    if state == .revealed || state == .progress {
+                        windowSetState(.detailed)
                     }
                 } else {
-                    windowSetState(.revealed)
+                    if SettingsManager.shared.enabledPinned == .disabled {
+                        if state.visible == true {
+                            windowSetState(.dismissed)
+                        }
+                    } else {
+                        windowSetState(.revealed)
+                    }
                 }
             }
         }
@@ -415,39 +406,30 @@ final class WindowManager: WindowServiceProtocol {
         if let window = windowExists(type) {
             window.contentView = WindowHostingView(rootView: HUDParent(type, device: device))
 
-            DispatchQueue.main.async {
-                if window.canBecomeKeyWindow {
-                    window.makeKeyAndOrderFront(nil)
-                    window.alphaValue = 1.0
+            if window.canBecomeKeyWindow {
+                window.makeKeyAndOrderFront(nil)
+                window.alphaValue = 1.0
 
-                    if AppManager.shared.alert == nil {
-                        if let sfx = type.sfx {
-                            sfx.play()
-
-                        }
-
+                if AppManager.shared.alert == nil {
+                    if let sfx = type.sfx {
+                        sfx.play()
                     }
-
-                    if !BluetoothManager.shared.connected.isEmpty {
-                        AppManager.shared.menu = .devices
-
-                    }
-
-                    AppManager.shared.device = device
-                    AppManager.shared.alert = type
-
-                    self.windowSetState(.progress)
-
                 }
 
+                if !BluetoothManager.shared.connected.isEmpty {
+                    AppManager.shared.menu = .devices
+                }
+
+                AppManager.shared.device = device
+                AppManager.shared.alert = type
+
+                windowSetState(.progress)
             }
-
         }
-
     }
 
     private func windowClose() {
-        if let window = NSApplication.shared.windows.first(where: { $0.title == "modalwindow" }) {
+        if let window = NSApplication.shared.windows.first(where: { $0.title == BBConstants.Window.modalWindowTitle }) {
             if AppManager.shared.alert != nil {
                 AppManager.shared.alert = nil
                 AppManager.shared.device = nil
@@ -469,7 +451,7 @@ final class WindowManager: WindowServiceProtocol {
         window?.level = .statusBar
         window?.contentView?.translatesAutoresizingMaskIntoConstraints = false
         window?.center()
-        window?.title = "modalwindow"
+        window?.title = BBConstants.Window.modalWindowTitle
         window?.isMovableByWindowBackground = true
         window?.backgroundColor = .clear
         window?.setFrame(windowHandleFrame(), display: true)
@@ -485,7 +467,7 @@ final class WindowManager: WindowServiceProtocol {
     }
 
     private func windowExists(_ type: HUDAlertTypes) -> NSWindow? {
-        if let window = NSApplication.shared.windows.first(where: { $0.title == "modalwindow" }) {
+        if let window = NSApplication.shared.windows.first(where: { $0.title == BBConstants.Window.modalWindowTitle }) {
             window
         } else {
             windowDefault(type)
@@ -495,7 +477,7 @@ final class WindowManager: WindowServiceProtocol {
     func windowHandleFrame(moved: NSRect? = nil) -> NSRect {
         let windowWidth = screen.width / 3
         let windowHeight = screen.height / 2
-        let windowMargin: CGFloat = 40
+        let windowMargin = BBConstants.Window.defaultMargin
 
         let positionDefault = CGSize(width: 420, height: 220)
 

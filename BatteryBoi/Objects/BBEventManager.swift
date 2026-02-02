@@ -23,7 +23,7 @@ struct EventObject: Equatable {
 final class EventManager {
     static let shared = EventManager()
 
-    private var timerTask: Task<Void, Never>?
+    nonisolated(unsafe) private var timerTask: Task<Void, Never>?
 
     var events = [EventObject]()
 
@@ -49,16 +49,15 @@ final class EventManager {
 
     private func eventAuthorizeStatus() {
         if EKEventStore.authorizationStatus(for: .event) == .notDetermined {
-            EKEventStore().requestFullAccessToEvents { _, _ in
-                DispatchQueue.main.async {
-                    self.events = self.eventsList()
+            EKEventStore().requestFullAccessToEvents { [weak self] _, _ in
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    events = eventsList()
                 }
             }
         } else {
             events = eventsList()
-
         }
-
     }
 
     private func eventsList() -> [EventObject] {

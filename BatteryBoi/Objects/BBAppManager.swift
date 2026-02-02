@@ -1,4 +1,3 @@
-import Combine
 import Foundation
 import Logging
 import Sparkle
@@ -15,8 +14,7 @@ final class AppManager {
     var menu: SystemMenuView = .devices
     var profile: SystemProfileObject?
 
-    private var updates = Set<AnyCancellable>()
-    private var timerTask: Task<Void, Never>?
+    nonisolated(unsafe) private var timerTask: Task<Void, Never>?
 
     init() {
         // Start the main timer using async/await
@@ -43,7 +41,6 @@ final class AppManager {
 
     deinit {
         timerTask?.cancel()
-        updates.forEach { $0.cancel() }
     }
 
     func appToggleMenu(_ animate: Bool) {
@@ -54,20 +51,12 @@ final class AppManager {
                 default: self.menu = .devices
                 }
             }
-
         } else {
             switch menu {
             case .devices: menu = .settings
             default: menu = .devices
             }
-
         }
-
-    }
-
-    /// Legacy Combine-based timer publisher. Use `appTimerAsync` for new code.
-    func appTimer(_ multiple: Int) -> AnyPublisher<Int, Never> {
-        $counter.filter { $0 % multiple == 0 }.eraseToAnyPublisher()
     }
 
     /// Async timer that emits at the specified interval in seconds.

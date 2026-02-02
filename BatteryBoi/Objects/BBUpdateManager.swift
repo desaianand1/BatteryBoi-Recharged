@@ -54,7 +54,7 @@ final class UpdateManager: NSObject, SPUUpdaterDelegate {
 
     /// Task for resetting state to idle after completion/failure.
     /// Cancels previous task to prevent race conditions.
-    private var stateResetTask: Task<Void, Never>?
+    nonisolated(unsafe) private var stateResetTask: Task<Void, Never>?
 
     var state: UpdateStateType = .completed {
         didSet {
@@ -139,88 +139,80 @@ final class UpdateManager: NSObject, SPUUpdaterDelegate {
 
     }
 
-    func updater(
+    nonisolated func updater(
         _: SPUUpdater,
         willInstallUpdateOnQuit _: SUAppcastItem,
         immediateInstallationBlock immediateInstallHandler: @escaping () -> Void,
     ) -> Bool {
         immediateInstallHandler()
         return true
-
     }
 
-    func updater(
+    nonisolated func updater(
         _: SPUUpdater,
         shouldPostponeRelaunchForUpdate _: SUAppcastItem,
         untilInvokingBlock _: @escaping () -> Void,
     ) -> Bool {
         false
-
     }
 
-    func updaterShouldDownloadReleaseNotes(_: SPUUpdater) -> Bool {
+    nonisolated func updaterShouldDownloadReleaseNotes(_: SPUUpdater) -> Bool {
         true
-
     }
 
-    func updater(_: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
-        guard let title = item.title,
-              let id = item.propertiesDictionary["id"] as? String
-        else {
-            DispatchQueue.main.async {
-                self.state = .failed
-                self.checked = self.updater?.lastUpdateCheckDate
-
-            }
-            return
-        }
-
+    nonisolated func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
+        // Extract values before async context to avoid Sendable issues
+        let title = item.title
+        let id = item.propertiesDictionary["id"] as? String
         let semver = item.propertiesDictionary["sparkle:shortVersionString"] as? String ?? item.versionString ?? "0.0.0"
-        let version: UpdateVersionObject = .init(formatted: title, semver: semver)
+        let lastCheck = updater.lastUpdateCheckDate
 
-        DispatchQueue.main.async {
-            self.available = .init(id: id, name: title, version: version)
-            self.state = .completed
-            self.checked = self.updater?.lastUpdateCheckDate
-
-        }
-
-    }
-
-    func updater(_: SPUUpdater, failedToDownloadUpdate _: SUAppcastItem, error: Error) {
-        #if canImport(Sentry)
-            SentrySDK.capture(error: error)
-        #endif
-    }
-
-    func updater(_: SPUUpdater, failedToDownloadAppcastWithError error: Error) {
-        #if canImport(Sentry)
-            SentrySDK.capture(error: error)
-        #endif
-    }
-
-    func updaterDidNotFindUpdate(_: SPUUpdater) {
-        DispatchQueue.main.async {
-            self.available = nil
-            self.state = .completed
-
-        }
-
-    }
-
-    func updater(_: SPUUpdater, willShowModalAlert _: NSAlert) {}
-
-    func updater(_: SPUUpdater, didAbortWithError error: Error) {
-        if let error = error as NSError? {
-            if error.code == 4005 {
-                // WindowManager.shared.windowOpenWebsite(.update, view: .main)
-
-                state = .completed
-
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            guard let title, let id else {
+                state = .failed
+                checked = lastCheck
+                return
             }
 
+            let version: UpdateVersionObject = .init(formatted: title, semver: semver)
+            available = .init(id: id, name: title, version: version)
+            state = .completed
+            checked = lastCheck
         }
+    }
 
+    nonisolated func updater(_: SPUUpdater, failedToDownloadUpdate _: SUAppcastItem, error: Error) {
+        #if canImport(Sentry)
+            SentrySDK.capture(error: error)
+        #endif
+    }
+
+    nonisolated func updater(_: SPUUpdater, failedToDownloadAppcastWithError error: Error) {
+        #if canImport(Sentry)
+            SentrySDK.capture(error: error)
+        #endif
+    }
+
+    nonisolated func updaterDidNotFindUpdate(_ updater: SPUUpdater) {
+        let lastCheck = updater.lastUpdateCheckDate
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            available = nil
+            state = .completed
+            checked = lastCheck
+        }
+    }
+
+    nonisolated func updater(_: SPUUpdater, willShowModalAlert _: NSAlert) {}
+
+    nonisolated func updater(_: SPUUpdater, didAbortWithError error: Error) {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            if let error = error as NSError?, error.code == 4005 {
+                state = .completed
+            }
+        }
     }
 
     var updateVersion: String {

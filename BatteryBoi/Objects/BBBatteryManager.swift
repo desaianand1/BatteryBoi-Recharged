@@ -1,4 +1,3 @@
-import Combine
 import Foundation
 import IOKit.ps
 import IOKit.pwr_mgt
@@ -87,23 +86,22 @@ enum BatteryChargingState {
     }
 
     func progress(_ percent: Double, width: CGFloat) -> CGFloat {
+        let padding = BBConstants.Progress.batteryBarPadding
+        let minDisplay = BBConstants.Progress.lowBatteryMinDisplay
+        let maxDisplay = BBConstants.Progress.highBatteryMaxDisplay
+        let adjustedWidth = width - padding
+
         if self == .charging {
-            min(100 * (width - 2.6), width - 2.6)
-
+            return min(100 * adjustedWidth, adjustedWidth)
         } else {
-            if percent > 0, percent < 10 {
-                min(CGFloat(10 / 100) * (width - 2.6), width - 2.6)
-
-            } else if percent >= 90, percent < 100 {
-                min(CGFloat(90 / 100) * (width - 2.6), width - 2.6)
-
+            if percent > 0, percent < minDisplay {
+                return min(CGFloat(minDisplay / 100) * adjustedWidth, adjustedWidth)
+            } else if percent >= maxDisplay, percent < 100 {
+                return min(CGFloat(maxDisplay / 100) * adjustedWidth, adjustedWidth)
             } else {
-                min(CGFloat(percent / 100) * (width - 2.6), width - 2.6)
-
+                return min(CGFloat(percent / 100) * adjustedWidth, adjustedWidth)
             }
-
         }
-
     }
 
 }
@@ -199,26 +197,12 @@ final class BatteryManager: BatteryServiceProtocol {
     var thermal: BatteryThemalState = .optimal
 
     private var counter: Int?
-    private var fallbackTimerTask: Task<Void, Never>?
-    private var initialTimer: Timer?
-    private var statusTask: Task<Void, Never>?
-    private var remainingTask: Task<Void, Never>?
-    private var metricsTask: Task<Void, Never>?
-    private var thermalTask: Task<Void, Never>?
-
-    // MARK: - BatteryServiceProtocol Publishers
-
-    var chargingPublisher: AnyPublisher<BatteryCharging, Never> {
-        $charging.eraseToAnyPublisher()
-    }
-
-    var percentagePublisher: AnyPublisher<Double, Never> {
-        $percentage.eraseToAnyPublisher()
-    }
-
-    var thermalPublisher: AnyPublisher<BatteryThemalState, Never> {
-        $thermal.eraseToAnyPublisher()
-    }
+    nonisolated(unsafe) private var fallbackTimerTask: Task<Void, Never>?
+    nonisolated(unsafe) private var initialTimer: Timer?
+    nonisolated(unsafe) private var statusTask: Task<Void, Never>?
+    nonisolated(unsafe) private var remainingTask: Task<Void, Never>?
+    nonisolated(unsafe) private var metricsTask: Task<Void, Never>?
+    nonisolated(unsafe) private var thermalTask: Task<Void, Never>?
 
     // MARK: - BatteryServiceProtocol Methods
 
@@ -398,23 +382,29 @@ final class BatteryManager: BatteryServiceProtocol {
         guard percentage < 100 else { return nil }
         guard charging.state == .charging else { return nil }
 
-        var seconds = 180.0
         let remainder = 100 - percentage
 
-        if let exists = rate {
-            if percentage > exists.percent {
-                seconds = Date().timeIntervalSince(exists.timestamp)
-
-                UserDefaults.save(.batteryUntilFull, value: seconds)
-
+        if let exists = rate, percentage > exists.percent {
+            let elapsed = Date().timeIntervalSince(exists.timestamp)
+            let percentGained = percentage - exists.percent
+            guard percentGained > 0 else {
+                rate = .init(percentage)
+                return nil
             }
-
+            let secondsPerPercent = elapsed / percentGained
+            UserDefaults.save(.batteryUntilFull, value: secondsPerPercent)
+            rate = .init(percentage)
+            return Date(timeIntervalSinceNow: secondsPerPercent * remainder)
         }
 
         rate = .init(percentage)
 
-        return Date(timeIntervalSinceNow: Double(seconds) * Double(remainder))
-
+        // Use stored rate or fallback
+        let stored = UserDefaults.main.double(forKey: SystemDefaultsKeys.batteryUntilFull.rawValue)
+        if stored > 0 {
+            return Date(timeIntervalSinceNow: stored * remainder)
+        }
+        return nil
     }
 
     private var powerDepetionAverage: Double? {
@@ -434,20 +424,16 @@ final class BatteryManager: BatteryServiceProtocol {
                 let averages = UserDefaults.main
                     .object(forKey: SystemDefaultsKeys.batteryDepletionRate.rawValue) as? [Double] ?? [Double]()
 
-                guard percentage > 0 else { return }
-                if averages.contains(seconds / percentage) == false, charging.state == .battery {
-                    if (seconds / percentage) > 0.0 {
-                        var list = Array(averages.suffix(15))
-                        list.append(seconds / percentage)
+                guard percentage > 0.0, seconds > 0.0 else { return }
+                let depletionRate = seconds / percentage
+                guard depletionRate.isFinite, depletionRate > 0.0 else { return }
 
-                        UserDefaults.save(.batteryDepletionRate, value: list)
-
-                    }
-
+                if averages.contains(depletionRate) == false, charging.state == .battery {
+                    var list = Array(averages.suffix(15))
+                    list.append(depletionRate)
+                    UserDefaults.save(.batteryDepletionRate, value: list)
                 }
-
             }
-
         }
 
     }
