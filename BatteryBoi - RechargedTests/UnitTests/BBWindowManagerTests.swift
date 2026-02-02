@@ -148,7 +148,7 @@ final class BBWindowManagerTests: XCTestCase {
         let device = BluetoothObject.testDevice(
             address: "AA:BB:CC:DD:EE:FF",
             name: "AirPods",
-            batteryPercent: 80,
+            batteryPercent: 80
         )
 
         // When opening a device connected alert

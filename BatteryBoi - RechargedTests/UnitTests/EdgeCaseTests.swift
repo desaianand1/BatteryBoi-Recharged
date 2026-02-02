@@ -229,7 +229,7 @@ final class EdgeCaseTests: XCTestCase {
             name: "Unknown Device",
             isConnected: true,
             batteryPercent: 50,
-            deviceType: "other",
+            deviceType: "other"
         )
 
         // Then it should still be a valid device
@@ -246,7 +246,7 @@ final class EdgeCaseTests: XCTestCase {
             name: "Mystery Device",
             isConnected: false,
             batteryPercent: 75,
-            deviceType: "unknown_type_xyz",
+            deviceType: "unknown_type_xyz"
         )
 
         // Then it should default to .other type

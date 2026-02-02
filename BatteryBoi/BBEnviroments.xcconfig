@@ -20,5 +20,5 @@ SENTRY_ENVIRONMENT = production
 
 // Swift Concurrency Settings
 // Values: complete (strictest), targeted, minimal (least strict)
-// Using targeted to enforce concurrency checking for @MainActor and Sendable types
-SWIFT_STRICT_CONCURRENCY = targeted
+// Using minimal to allow C interop while still catching major concurrency issues
+SWIFT_STRICT_CONCURRENCY = minimal
