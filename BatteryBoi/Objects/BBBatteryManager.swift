@@ -287,14 +287,11 @@ final class BatteryManager: BatteryServiceProtocol {
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(1))
             self.powerStatus(true)
-        }
 
-        Task { @MainActor in
-            try? await Task.sleep(for: .seconds(5))
+            try? await Task.sleep(for: .seconds(4))
             self.saver = await self.fetchPowerSaveModeStatus()
             self.metrics = await self.fetchPowerProfilerDetails()
         }
-
     }
 
     private func powerUpdaterFallback() {
