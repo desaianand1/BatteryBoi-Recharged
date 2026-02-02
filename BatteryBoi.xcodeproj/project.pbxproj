@@ -50,7 +50,6 @@
 		D8DFD5822A8BD7E800732635 /* BBProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8DFD5812A8BD7E800732635 /* BBProgressView.swift */; };
 		D8DFD5842A8C26F300732635 /* BBSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8DFD5832A8C26F300732635 /* BBSettingsView.swift */; };
 		D8DFD5932A956D2C00732635 /* BBBluetoothManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8DFD5922A956D2C00732635 /* BBBluetoothManager.swift */; };
-		D8F2671E2AB00558003A6420 /* SMC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8F2671D2AB00557003A6420 /* SMC.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -135,7 +134,6 @@
 		D8DFD5832A8C26F300732635 /* BBSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBSettingsView.swift; sourceTree = "<group>"; };
 		D8DFD5852A8D510200732635 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
 		D8DFD5922A956D2C00732635 /* BBBluetoothManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBBluetoothManager.swift; sourceTree = "<group>"; };
-		D8F2671D2AB00557003A6420 /* SMC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SMC.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -199,14 +197,6 @@
 			path = Services;
 			sourceTree = "<group>";
 		};
-		D83DD3F62A9BBF2E00FCC534 /* Scripts */ = {
-			isa = PBXGroup;
-			children = (
-				D8F2671D2AB00557003A6420 /* SMC.swift */,
-			);
-			path = Scripts;
-			sourceTree = "<group>";
-		};
 		D851F8032AB21259003FCA79 /* Database */ = {
 			isa = PBXGroup;
 			children = (
@@ -228,7 +218,6 @@
 			children = (
 				D851F8032AB21259003FCA79 /* Database */,
 				D8CDA7F82AA248AD00FAD41E /* SFX */,
-				D83DD3F62A9BBF2E00FCC534 /* Scripts */,
 				D89CCFF02AA0F80C00D9531A /* Localization */,
 			);
 			path = Other;
@@ -523,7 +512,6 @@
 				D8DFD5822A8BD7E800732635 /* BBProgressView.swift in Sources */,
 				D8D9E5AF2A7DF68C00E295FA /* BBBatteryManager.swift in Sources */,
 				D8D9E5A02A7DE7AB00E295FA /* BatteryBoiApp.swift in Sources */,
-				D8F2671E2AB00558003A6420 /* SMC.swift in Sources */,
 				D83CD7452AA8F693004223D7 /* BBBluetoothView.swift in Sources */,
 				D8D9E5B92A80646E00E295FA /* BBExtensions.swift in Sources */,
 			);
@@ -586,9 +574,9 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 6.0;
-				SWIFT_STRICT_CONCURRENCY = minimal;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BatteryBoi - Recharged.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BatteryBoi - Recharged";
 			};
 			name = Debug;
@@ -612,9 +600,9 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 6.0;
-				SWIFT_STRICT_CONCURRENCY = minimal;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BatteryBoi - Recharged.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BatteryBoi - Recharged";
 			};
 			name = Release;
