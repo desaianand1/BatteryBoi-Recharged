@@ -42,6 +42,11 @@ opt_in_rules:
   - prefer_zero_over_explicit_init
   - redundant_nil_coalescing
   - sorted_first_last
+  - explicit_self
+
+# Require explicit self for Swift 6 concurrency
+explicit_self:
+  severity: warning
 
 analyzer_rules:
   - unused_import

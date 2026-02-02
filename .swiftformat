@@ -16,7 +16,6 @@
 
 # Rules
 --enable isEmpty
---enable redundantSelf
 --enable sortImports
 --enable wrapMultilineStatementBraces
 
@@ -24,10 +23,10 @@
 --disable blankLinesAtEndOfScope
 --disable modifierOrder
 --disable trailingCommas
+--disable redundantSelf
 
 # Self - insert for Swift 6 concurrency safety in closures
 --self insert
---selfrequired
 
 # Imports
 --importgrouping alpha
