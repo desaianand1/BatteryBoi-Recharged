@@ -74,19 +74,19 @@ final class WindowManager: WindowServiceProtocol {
     // MARK: - WindowServiceProtocol Methods
 
     func setState(_ state: HUDState, animated: Bool) {
-        windowSetState(state, animated: animated)
+        self.windowSetState(state, animated: animated)
     }
 
     func isVisible(_ type: HUDAlertTypes) -> Bool {
-        windowIsVisible(type)
+        self.windowIsVisible(type)
     }
 
     func open(_ type: HUDAlertTypes, device: BluetoothObject?) {
-        windowOpen(type, device: device)
+        self.windowOpen(type, device: device)
     }
 
     func calculateFrame(moved: NSRect?) -> NSRect {
-        windowHandleFrame(moved: moved)
+        self.windowHandleFrame(moved: moved)
     }
 
     private var screen: CGSize {
@@ -101,7 +101,7 @@ final class WindowManager: WindowServiceProtocol {
     var hover: Bool = false
     var state: HUDState = .hidden {
         didSet {
-            handleStateChange(state)
+            self.handleStateChange(self.state)
         }
     }
 
@@ -109,10 +109,10 @@ final class WindowManager: WindowServiceProtocol {
     var opacity: CGFloat = 1.0
 
     init() {
-        lastChargingState = BatteryManager.shared.charging.state
+        self.lastChargingState = BatteryManager.shared.charging.state
 
         // Observe charging state changes with debounce
-        chargingObserverTask = Task { @MainActor [weak self] in
+        self.chargingObserverTask = Task { @MainActor [weak self] in
             var previousCharging = BatteryManager.shared.charging
             while !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(100))
@@ -122,19 +122,19 @@ final class WindowManager: WindowServiceProtocol {
                 if currentCharging != previousCharging {
                     // Reset thresholds when charging starts
                     if currentCharging.state == .charging {
-                        notifiedThresholds.removeAll()
+                        self.notifiedThresholds.removeAll()
                     }
 
                     // Debounce the charging state change notification (2 seconds)
-                    chargingDebounceTask?.cancel()
+                    self.chargingDebounceTask?.cancel()
                     let newState = currentCharging.state
-                    chargingDebounceTask = Task { @MainActor [weak self] in
+                    self.chargingDebounceTask = Task { @MainActor [weak self] in
                         do {
                             try await Task.sleep(for: .seconds(2))
                             guard let self, !Task.isCancelled else { return }
                             switch newState {
-                            case .battery: windowOpen(.chargingStopped, device: nil)
-                            case .charging: windowOpen(.chargingBegan, device: nil)
+                            case .battery: self.windowOpen(.chargingStopped, device: nil)
+                            case .charging: self.windowOpen(.chargingBegan, device: nil)
                             }
                         } catch {
                             // Task cancelled
@@ -147,7 +147,7 @@ final class WindowManager: WindowServiceProtocol {
         }
 
         // Observe percentage changes (optimized from 500ms to 2s)
-        percentageObserverTask = Task { @MainActor [weak self] in
+        self.percentageObserverTask = Task { @MainActor [weak self] in
             var previousPercent = BatteryManager.shared.percentage
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(2))
@@ -164,17 +164,17 @@ final class WindowManager: WindowServiceProtocol {
                         ]
 
                         for (threshold, alertType) in thresholds {
-                            if currentPercent <= Double(threshold), !notifiedThresholds.contains(threshold) {
-                                notifiedThresholds.insert(threshold)
-                                windowOpen(alertType, device: nil)
+                            if currentPercent <= Double(threshold), !self.notifiedThresholds.contains(threshold) {
+                                self.notifiedThresholds.insert(threshold)
+                                self.windowOpen(alertType, device: nil)
                                 break
                             }
                         }
                     } else {
                         if currentPercent >= 100, SettingsManager.shared.enabledChargeEighty == .disabled {
-                            windowOpen(.chargingComplete, device: nil)
+                            self.windowOpen(.chargingComplete, device: nil)
                         } else if currentPercent >= 80, SettingsManager.shared.enabledChargeEighty == .enabled {
-                            windowOpen(.chargingComplete, device: nil)
+                            self.windowOpen(.chargingComplete, device: nil)
                         }
                     }
 
@@ -184,7 +184,7 @@ final class WindowManager: WindowServiceProtocol {
         }
 
         // Observe thermal state changes
-        thermalObserverTask = Task { @MainActor [weak self] in
+        self.thermalObserverTask = Task { @MainActor [weak self] in
             var previousThermal = BatteryManager.shared.thermal
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(1))
@@ -192,14 +192,14 @@ final class WindowManager: WindowServiceProtocol {
 
                 let currentThermal = BatteryManager.shared.thermal
                 if currentThermal != previousThermal, currentThermal == .suboptimal {
-                    windowOpen(.deviceOverheating, device: nil)
+                    self.windowOpen(.deviceOverheating, device: nil)
                 }
                 previousThermal = currentThermal
             }
         }
 
         // Check Bluetooth device battery levels every 60 seconds
-        bluetoothTimerTask = Task { @MainActor [weak self] in
+        self.bluetoothTimerTask = Task { @MainActor [weak self] in
             var skipFirst = true
             for await _ in AppManager.shared.appTimerAsync(60) {
                 guard let self, !Task.isCancelled else { break }
@@ -211,8 +211,8 @@ final class WindowManager: WindowServiceProtocol {
                     guard let percent = device.battery.general else { continue }
                     let deviceId = device.address
 
-                    if notifiedBluetoothThresholds[deviceId] == nil {
-                        notifiedBluetoothThresholds[deviceId] = []
+                    if self.notifiedBluetoothThresholds[deviceId] == nil {
+                        self.notifiedBluetoothThresholds[deviceId] = []
                     }
 
                     let thresholds: [(Int, HUDAlertTypes)] = [
@@ -224,23 +224,23 @@ final class WindowManager: WindowServiceProtocol {
 
                     for (threshold, alertType) in thresholds {
                         if percent <= Double(threshold),
-                           !(notifiedBluetoothThresholds[deviceId]?.contains(threshold) ?? false)
+                           !(self.notifiedBluetoothThresholds[deviceId]?.contains(threshold) ?? false)
                         {
-                            notifiedBluetoothThresholds[deviceId]?.insert(threshold)
-                            windowOpen(alertType, device: device)
+                            self.notifiedBluetoothThresholds[deviceId]?.insert(threshold)
+                            self.windowOpen(alertType, device: device)
                             break
                         }
                     }
 
                     if percent > 30 {
-                        notifiedBluetoothThresholds[deviceId]?.removeAll()
+                        self.notifiedBluetoothThresholds[deviceId]?.removeAll()
                     }
                 }
             }
         }
 
         // Check for upcoming events every 30 seconds
-        eventTimerTask = Task { @MainActor [weak self] in
+        self.eventTimerTask = Task { @MainActor [weak self] in
             var skipFirst = true
             for await _ in AppManager.shared.appTimerAsync(30) {
                 guard let self, !Task.isCancelled else { break }
@@ -252,7 +252,7 @@ final class WindowManager: WindowServiceProtocol {
                             .minute
                         {
                             if minutes == 2 {
-                                windowOpen(.userEvent, device: nil)
+                                self.windowOpen(.userEvent, device: nil)
                             }
                         }
                     }
@@ -261,7 +261,7 @@ final class WindowManager: WindowServiceProtocol {
         }
 
         // Observe pinned setting changes
-        pinnedObserverTask = Task { @MainActor [weak self] in
+        self.pinnedObserverTask = Task { @MainActor [weak self] in
             for await key in UserDefaults.changedAsync() {
                 guard let self, !Task.isCancelled else { break }
                 if key == .enabledPinned, SettingsManager.shared.pinned == .enabled {
@@ -272,7 +272,7 @@ final class WindowManager: WindowServiceProtocol {
             }
         }
 
-        globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [
+        self.globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [
             .leftMouseUp,
             .rightMouseUp,
         ]) { [weak self] _ in
@@ -281,26 +281,26 @@ final class WindowManager: WindowServiceProtocol {
 
                 // Debounce mouse events
                 let now = Date()
-                guard now.timeIntervalSince(lastMouseEventTime) > mouseEventDebounceInterval else { return }
-                lastMouseEventTime = now
+                guard now.timeIntervalSince(self.lastMouseEventTime) > self.mouseEventDebounceInterval else { return }
+                self.lastMouseEventTime = now
 
                 if NSRunningApplication.current == NSWorkspace.shared.frontmostApplication {
-                    if state == .revealed || state == .progress {
-                        windowSetState(.detailed)
+                    if self.state == .revealed || self.state == .progress {
+                        self.windowSetState(.detailed)
                     }
                 } else {
                     if SettingsManager.shared.enabledPinned == .disabled {
-                        if state.visible == true {
-                            windowSetState(.dismissed)
+                        if self.state.visible == true {
+                            self.windowSetState(.dismissed)
                         }
                     } else {
-                        windowSetState(.revealed)
+                        self.windowSetState(.revealed)
                     }
                 }
             }
         }
 
-        position = windowLastPosition
+        self.position = self.windowLastPosition
     }
 
     deinit {
@@ -320,54 +320,54 @@ final class WindowManager: WindowServiceProtocol {
 
     private func handleStateChange(_ state: HUDState) {
         // Cancel any pending state transition tasks from previous state changes
-        stateTransitionTask?.cancel()
+        self.stateTransitionTask?.cancel()
 
         if state == .dismissed {
             // Cancel any pending dismissal when manually dismissed
-            dismissalTask?.cancel()
-            dismissalTask = nil
+            self.dismissalTask?.cancel()
+            self.dismissalTask = nil
 
-            stateTransitionTask = Task { @MainActor [weak self] in
+            self.stateTransitionTask = Task { @MainActor in
                 try? await Task.sleep(for: .seconds(0.8))
-                guard let self, !Task.isCancelled else { return }
+                guard !Task.isCancelled else { return }
                 Self.shared.windowClose()
             }
         } else if state == .progress {
-            stateTransitionTask = Task { @MainActor [weak self] in
+            self.stateTransitionTask = Task { @MainActor [weak self] in
                 try? await Task.sleep(for: .seconds(0.2))
                 guard let self, !Task.isCancelled else { return }
-                windowSetState(.revealed)
+                self.windowSetState(.revealed)
             }
         } else if state == .revealed {
             // Transition to detailed view for non-timeout alerts after 1 second
             let shouldTransitionToDetailed = AppManager.shared.alert?.timeout == false
             if shouldTransitionToDetailed {
-                stateTransitionTask = Task { @MainActor [weak self] in
+                self.stateTransitionTask = Task { @MainActor [weak self] in
                     try? await Task.sleep(for: .seconds(1))
                     guard let self, !Task.isCancelled else { return }
-                    windowSetState(.detailed)
+                    self.windowSetState(.detailed)
                 }
             }
 
             // Schedule auto-dismissal based on alert timeout setting
-            scheduleDismissal()
+            self.scheduleDismissal()
         }
     }
 
     /// Schedules auto-dismissal of the HUD based on the current alert's timeout setting.
     /// Cancels any existing dismissal task before scheduling a new one.
     private func scheduleDismissal() {
-        dismissalTask?.cancel()
+        self.dismissalTask?.cancel()
 
         // Capture the current state at scheduling time to avoid race conditions
         let targetState: HUDState = .revealed
         let timeout: Duration = AppManager.shared.alert?.timeout == true ? .seconds(5) : .seconds(10)
 
-        dismissalTask = Task { @MainActor [weak self] in
+        self.dismissalTask = Task { @MainActor [weak self] in
             do {
                 try await Task.sleep(for: timeout)
                 guard let self, !Task.isCancelled, state == targetState else { return }
-                windowSetState(.dismissed)
+                self.windowSetState(.dismissed)
             } catch {
                 // Task was cancelled, don't dismiss
             }
@@ -400,8 +400,8 @@ final class WindowManager: WindowServiceProtocol {
 
     func windowOpen(_ type: HUDAlertTypes, device: BluetoothObject?) {
         // Cancel any pending dismissal from a previous alert
-        dismissalTask?.cancel()
-        dismissalTask = nil
+        self.dismissalTask?.cancel()
+        self.dismissalTask = nil
 
         if let window = windowExists(type) {
             window.contentView = WindowHostingView(rootView: HUDParent(type, device: device))
@@ -423,7 +423,7 @@ final class WindowManager: WindowServiceProtocol {
                 AppManager.shared.device = device
                 AppManager.shared.alert = type
 
-                windowSetState(.progress)
+                self.windowSetState(.progress)
             }
         }
     }
@@ -434,7 +434,7 @@ final class WindowManager: WindowServiceProtocol {
                 AppManager.shared.alert = nil
                 AppManager.shared.device = nil
 
-                state = .hidden
+                self.state = .hidden
 
                 window.alphaValue = 0.0
 
@@ -454,7 +454,7 @@ final class WindowManager: WindowServiceProtocol {
         window?.title = BBConstants.Window.modalWindowTitle
         window?.isMovableByWindowBackground = true
         window?.backgroundColor = .clear
-        window?.setFrame(windowHandleFrame(), display: true)
+        window?.setFrame(self.windowHandleFrame(), display: true)
         window?.titlebarAppearsTransparent = true
         window?.titleVisibility = .hidden
         window?.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
@@ -470,20 +470,20 @@ final class WindowManager: WindowServiceProtocol {
         if let window = NSApplication.shared.windows.first(where: { $0.title == BBConstants.Window.modalWindowTitle }) {
             window
         } else {
-            windowDefault(type)
+            self.windowDefault(type)
         }
     }
 
     func windowHandleFrame(moved: NSRect? = nil) -> NSRect {
-        let windowWidth = screen.width / 3
-        let windowHeight = screen.height / 2
+        let windowWidth = self.screen.width / 3
+        let windowHeight = self.screen.height / 2
         let windowMargin = BBConstants.Window.defaultMargin
 
         let positionDefault = CGSize(width: 420, height: 220)
 
-        if triggered > 5 {
+        if self.triggered > 5 {
             if let moved {
-                _ = calculateWindowLastPosition(
+                _ = self.calculateWindowLastPosition(
                     moved: moved,
                     windowHeight: windowHeight,
                     windowWidth: windowWidth,
@@ -495,12 +495,12 @@ final class WindowManager: WindowServiceProtocol {
             }
 
         } else {
-            triggered += 1
+            self.triggered += 1
 
         }
 
-        return calculateInitialPosition(
-            mode: windowLastPosition,
+        return self.calculateInitialPosition(
+            mode: self.windowLastPosition,
             defaultSize: positionDefault,
             windowMargin: windowMargin
         )
@@ -540,7 +540,7 @@ final class WindowManager: WindowServiceProtocol {
         var positionMode: WindowPosition
 
         if moved.midY > windowHeight {
-            positionTop = screen.height - windowMargin
+            positionTop = self.screen.height - windowMargin
 
         } else {
             positionTop = windowMargin
@@ -561,7 +561,7 @@ final class WindowManager: WindowServiceProtocol {
 
         }
 
-        windowLastPosition = positionMode
+        self.windowLastPosition = positionMode
 
         return positionMode
 
@@ -573,20 +573,20 @@ final class WindowManager: WindowServiceProtocol {
 
         switch mode {
         case .center:
-            positionLeft = (screen.width / 2) - (defaultSize.width / 2)
-            positionTop = (screen.height / 2) - (defaultSize.height / 2)
+            positionLeft = (self.screen.width / 2) - (defaultSize.width / 2)
+            positionTop = (self.screen.height / 2) - (defaultSize.height / 2)
 
         case .topLeft, .bottomLeft:
             positionLeft = windowMargin
-            positionTop = (mode == .topLeft) ? screen.height - (defaultSize.height + windowMargin) : windowMargin
+            positionTop = (mode == .topLeft) ? self.screen.height - (defaultSize.height + windowMargin) : windowMargin
 
         case .topMiddle:
-            positionLeft = (screen.width / 2) - (defaultSize.width / 2)
-            positionTop = screen.height - (defaultSize.height + windowMargin)
+            positionLeft = (self.screen.width / 2) - (defaultSize.width / 2)
+            positionTop = self.screen.height - (defaultSize.height + windowMargin)
 
         case .topRight, .bottomRight:
-            positionLeft = screen.width - (defaultSize.width + windowMargin)
-            positionTop = (mode == .topRight) ? screen.height - (defaultSize.height + windowMargin) : windowMargin
+            positionLeft = self.screen.width - (defaultSize.width + windowMargin)
+            positionTop = (mode == .topRight) ? self.screen.height - (defaultSize.height + windowMargin) : windowMargin
         }
 
         return NSRect(x: positionLeft, y: positionTop, width: defaultSize.width, height: defaultSize.height)
