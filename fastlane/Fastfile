@@ -42,7 +42,7 @@ platform :mac do
       configuration: "Release",
       output_directory: "./build",
       export_method: "developer-id",
-      skip_package_dmg: true
+      skip_package_pkg: true
     )
   end
 
@@ -62,7 +62,7 @@ platform :mac do
       configuration: "Release",
       output_directory: "./build",
       export_method: "developer-id",
-      skip_package_dmg: true
+      skip_package_pkg: true
     )
 
     # Notarize
