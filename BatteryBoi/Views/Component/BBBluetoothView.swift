@@ -186,7 +186,7 @@ struct BluetoothItem: View {
             }
 
         }
-        .onChange(of: manager.device) { newValue in
+        .onChange(of: manager.device) { _, newValue in
             if let animation = easeOutAnimation {
                 withAnimation(animation) {
                     style = newValue == item ? .light : .dark

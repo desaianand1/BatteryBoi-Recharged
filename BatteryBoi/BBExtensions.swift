@@ -85,7 +85,7 @@ struct ViewMarkdown: View {
             }
 
         }
-        .onChange(of: text) { newValue in
+        .onChange(of: text) { _, newValue in
             components = newValue.components(separatedBy: "**")
 
         }
