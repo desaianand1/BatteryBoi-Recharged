@@ -196,12 +196,12 @@ final class BatteryManager: BatteryServiceProtocol {
     var metrics: BatteryMetricsObject?
     var thermal: BatteryThemalState = .optimal
 
-    nonisolated(unsafe) private var fallbackTimerTask: Task<Void, Never>?
+    nonisolated private var fallbackTimerTask: Task<Void, Never>?
     nonisolated(unsafe) private var initialTimer: Timer?
-    nonisolated(unsafe) private var statusTask: Task<Void, Never>?
-    nonisolated(unsafe) private var remainingTask: Task<Void, Never>?
-    nonisolated(unsafe) private var metricsTask: Task<Void, Never>?
-    nonisolated(unsafe) private var thermalTask: Task<Void, Never>?
+    nonisolated private var statusTask: Task<Void, Never>?
+    nonisolated private var remainingTask: Task<Void, Never>?
+    nonisolated private var metricsTask: Task<Void, Never>?
+    nonisolated private var thermalTask: Task<Void, Never>?
 
     // MARK: - BatteryServiceProtocol Methods
 
@@ -430,7 +430,7 @@ final class BatteryManager: BatteryServiceProtocol {
 
     private func fetchPowerSaveModeStatus() async -> BatteryModeType {
         // Use native ProcessInfo API instead of shell command
-        let isLowPowerMode = await IOKitBatteryService.shared.isLowPowerModeEnabled()
+        let isLowPowerMode = IOKitBatteryService.shared.isLowPowerModeEnabled()
         return isLowPowerMode ? .efficient : .normal
     }
 
@@ -466,7 +466,7 @@ final class BatteryManager: BatteryServiceProtocol {
 
     private func powerThermalCheck() async {
         // Use native ProcessInfo API instead of shell command
-        let isThrottled = await IOKitBatteryService.shared.getThermalState()
+        let isThrottled = IOKitBatteryService.shared.getThermalState()
         thermal = isThrottled ? .suboptimal : .optimal
     }
 
