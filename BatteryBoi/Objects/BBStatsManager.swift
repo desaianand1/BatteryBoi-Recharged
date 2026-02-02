@@ -44,10 +44,10 @@ final class StatsManager {
     var subtitle: String
 
     // Async observation tasks (nonisolated for deinit access)
-    nonisolated(unsafe) private var userDefaultsTask: Task<Void, Never>?
-    nonisolated(unsafe) private var batteryObserverTask: Task<Void, Never>?
-    nonisolated(unsafe) private var bluetoothObserverTask: Task<Void, Never>?
-    nonisolated(unsafe) private var wattageTimerTask: Task<Void, Never>?
+    nonisolated private var userDefaultsTask: Task<Void, Never>?
+    nonisolated private var batteryObserverTask: Task<Void, Never>?
+    nonisolated private var bluetoothObserverTask: Task<Void, Never>?
+    nonisolated private var wattageTimerTask: Task<Void, Never>?
 
     static let container: StatsContainerObject = {
         let object = "BBDataObject"

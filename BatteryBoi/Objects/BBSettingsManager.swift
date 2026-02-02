@@ -257,7 +257,7 @@ final class SettingsManager: SettingsServiceProtocol {
     /// Direct distribution shows update check option; App Store handles updates itself.
     private let isDirectDistribution: Bool
 
-    nonisolated(unsafe) private var settingsTask: Task<Void, Never>?
+    nonisolated private var settingsTask: Task<Void, Never>?
 
     // MARK: - SettingsServiceProtocol Computed Properties
 

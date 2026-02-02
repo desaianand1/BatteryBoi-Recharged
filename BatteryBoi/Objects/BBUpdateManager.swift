@@ -54,7 +54,7 @@ final class UpdateManager: NSObject, SPUUpdaterDelegate {
 
     /// Task for resetting state to idle after completion/failure.
     /// Cancels previous task to prevent race conditions.
-    nonisolated(unsafe) private var stateResetTask: Task<Void, Never>?
+    nonisolated private var stateResetTask: Task<Void, Never>?
 
     var state: UpdateStateType = .completed {
         didSet {

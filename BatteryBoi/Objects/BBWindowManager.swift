@@ -51,21 +51,21 @@ final class WindowManager: WindowServiceProtocol {
     private var notifiedBluetoothThresholds: [String: Set<Int>] = [:]
     nonisolated(unsafe) private var globalMouseMonitor: Any?
     /// Task for auto-dismissing the HUD after a timeout. Cancelled when a new alert appears.
-    nonisolated(unsafe) private var dismissalTask: Task<Void, Never>?
+    nonisolated private var dismissalTask: Task<Void, Never>?
     /// Task for handling state transitions. Cancelled when a new state change occurs.
-    nonisolated(unsafe) private var stateTransitionTask: Task<Void, Never>?
+    nonisolated private var stateTransitionTask: Task<Void, Never>?
 
     // Async observation tasks
-    nonisolated(unsafe) private var chargingObserverTask: Task<Void, Never>?
-    nonisolated(unsafe) private var percentageObserverTask: Task<Void, Never>?
-    nonisolated(unsafe) private var thermalObserverTask: Task<Void, Never>?
-    nonisolated(unsafe) private var bluetoothTimerTask: Task<Void, Never>?
-    nonisolated(unsafe) private var eventTimerTask: Task<Void, Never>?
-    nonisolated(unsafe) private var pinnedObserverTask: Task<Void, Never>?
+    nonisolated private var chargingObserverTask: Task<Void, Never>?
+    nonisolated private var percentageObserverTask: Task<Void, Never>?
+    nonisolated private var thermalObserverTask: Task<Void, Never>?
+    nonisolated private var bluetoothTimerTask: Task<Void, Never>?
+    nonisolated private var eventTimerTask: Task<Void, Never>?
+    nonisolated private var pinnedObserverTask: Task<Void, Never>?
 
     // Debounce tracking for charging state changes
     private var lastChargingState: BatteryChargingState?
-    nonisolated(unsafe) private var chargingDebounceTask: Task<Void, Never>?
+    nonisolated private var chargingDebounceTask: Task<Void, Never>?
 
     // Mouse event debouncing
     private var lastMouseEventTime: Date = .distantPast

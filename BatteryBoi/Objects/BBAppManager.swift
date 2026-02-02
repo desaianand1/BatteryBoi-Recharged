@@ -14,7 +14,7 @@ final class AppManager {
     var menu: SystemMenuView = .devices
     var profile: SystemProfileObject?
 
-    nonisolated(unsafe) private var timerTask: Task<Void, Never>?
+    nonisolated private var timerTask: Task<Void, Never>?
 
     init() {
         // Start the main timer using async/await
