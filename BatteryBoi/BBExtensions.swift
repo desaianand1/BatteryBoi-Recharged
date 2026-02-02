@@ -21,7 +21,7 @@ struct ViewScrollMask: ViewModifier {
 
                 }
 
-            },
+            }
 
         )
 

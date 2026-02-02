@@ -213,7 +213,7 @@ final class AppManager {
                 let output = try await ProcessRunner.shared.run(
                     executable: "/usr/bin/python3",
                     arguments: [script],
-                    timeout: .seconds(30),
+                    timeout: .seconds(30)
                 )
 
                 UserDefaults.save(.profilePayload, value: output)
@@ -221,7 +221,7 @@ final class AppManager {
 
                 if let object = try? JSONDecoder().decode(
                     [SystemProfileObject].self,
-                    from: Data(output.utf8),
+                    from: Data(output.utf8)
                 ) {
                     if let id = object.first?.id, let display = object.first?.display {
                         return SystemProfileObject(id: id, display: display)
@@ -242,7 +242,7 @@ final class AppManager {
             let output = try await ProcessRunner.shared.run(
                 executable: "/usr/bin/codesign",
                 arguments: ["-dv", "--verbose=4", Bundle.main.bundlePath],
-                timeout: .seconds(10),
+                timeout: .seconds(10)
             )
 
             if output.contains("Authority=Apple Mac OS Application Signing") {

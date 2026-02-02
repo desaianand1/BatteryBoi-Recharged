@@ -48,9 +48,9 @@ struct RadialProgressBar: View {
                     .stroke(
                         AngularGradient(
                             gradient: Gradient(colors: [Color("BatteryTitle"), Color("BatteryTitle").opacity(0.96)]),
-                            center: .center,
+                            center: .center
                         ),
-                        style: StrokeStyle(lineWidth: line, lineCap: .round),
+                        style: StrokeStyle(lineWidth: line, lineCap: .round)
 
                     )
                     .rotationEffect(.degrees(-90))
@@ -61,9 +61,9 @@ struct RadialProgressBar: View {
                     .stroke(
                         AngularGradient(
                             gradient: Gradient(colors: [Color("BatteryButton"), Color("BatteryButton").opacity(0.96)]),
-                            center: .center,
+                            center: .center
                         ),
-                        style: StrokeStyle(lineWidth: line, lineCap: .round),
+                        style: StrokeStyle(lineWidth: line, lineCap: .round)
 
                     )
                     .rotationEffect(.degrees(-90))
@@ -74,9 +74,9 @@ struct RadialProgressBar: View {
                     .stroke(
                         AngularGradient(
                             gradient: Gradient(colors: [Color("BatteryProgressGreen"), Color.green, Color.green]),
-                            center: .center,
+                            center: .center
                         ),
-                        style: StrokeStyle(lineWidth: line, lineCap: .round),
+                        style: StrokeStyle(lineWidth: line, lineCap: .round)
                     )
                     .rotationEffect(.degrees(-90))
 

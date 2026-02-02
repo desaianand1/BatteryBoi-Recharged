@@ -77,7 +77,7 @@ final class AppEnvironment {
         app: AppManager,
         stats: StatsManager,
         update: UpdateManager,
-        event: EventManager,
+        event: EventManager
     ) {
         self.battery = battery
         self.bluetooth = bluetooth

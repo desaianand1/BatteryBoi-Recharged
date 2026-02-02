@@ -29,7 +29,7 @@ struct BluetoothIcon: View {
                         .background(
                             Circle()
                                 .fill(style == .light ? Color("BatteryTitle") : Color("BatteryButton"))
-                                .blur(radius: 2),
+                                .blur(radius: 2)
 
                         )
                         .matchedGeometryEffect(id: icon, in: animation)
@@ -173,10 +173,10 @@ struct BluetoothItem: View {
                 .padding(.trailing, 26)
                 .background(
                     RoundedRectangle(cornerRadius: 30, style: .continuous)
-                        .fill(style == .light ? Color("BatteryTitle") : Color("BatteryButton")),
+                        .fill(style == .light ? Color("BatteryTitle") : Color("BatteryButton"))
 
                 )
-            },
+            }
         )
         .buttonStyle(.plain)
         .onHover { hover in

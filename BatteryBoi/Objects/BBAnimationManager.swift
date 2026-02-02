@@ -55,7 +55,7 @@ struct AnimationKeyframeObject: Equatable {
         radius: CGFloat = 0.0,
         scale: CGFloat = 1.0,
         rotate: CGFloat = 0.0,
-        padding: AnimationPadding? = nil,
+        padding: AnimationPadding? = nil
     ) {
         self.width = width
         self.height = height
@@ -89,7 +89,7 @@ struct AnimationObject: Equatable {
         loop: Int = 1,
         easing _: AnimationEasingType = .linear,
         id: String? = nil,
-        autoplay: Bool = true,
+        autoplay: Bool = true
     ) {
         self.loop = loop
         self.keyframes = keyframes

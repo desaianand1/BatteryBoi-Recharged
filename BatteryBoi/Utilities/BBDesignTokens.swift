@@ -35,7 +35,7 @@ enum BBAnimation {
     static func spring(
         response: Double = 0.4,
         dampingFraction: Double = 0.8,
-        reduceMotion: Bool,
+        reduceMotion: Bool
     ) -> Animation? {
         reduceMotion ? nil : .spring(response: response, dampingFraction: dampingFraction)
     }

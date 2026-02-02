@@ -298,25 +298,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             self,
             andSelector: #selector(applicationHandleURLEvent(event:reply:)),
             forEventClass: AEEventClass(kInternetEventClass),
-            andEventID: AEEventID(kAEGetURL),
+            andEventID: AEEventID(kAEGetURL)
         )
 
         NSWorkspace.shared.notificationCenter.addObserver(
             self,
             selector: #selector(applicationDidWakeNotification(_:)),
             name: NSWorkspace.didWakeNotification,
-            object: nil,
+            object: nil
         )
         NSWorkspace.shared.notificationCenter.addObserver(
             self,
             selector: #selector(applicationDidSleepNotification(_:)),
             name: NSWorkspace.screensDidSleepNotification,
-            object: nil,
+            object: nil
         )
         windowMoveObserver = NotificationCenter.default.addObserver(
             forName: NSWindow.didMoveNotification,
             object: nil,
-            queue: .main,
+            queue: .main
         ) { [weak self] notification in
             // Extract window before crossing actor boundary to avoid Sendable issues
             guard let window = notification.object as? NSWindow else { return }
@@ -380,7 +380,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
                     window.animator().setFrame(
                         WindowManager.shared.windowHandleFrame(),
                         display: true,
-                        animate: true,
+                        animate: true
                     )
                 }
             }

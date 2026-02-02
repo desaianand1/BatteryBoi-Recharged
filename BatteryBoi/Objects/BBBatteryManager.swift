@@ -457,7 +457,7 @@ final class BatteryManager: BatteryServiceProtocol {
                         SentrySDK.capture(message: "Power save mode AppleScript failed") { scope in
                             scope.setExtra(
                                 value: error["NSAppleScriptErrorMessage"] as? String ?? "Unknown error",
-                                key: "message",
+                                key: "message"
                             )
                             scope.setExtra(value: error["NSAppleScriptErrorNumber"] as? Int ?? -1, key: "errorNumber")
                         }

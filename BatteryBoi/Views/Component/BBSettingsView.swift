@@ -83,10 +83,10 @@ struct SettingsItem: View {
                 .padding(.leading, 18)
                 .padding(.trailing, 26)
                 .background(
-                    RoundedRectangle(cornerRadius: 30, style: .continuous).fill(Color("BatteryButton")),
+                    RoundedRectangle(cornerRadius: 30, style: .continuous).fill(Color("BatteryButton"))
 
                 )
-            },
+            }
         )
         .buttonStyle(.plain)
         .onAppear {
@@ -249,10 +249,10 @@ struct SettingsOverlayItem: View {
                     .overlay(
                         Image(systemName: icon)
                             .font(BBTypography.headingLarge)
-                            .foregroundColor(Color("BatterySubtitle")),
+                            .foregroundColor(Color("BatterySubtitle"))
 
                     )
-            },
+            }
         )
         .buttonStyle(.plain)
         .modifier(QuitKeyboardShortcutModifier(isQuitButton: item == .appQuit))

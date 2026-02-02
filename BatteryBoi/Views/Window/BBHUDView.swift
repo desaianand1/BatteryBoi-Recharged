@@ -98,7 +98,7 @@ enum HUDState: Equatable {
                     .init(0.2, easing: .easeout, width: 120, height: 120, radius: 66),
                     .init(0.3, delay: 1.0, easing: .bounce, width: 40, height: 40, opacity: 0, radius: 66),
                 ],
-                id: "expand_close",
+                id: "expand_close"
             )
 
         }
@@ -487,16 +487,16 @@ struct HUDView: View {
         }
         .frame(width: 440, height: 240)
         .background(
-            Color("BatteryBackground").opacity(window.opacity),
+            Color("BatteryBackground").opacity(window.opacity)
 
         )
         .timeline($timeline, state: $animation)
         .mask(
-            HUDMaskView(),
+            HUDMaskView()
 
         )
         .background(
-            HUDGlow(),
+            HUDGlow()
 
         )
         .onHover(perform: { hover in

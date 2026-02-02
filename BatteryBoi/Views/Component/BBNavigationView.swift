@@ -65,7 +65,7 @@ struct NavigationContainer: View {
                         .background(GeometryReader { geometry in
                             Color.clear.preference(
                                 key: SettingsScrollOffsetKey.self,
-                                value: geometry.frame(in: .named("scroll")).origin,
+                                value: geometry.frame(in: .named("scroll")).origin
                             )
 
                         })
@@ -102,7 +102,7 @@ struct NavigationContainer: View {
                                     Color("BatteryBackground"),
                                 ]),
                                 startPoint: .leading,
-                                endPoint: .trailing,
+                                endPoint: .trailing
                             )
                             .frame(width: 30)
 
@@ -110,7 +110,7 @@ struct NavigationContainer: View {
 
                         }
                         .frame(width: size.width + 16)
-                        .offset(x: !bluetooth.connected.isEmpty ? -8.0 : 48.0),
+                        .offset(x: !bluetooth.connected.isEmpty ? -8.0 : 48.0)
 
                     )
                     .overlay(
@@ -120,7 +120,7 @@ struct NavigationContainer: View {
 
                             }
 
-                        },
+                        }
 
                     )
                     .offset(x: -(size.width))

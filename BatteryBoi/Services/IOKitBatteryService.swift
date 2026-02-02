@@ -67,7 +67,7 @@ actor IOKitBatteryService {
             percentage: percentage,
             isCharging: isCharging,
             timeRemaining: timeRemaining,
-            isACPowered: isACPowered,
+            isACPowered: isACPowered
         )
     }
 
@@ -78,7 +78,7 @@ actor IOKitBatteryService {
     func getBatteryMetrics() -> IOKitBatteryMetrics? {
         let service = IOServiceGetMatchingService(
             kIOMainPortDefault, // NOT kIOMasterPortDefault (deprecated macOS 12+)
-            IOServiceMatching("AppleSmartBattery"),
+            IOServiceMatching("AppleSmartBattery")
         )
         guard service != IO_OBJECT_NULL else { return nil }
         defer { IOObjectRelease(service) }
@@ -108,7 +108,7 @@ actor IOKitBatteryService {
             designCapacity: designCapacity,
             temperature: temperature,
             voltage: voltage,
-            amperage: amperage,
+            amperage: amperage
         )
     }
 

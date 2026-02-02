@@ -487,7 +487,7 @@ final class WindowManager: WindowServiceProtocol {
                     moved: moved,
                     windowHeight: windowHeight,
                     windowWidth: windowWidth,
-                    windowMargin: windowMargin,
+                    windowMargin: windowMargin
                 )
 
                 return NSRect(x: moved.origin.x, y: moved.origin.y, width: moved.width, height: moved.height)
@@ -502,7 +502,7 @@ final class WindowManager: WindowServiceProtocol {
         return calculateInitialPosition(
             mode: windowLastPosition,
             defaultSize: positionDefault,
-            windowMargin: windowMargin,
+            windowMargin: windowMargin
         )
 
     }
@@ -534,7 +534,7 @@ final class WindowManager: WindowServiceProtocol {
         moved: NSRect,
         windowHeight: CGFloat,
         windowWidth: CGFloat,
-        windowMargin: CGFloat,
+        windowMargin: CGFloat
     ) -> WindowPosition {
         var positionTop: CGFloat
         var positionMode: WindowPosition

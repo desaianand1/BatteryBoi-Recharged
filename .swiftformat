@@ -18,12 +18,12 @@
 --enable isEmpty
 --enable redundantSelf
 --enable sortImports
---enable trailingCommas
 --enable wrapMultilineStatementBraces
 
 --disable blankLinesAtStartOfScope
 --disable blankLinesAtEndOfScope
 --disable modifierOrder
+--disable trailingCommas
 
 # Self
 --self remove

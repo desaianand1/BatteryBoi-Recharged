@@ -73,7 +73,7 @@ public typealias SMCBytes = (
     UInt8,
     UInt8,
     UInt8,
-    UInt8,
+    UInt8
 )
 
 // ------------------------------------------------------------------------------
@@ -282,7 +282,7 @@ public struct SMCParamStruct {
         UInt8(0),
         UInt8(0),
         UInt8(0),
-        UInt8(0),
+        UInt8(0)
     )
 }
 
@@ -362,7 +362,7 @@ public enum SMCKit {
     public static func open() throws {
         let service = IOServiceGetMatchingService(
             kIOMainPortDefault,
-            IOServiceMatching("AppleSMC"),
+            IOServiceMatching("AppleSMC")
         )
 
         if service == 0 { throw SMCError.driverNotFound }
@@ -371,7 +371,7 @@ public enum SMCKit {
             service,
             mach_task_self_,
             0,
-            &Self.connection,
+            &Self.connection
         )
         IOObjectRelease(service)
 
@@ -396,7 +396,7 @@ public enum SMCKit {
 
         return DataType(
             type: outputStruct.keyInfo.dataType,
-            size: IOByteCount(outputStruct.keyInfo.dataSize),
+            size: IOByteCount(outputStruct.keyInfo.dataSize)
         )
     }
 
@@ -444,7 +444,7 @@ public enum SMCKit {
     /// Make an actual call to the SMC driver
     public static func callDriver(
         _ inputStruct: inout SMCParamStruct,
-        selector: SMCParamStruct.Selector = .kSMCHandleYPCEvent,
+        selector: SMCParamStruct.Selector = .kSMCHandleYPCEvent
     ) throws -> SMCParamStruct {
         os_log("SMCPARAMSTRUCT SIZE: %d", MemoryLayout<SMCParamStruct>.stride)
         assert(MemoryLayout<SMCParamStruct>.stride == 80, "SMCParamStruct size is != 80")
@@ -459,7 +459,7 @@ public enum SMCKit {
             &inputStruct,
             inputStructSize,
             &outputStruct,
-            &outputStructSize,
+            &outputStructSize
         )
 
         switch (result, outputStruct.result) {
@@ -472,7 +472,7 @@ public enum SMCKit {
         default:
             throw SMCError.unknown(
                 kIOReturn: result,
-                SMCResult: outputStruct.result,
+                SMCResult: outputStruct.result
             )
         }
     }
@@ -503,7 +503,7 @@ public extension SMCKit {
     static func keyCount() throws -> Int {
         let key = SMCKey(
             code: FourCharCode(fromStaticString: "#KEY"),
-            info: DataTypes.UInt32,
+            info: DataTypes.UInt32
         )
 
         let data = try readData(key)
@@ -540,130 +540,130 @@ public enum TemperatureSensors {
 
     public static let AMBIENT_AIR_0 = TemperatureSensor(
         name: "AMBIENT_AIR_0",
-        code: FourCharCode(fromStaticString: "TA0P"),
+        code: FourCharCode(fromStaticString: "TA0P")
     )
     public static let AMBIENT_AIR_1 = TemperatureSensor(
         name: "AMBIENT_AIR_1",
-        code: FourCharCode(fromStaticString: "TA1P"),
+        code: FourCharCode(fromStaticString: "TA1P")
     )
     /// Via powermetrics(1)
     public static let CPU_0_DIE = TemperatureSensor(
         name: "CPU_0_DIE",
-        code: FourCharCode(fromStaticString: "TC0F"),
+        code: FourCharCode(fromStaticString: "TC0F")
     )
     public static let CPU_0_DIODE = TemperatureSensor(
         name: "CPU_0_DIODE",
-        code: FourCharCode(fromStaticString: "TC0D"),
+        code: FourCharCode(fromStaticString: "TC0D")
     )
     public static let CPU_0_HEATSINK = TemperatureSensor(
         name: "CPU_0_HEATSINK",
-        code: FourCharCode(fromStaticString: "TC0H"),
+        code: FourCharCode(fromStaticString: "TC0H")
     )
     public static let CPU_0_PROXIMITY =
         TemperatureSensor(
             name: "CPU_0_PROXIMITY",
-            code: FourCharCode(fromStaticString: "TC0P"),
+            code: FourCharCode(fromStaticString: "TC0P")
         )
     public static let ENCLOSURE_BASE_0 =
         TemperatureSensor(
             name: "ENCLOSURE_BASE_0",
-            code: FourCharCode(fromStaticString: "TB0T"),
+            code: FourCharCode(fromStaticString: "TB0T")
         )
     public static let ENCLOSURE_BASE_1 =
         TemperatureSensor(
             name: "ENCLOSURE_BASE_1",
-            code: FourCharCode(fromStaticString: "TB1T"),
+            code: FourCharCode(fromStaticString: "TB1T")
         )
     public static let ENCLOSURE_BASE_2 =
         TemperatureSensor(
             name: "ENCLOSURE_BASE_2",
-            code: FourCharCode(fromStaticString: "TB2T"),
+            code: FourCharCode(fromStaticString: "TB2T")
         )
     public static let ENCLOSURE_BASE_3 =
         TemperatureSensor(
             name: "ENCLOSURE_BASE_3",
-            code: FourCharCode(fromStaticString: "TB3T"),
+            code: FourCharCode(fromStaticString: "TB3T")
         )
     public static let GPU_0_DIODE = TemperatureSensor(
         name: "GPU_0_DIODE",
-        code: FourCharCode(fromStaticString: "TG0D"),
+        code: FourCharCode(fromStaticString: "TG0D")
     )
     public static let GPU_0_HEATSINK = TemperatureSensor(
         name: "GPU_0_HEATSINK",
-        code: FourCharCode(fromStaticString: "TG0H"),
+        code: FourCharCode(fromStaticString: "TG0H")
     )
     public static let GPU_0_PROXIMITY =
         TemperatureSensor(
             name: "GPU_0_PROXIMITY",
-            code: FourCharCode(fromStaticString: "TG0P"),
+            code: FourCharCode(fromStaticString: "TG0P")
         )
     public static let HDD_PROXIMITY = TemperatureSensor(
         name: "HDD_PROXIMITY",
-        code: FourCharCode(fromStaticString: "TH0P"),
+        code: FourCharCode(fromStaticString: "TH0P")
     )
     public static let HEATSINK_0 = TemperatureSensor(
         name: "HEATSINK_0",
-        code: FourCharCode(fromStaticString: "Th0H"),
+        code: FourCharCode(fromStaticString: "Th0H")
     )
     public static let HEATSINK_1 = TemperatureSensor(
         name: "HEATSINK_1",
-        code: FourCharCode(fromStaticString: "Th1H"),
+        code: FourCharCode(fromStaticString: "Th1H")
     )
     public static let HEATSINK_2 = TemperatureSensor(
         name: "HEATSINK_2",
-        code: FourCharCode(fromStaticString: "Th2H"),
+        code: FourCharCode(fromStaticString: "Th2H")
     )
     public static let LCD_PROXIMITY = TemperatureSensor(
         name: "LCD_PROXIMITY",
-        code: FourCharCode(fromStaticString: "TL0P"),
+        code: FourCharCode(fromStaticString: "TL0P")
     )
     public static let MEM_SLOT_0 = TemperatureSensor(
         name: "MEM_SLOT_0",
-        code: FourCharCode(fromStaticString: "TM0S"),
+        code: FourCharCode(fromStaticString: "TM0S")
     )
     public static let MEM_SLOTS_PROXIMITY =
         TemperatureSensor(
             name: "MEM_SLOTS_PROXIMITY",
-            code: FourCharCode(fromStaticString: "TM0P"),
+            code: FourCharCode(fromStaticString: "TM0P")
         )
     public static let MISC_PROXIMITY = TemperatureSensor(
         name: "MISC_PROXIMITY",
-        code: FourCharCode(fromStaticString: "Tm0P"),
+        code: FourCharCode(fromStaticString: "Tm0P")
     )
     public static let NORTHBRIDGE = TemperatureSensor(
         name: "NORTHBRIDGE",
-        code: FourCharCode(fromStaticString: "TN0H"),
+        code: FourCharCode(fromStaticString: "TN0H")
     )
     public static let NORTHBRIDGE_DIODE =
         TemperatureSensor(
             name: "NORTHBRIDGE_DIODE",
-            code: FourCharCode(fromStaticString: "TN0D"),
+            code: FourCharCode(fromStaticString: "TN0D")
         )
     public static let NORTHBRIDGE_PROXIMITY =
         TemperatureSensor(
             name: "NORTHBRIDGE_PROXIMITY",
-            code: FourCharCode(fromStaticString: "TN0P"),
+            code: FourCharCode(fromStaticString: "TN0P")
         )
     public static let ODD_PROXIMITY = TemperatureSensor(
         name: "ODD_PROXIMITY",
-        code: FourCharCode(fromStaticString: "TO0P"),
+        code: FourCharCode(fromStaticString: "TO0P")
     )
     public static let PALM_REST = TemperatureSensor(
         name: "PALM_REST",
-        code: FourCharCode(fromStaticString: "Ts0P"),
+        code: FourCharCode(fromStaticString: "Ts0P")
     )
     public static let PWR_SUPPLY_PROXIMITY =
         TemperatureSensor(
             name: "PWR_SUPPLY_PROXIMITY",
-            code: FourCharCode(fromStaticString: "Tp0P"),
+            code: FourCharCode(fromStaticString: "Tp0P")
         )
     public static let THUNDERBOLT_0 = TemperatureSensor(
         name: "THUNDERBOLT_0",
-        code: FourCharCode(fromStaticString: "TI0P"),
+        code: FourCharCode(fromStaticString: "TI0P")
     )
     public static let THUNDERBOLT_1 = TemperatureSensor(
         name: "THUNDERBOLT_1",
-        code: FourCharCode(fromStaticString: "TI1P"),
+        code: FourCharCode(fromStaticString: "TI1P")
     )
 
     public static let all = [
@@ -745,7 +745,7 @@ public extension SMCKit {
     /// Get current temperature of a sensor
     static func temperature(
         _ sensorCode: FourCharCode,
-        unit: TemperatureUnit = .celius,
+        unit: TemperatureUnit = .celius
     ) throws -> Double {
         let data = try readData(SMCKey(code: sensorCode, info: DataTypes.SP78))
 
@@ -800,7 +800,7 @@ public extension SMCKit {
     static func fanCount() throws -> Int {
         let key = SMCKey(
             code: FourCharCode(fromStaticString: "FNum"),
-            info: DataTypes.UInt8,
+            info: DataTypes.UInt8
         )
 
         let data = try readData(key)
@@ -810,7 +810,7 @@ public extension SMCKit {
     static func fanName(_ id: Int) throws -> String {
         let key = SMCKey(
             code: FourCharCode(fromString: "F\(id)ID"),
-            info: DataTypes.FDS,
+            info: DataTypes.FDS
         )
         let data = try readData(key)
 
@@ -838,7 +838,7 @@ public extension SMCKit {
     static func fanCurrentSpeed(_ id: Int) throws -> Int {
         let key = SMCKey(
             code: FourCharCode(fromString: "F\(id)Ac"),
-            info: DataTypes.FPE2,
+            info: DataTypes.FPE2
         )
 
         let data = try readData(key)
@@ -848,7 +848,7 @@ public extension SMCKit {
     static func fanMinSpeed(_ id: Int) throws -> Int {
         let key = SMCKey(
             code: FourCharCode(fromString: "F\(id)Mn"),
-            info: DataTypes.FPE2,
+            info: DataTypes.FPE2
         )
 
         let data = try readData(key)
@@ -858,7 +858,7 @@ public extension SMCKit {
     static func fanMaxSpeed(_ id: Int) throws -> Int {
         let key = SMCKey(
             code: FourCharCode(fromString: "F\(id)Mx"),
-            info: DataTypes.FPE2,
+            info: DataTypes.FPE2
         )
 
         let data = try readData(key)
@@ -908,12 +908,12 @@ public extension SMCKit {
             UInt8(0),
             UInt8(0),
             UInt8(0),
-            UInt8(0),
+            UInt8(0)
         )
 
         let key = SMCKey(
             code: FourCharCode(fromString: "F\(id)Mn"),
-            info: DataTypes.FPE2,
+            info: DataTypes.FPE2
         )
 
         try writeData(key, data: bytes)
@@ -941,7 +941,7 @@ public extension SMCKit {
         // Maybe we could throw a no ODD error instead?
         let key = SMCKey(
             code: FourCharCode(fromStaticString: "MSDI"),
-            info: DataTypes.Flag,
+            info: DataTypes.Flag
         )
 
         let data = try readData(key)
@@ -952,17 +952,17 @@ public extension SMCKit {
         let batteryCountKey =
             SMCKey(
                 code: FourCharCode(fromStaticString: "BNum"),
-                info: DataTypes.UInt8,
+                info: DataTypes.UInt8
             )
         let batteryPoweredKey =
             SMCKey(
                 code: FourCharCode(fromStaticString: "BATP"),
-                info: DataTypes.Flag,
+                info: DataTypes.Flag
             )
         let batteryInfoKey =
             SMCKey(
                 code: FourCharCode(fromStaticString: "BSIn"),
-                info: DataTypes.UInt8,
+                info: DataTypes.UInt8
             )
 
         let batteryCountData = try readData(batteryCountKey)
@@ -981,7 +981,7 @@ public extension SMCKit {
             isACPresent: isACPresent,
             isBatteryPowered: isBatteryPowered,
             isBatteryOk: isBatteryOk,
-            isCharging: isCharging,
+            isCharging: isCharging
         )
     }
 }

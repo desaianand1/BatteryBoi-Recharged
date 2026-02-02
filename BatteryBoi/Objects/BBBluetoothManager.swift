@@ -210,7 +210,7 @@ struct BluetoothObject: Decodable, Equatable {
         battery = try BluetoothBatteryObject(from: decoder)
         address = try values.decode(String.self, forKey: .address).lowercased().replacingOccurrences(
             of: ":",
-            with: "-",
+            with: "-"
         )
         firmware = try? values.decode(String.self, forKey: .firmware)
         connected = .disconnected
@@ -268,7 +268,7 @@ struct BluetoothObject: Decodable, Equatable {
         name: String?,
         isConnected: Bool,
         batteryPercent: Int?,
-        deviceType: String,
+        deviceType: String
     ) {
         self.address = address.lowercased().replacingOccurrences(of: ":", with: "-")
         firmware = nil
@@ -326,7 +326,7 @@ final class BluetoothManager: BluetoothServiceProtocol {
         let staleAddresses = disconnectionNotifications.keys
             .filter { !currentAddresses.contains($0.lowercased().replacingOccurrences(
                 of: ":",
-                with: "-",
+                with: "-"
             )) }
         for address in staleAddresses {
             disconnectionNotifications[address]?.unregister()
@@ -483,7 +483,7 @@ final class BluetoothManager: BluetoothServiceProtocol {
                     name: deviceInfo.name,
                     isConnected: deviceInfo.isConnected,
                     batteryPercent: deviceInfo.batteryPercent,
-                    deviceType: deviceInfo.deviceType,
+                    deviceType: deviceInfo.deviceType
                 )
 
                 list.append(newDevice)
@@ -491,12 +491,12 @@ final class BluetoothManager: BluetoothServiceProtocol {
                 // Register for disconnect notifications
                 if let btDevice = IOBluetoothDevice(addressString: normalizedAddress.replacingOccurrences(
                     of: "-",
-                    with: ":",
+                    with: ":"
                 )),
                     disconnectionNotifications[normalizedAddress] == nil,
                     let notification = btDevice.register(
                         forDisconnectNotification: self,
-                        selector: #selector(bluetoothDeviceUpdated),
+                        selector: #selector(bluetoothDeviceUpdated)
                     )
                 {
                     disconnectionNotifications[normalizedAddress] = notification
@@ -507,7 +507,7 @@ final class BluetoothManager: BluetoothServiceProtocol {
         if initialize {
             connectionNotification = IOBluetoothDevice.register(
                 forConnectNotifications: self,
-                selector: #selector(bluetoothDeviceUpdated),
+                selector: #selector(bluetoothDeviceUpdated)
             )
         }
 

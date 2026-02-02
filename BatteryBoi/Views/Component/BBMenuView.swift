@@ -57,7 +57,7 @@ public struct BatteryPulsatingIcon: View {
             .mask(
                 Image(icon)
                     .resizable()
-                    .aspectRatio(contentMode: .fit),
+                    .aspectRatio(contentMode: .fit)
 
             )
             .frame(width: 5, height: 8)
@@ -108,7 +108,7 @@ public struct BatteryMask: Shape {
         path.addLine(to: CGPoint(x: rect.width, y: rect.height - radius))
         path.addQuadCurve(
             to: CGPoint(x: rect.width - radius, y: rect.height),
-            control: CGPoint(x: rect.width, y: rect.height),
+            control: CGPoint(x: rect.width, y: rect.height)
         )
         path.addLine(to: CGPoint(x: 0, y: rect.height))
         path.addLine(to: .zero)
@@ -268,7 +268,7 @@ struct BatteryIcon: View {
             .frame(maxWidth: size.width, alignment: .leading)
             .foregroundColor(Color("BatteryIconFill"))
             .overlay(
-                BatteryStatus(size, font: font, hover: $hover),
+                BatteryStatus(size, font: font, hover: $hover)
 
             )
 
@@ -279,9 +279,9 @@ struct BatteryIcon: View {
                 Rectangle()
                     .fill(Color("BatteryIconFill"))
                     .frame(width: size.width)
-                    .position(x: -(size.width / 2) + (progress + 2.0), y: size.height / 2),
+                    .position(x: -(size.width / 2) + (progress + 2.0), y: size.height / 2)
 
-            ),
+            )
 
         )
         .clipShape(RoundedRectangle(cornerRadius: radius - padding, style: .continuous))
@@ -359,7 +359,7 @@ struct BatteryContainer: View {
                 .opacity(0.9)
                 .frame(width: size.width, height: size.height)
                 .mask(
-                    Rectangle().inverse(BatteryIcon(size, radius: radius, font: font, hover: $hover)),
+                    Rectangle().inverse(BatteryIcon(size, radius: radius, font: font, hover: $hover))
 
                 )
 
@@ -403,13 +403,13 @@ struct BatteryContainer: View {
 
                 BatteryStub(geo, size: .init(width: 4, height: size.height / 2))
 
-            },
+            }
 
         )
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Battery level")
         .accessibilityValue(
-            "\(Int(manager.percentage)) percent\(manager.charging.state == .charging ? ", charging" : "")",
+            "\(Int(manager.percentage)) percent\(manager.charging.state == .charging ? ", charging" : "")"
         )
         .accessibilityHint("Shows current battery status")
 

@@ -111,7 +111,7 @@ final class UpdateManager: NSObject, SPUUpdaterDelegate {
             hostBundle: Bundle.main,
             applicationBundle: Bundle.main,
             userDriver: driver,
-            delegate: self,
+            delegate: self
         )
         updater?.automaticallyChecksForUpdates = true
         updater?.automaticallyDownloadsUpdates = true
@@ -142,7 +142,7 @@ final class UpdateManager: NSObject, SPUUpdaterDelegate {
     nonisolated func updater(
         _: SPUUpdater,
         willInstallUpdateOnQuit _: SUAppcastItem,
-        immediateInstallationBlock immediateInstallHandler: @escaping () -> Void,
+        immediateInstallationBlock immediateInstallHandler: @escaping () -> Void
     ) -> Bool {
         immediateInstallHandler()
         return true
@@ -151,7 +151,7 @@ final class UpdateManager: NSObject, SPUUpdaterDelegate {
     nonisolated func updater(
         _: SPUUpdater,
         shouldPostponeRelaunchForUpdate _: SUAppcastItem,
-        untilInvokingBlock _: @escaping () -> Void,
+        untilInvokingBlock _: @escaping () -> Void
     ) -> Bool {
         false
     }
@@ -232,7 +232,7 @@ final class UpdateManager: NSObject, SPUUpdaterDelegate {
         set {
             UserDefaults.save(
                 .versionCurrent,
-                value: (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? newValue,
+                value: (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? newValue
             )
 
         }

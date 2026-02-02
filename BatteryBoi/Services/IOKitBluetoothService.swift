@@ -47,12 +47,12 @@ actor IOKitBluetoothService {
 
             // Get device address
             guard let addressRef = IORegistryEntryCreateCFProperty(
-                service, "DeviceAddress" as CFString, kCFAllocatorDefault, 0,
+                service, "DeviceAddress" as CFString, kCFAllocatorDefault, 0
             ), let address = addressRef.takeRetainedValue() as? String else { continue }
 
             // Get battery percentage
             if let batteryRef = IORegistryEntryCreateCFProperty(
-                service, "BatteryPercent" as CFString, kCFAllocatorDefault, 0,
+                service, "BatteryPercent" as CFString, kCFAllocatorDefault, 0
             ), let battery = batteryRef.takeRetainedValue() as? Int {
                 let normalizedAddress = address.lowercased().replacingOccurrences(of: ":", with: "-")
                 batteries[normalizedAddress] = battery
@@ -84,7 +84,7 @@ actor IOKitBluetoothService {
                 batteryPercent: batteryLevels[address],
                 deviceType: classifyDevice(device),
                 vendorID: nil, // Can be obtained from device properties if needed
-                productID: nil,
+                productID: nil
             )
         }
     }
@@ -167,7 +167,7 @@ actor IOKitBluetoothService {
     /// Note: This may not work in sandboxed apps without appropriate exceptions.
     func getAirPodsBattery() -> (left: Int?, right: Int?, chargingCase: Int?)? {
         guard let btPlist = NSDictionary(
-            contentsOfFile: "/Library/Preferences/com.apple.Bluetooth.plist",
+            contentsOfFile: "/Library/Preferences/com.apple.Bluetooth.plist"
         ),
             let deviceCache = btPlist["DeviceCache"] as? [String: Any]
         else { return nil }
@@ -181,7 +181,7 @@ actor IOKitBluetoothService {
                 return (
                     left: info["BatteryPercentLeft"] as? Int,
                     right: info["BatteryPercentRight"] as? Int,
-                    chargingCase: info["BatteryPercentCase"] as? Int,
+                    chargingCase: info["BatteryPercentCase"] as? Int
                 )
             }
         }

@@ -39,6 +39,9 @@ jobs:
       - name: Install Fastlane
         run: brew install fastlane
 
+      - name: Install Ruby dependencies
+        run: bundle install
+
       - name: Build, Sign, and Notarize
         env:
           MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
@@ -48,7 +51,7 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
-        run: fastlane release
+        run: bundle exec fastlane release
 
       - name: Set DMG path
         run: |

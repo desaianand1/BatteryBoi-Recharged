@@ -471,7 +471,7 @@ final class StatsManager {
                 state.rawValue,
                 deviceAddress,
                 charge,
-                expiry as NSDate,
+                expiry as NSDate
             )
 
             do {
