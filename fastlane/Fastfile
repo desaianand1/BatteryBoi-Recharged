@@ -36,6 +36,9 @@ platform :mac do
     # Sync certificates
     sync_certs(type: "developer_id", readonly: is_ci)
 
+    # Disable automatic code signing for CI builds
+    disable_automatic_code_signing(path: PROJECT) if ENV["CI"]
+
     # Build the app
     build_mac_app(
       scheme: SCHEME,
@@ -44,6 +47,9 @@ platform :mac do
       export_method: "developer-id",
       skip_package_pkg: true
     )
+
+    # Re-enable automatic code signing
+    enable_automatic_code_signing(path: PROJECT) if ENV["CI"]
   end
 
   desc "Build, sign, notarize and create DMG for release"
@@ -56,6 +62,9 @@ platform :mac do
     # Get version
     version = get_version_number(xcodeproj: PROJECT, target: SCHEME)
 
+    # Disable automatic code signing for CI builds
+    disable_automatic_code_signing(path: PROJECT) if ENV["CI"]
+
     # Build app
     build_mac_app(
       scheme: SCHEME,
@@ -64,6 +73,9 @@ platform :mac do
       export_method: "developer-id",
       skip_package_pkg: true
     )
+
+    # Re-enable automatic code signing
+    enable_automatic_code_signing(path: PROJECT) if ENV["CI"]
 
     # Notarize
     app_path = "./build/#{SCHEME}.app"
