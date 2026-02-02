@@ -17,6 +17,7 @@ Complete guide for setting up automated build, sign, test, and release pipeline 
 ## Overview
 
 This project uses:
+
 - **Fastlane** for build automation
 - **Match** for code signing certificate management
 - **GitHub Actions** for CI/CD
@@ -69,7 +70,7 @@ These are **two separate signing systems** that work together:
 ### Required Accounts
 
 1. **Apple Developer Account** (paid program membership)
-   - Team ID: `QYKKXLKZD6`
+   - Team ID: `your-team-id`
    - Used for: Code signing certificates, notarization
 
 2. **GitHub Account** with access to:
@@ -106,13 +107,15 @@ Navigate to: `https://github.com/desaianand1/BatteryBoi-Recharged/settings/secre
 **Purpose:** URL to the private repository storing code signing certificates
 
 **Value:**
+
 ```
-https://github.com/nirnshard/ios-certs
+https://github.com/desaianand1/ios-certs
 ```
 
 **How to get it:**
-- This should already exist from your ReMorse iOS project
-- Same repo, different branch (`batteryboirecharged` vs `remorse`)
+
+- This should already exist from your other iOS project(s)
+- Same repo, different branch (`batteryboirecharged` vs `other-app`)
 
 ---
 
@@ -131,6 +134,7 @@ https://github.com/nirnshard/ios-certs
    - **SAVE THE TOKEN** - you can't see it again!
 
 2. Encode the token:
+
    ```bash
    echo -n "YOUR_GITHUB_USERNAME:YOUR_PAT_TOKEN" | base64
    ```
@@ -138,6 +142,7 @@ https://github.com/nirnshard/ios-certs
 3. Use the base64 output as the secret value
 
 **Example encoding (DO NOT use these values):**
+
 ```bash
 # If username is "anand" and PAT is "ghp_abc123xyz"
 echo -n "anand:ghp_abc123xyz" | base64
@@ -151,25 +156,23 @@ echo -n "anand:ghp_abc123xyz" | base64
 **Purpose:** Encryption password for the certificates stored in ios-certs repo
 
 **How to get it:**
-- You should already have this from your ReMorse iOS setup
+
+- You should already have this from your other iOS project(s) setup
 - This is the password you chose when first running `fastlane match init`
 - **DO NOT lose this password** - you can't recover encrypted certs without it
 
 **If you don't have it:**
+
 - You'll need to revoke old certs and create new ones (see "Fresh Match Setup" below)
 
 ---
 
-### 4. TEAM_ID
+### 4. APPLE_TEAM_ID
 
 **Purpose:** Your Apple Developer Team ID
 
-**Value:**
-```
-QYKKXLKZD6
-```
-
 **How to verify:**
+
 1. Go to: `https://developer.apple.com/account`
 2. Log in with your Apple ID
 3. Look for "Team ID" in the top right or membership section
@@ -181,10 +184,12 @@ QYKKXLKZD6
 **Purpose:** Apple ID used for notarization
 
 **What is it:**
+
 - Your Apple Developer account email address
 - Example: `your.email@example.com`
 
 **How to get it:**
+
 - This is the email you use to log into developer.apple.com
 - Same as your App Store Connect login
 
@@ -195,17 +200,18 @@ QYKKXLKZD6
 **Purpose:** App-specific password for notarization API access
 
 **What is it:**
+
 - NOT your regular Apple ID password
 - A special password generated for command-line tools
 - Required because regular passwords don't work with 2FA
 
 **How to create:**
 
-1. Go to: `https://appleid.apple.com`
+1. Go to: `https://account.apple.com/account/`
 2. Sign in with your Apple ID
-3. In the "Security" section, find "App-Specific Passwords"
+3. In the "Sign-in and Security" section, find "App-Specific Passwords"
 4. Click "Generate an app-specific password"
-5. Label: `Fastlane Notarization - BatteryBoi`
+5. Label: `Fastlane Notarization -- BatteryBoi - Recharged`
 6. Copy the generated password (format: `xxxx-xxxx-xxxx-xxxx`)
 7. **SAVE THIS** - you can't see it again!
 
@@ -220,10 +226,12 @@ QYKKXLKZD6
 **Status:** ✅ Already configured (from previous setup)
 
 **How to verify:**
+
 - Check if secret exists in GitHub settings
 - Public key in `BatteryBoi/Info.plist` should match: `luVX4/2YuPZ5Ly2UfWCf+Mr+63xxC642sFONANdzGek=`
 
 **If you need to regenerate:**
+
 ```bash
 # Generate new keypair
 ./Pods/Sparkle/bin/generate_keys
@@ -248,7 +256,7 @@ QYKKXLKZD6
 - [ ] MATCH_GIT_URL
 - [ ] MATCH_GIT_BASIC_AUTHORIZATION
 - [ ] MATCH_PASSWORD
-- [ ] TEAM_ID
+- [ ] APPLE_TEAM_ID
 - [ ] APPLE_ID
 - [ ] APPLE_APP_PASSWORD
 - [ ] SPARKLE_PRIVATE_KEY (should already exist)
@@ -266,9 +274,9 @@ This creates the `batteryboirecharged` branch in your ios-certs repo and syncs c
 cd /path/to/BatteryBoi-Recharged
 
 # Set environment variables (replace with actual values)
-export MATCH_GIT_URL="https://github.com/nirnshard/ios-certs"
+export MATCH_GIT_URL="https://github.com/desaianand1/ios-certs"
 export MATCH_PASSWORD="your-match-password"
-export TEAM_ID="QYKKXLKZD6"
+export APPLE_TEAM_ID="your-apple-team-id"
 
 # Option 1: If certificates already exist (RECOMMENDED)
 bundle exec fastlane sync_certs readonly:true
@@ -278,6 +286,7 @@ bundle exec fastlane sync_certs readonly:false
 ```
 
 **What this does:**
+
 1. Clones ios-certs repo
 2. Creates/switches to `batteryboirecharged` branch
 3. Downloads Developer ID certificate and provisioning profile
@@ -290,7 +299,7 @@ bundle exec fastlane sync_certs readonly:false
 security find-identity -v -p codesigning
 
 # You should see something like:
-# 1) ABC123... "Developer ID Application: Your Name (QYKKXLKZD6)"
+# 1) ABC123... "Developer ID Application: Your Name (your-team-id)"
 ```
 
 ### Fresh Match Setup (If Starting from Scratch)
@@ -302,9 +311,9 @@ security find-identity -v -p codesigning
 bundle exec fastlane match nuke developer_id
 
 # 2. Create new certificates
-export MATCH_GIT_URL="https://github.com/nirnshard/ios-certs"
+export MATCH_GIT_URL="https://github.com/desaianand1/ios-certs"
 export MATCH_PASSWORD="choose-a-new-password"
-export TEAM_ID="QYKKXLKZD6"
+export APPLE_TEAM_ID="your-apple-team-id"
 
 bundle exec fastlane sync_certs readonly:false
 
@@ -336,6 +345,7 @@ task release
 #### Test CI Pipeline (No Release)
 
 1. Create a feature branch:
+
    ```bash
    git checkout -b test/ci-pipeline
    ```
@@ -343,6 +353,7 @@ task release
 2. Make a small change (add comment, update README)
 
 3. Commit and push:
+
    ```bash
    git add .
    git commit -m "test: verify CI pipeline"
@@ -360,6 +371,7 @@ task release
 **Warning:** This creates a real release!
 
 1. Merge a commit to main with a conventional commit message:
+
    ```bash
    git checkout main
    git add .
@@ -384,6 +396,7 @@ task release
 ### CI Workflow (`.github/workflows/ci.yml`)
 
 **Triggers:**
+
 - Push to `main`
 - Pull requests to `main`
 
@@ -416,6 +429,7 @@ task release
 ### Release Workflow (`.github/workflows/release.yml`)
 
 **Triggers:**
+
 - Push to `main` branch only
 
 **Jobs:**
@@ -449,6 +463,7 @@ task release
 Uses [Conventional Commits](https://www.conventionalcommits.org/):
 
 **Format:**
+
 ```
 <type>(<scope>): <subject>
 
@@ -456,6 +471,7 @@ Uses [Conventional Commits](https://www.conventionalcommits.org/):
 ```
 
 **Types:**
+
 - `feat`: New feature (triggers MINOR version bump)
 - `fix`: Bug fix (triggers PATCH version bump)
 - `refactor`: Code refactoring (no version bump)
@@ -467,10 +483,12 @@ Uses [Conventional Commits](https://www.conventionalcommits.org/):
 - `chore`: Other changes (no version bump)
 
 **Breaking Changes:**
+
 - Add `BREAKING CHANGE:` in commit body
 - Triggers MAJOR version bump
 
 **Examples:**
+
 ```bash
 # Patch release (1.2.3 → 1.2.4)
 git commit -m "fix(battery): correct time-to-full calculation"
@@ -494,11 +512,12 @@ git commit -m "docs: update README installation steps"
 **Cause:** Match certificates not synced or expired
 
 **Fix:**
+
 ```bash
 # Re-sync certificates
 export MATCH_GIT_URL="..."
 export MATCH_PASSWORD="..."
-export TEAM_ID="QYKKXLKZD6"
+export APPLE_TEAM_ID="your-apple-team-id"
 
 bundle exec fastlane sync_certs readonly:false
 
@@ -511,6 +530,7 @@ security find-identity -v -p codesigning
 **Cause:** Invalid Apple ID or app-specific password
 
 **Fix:**
+
 1. Verify APPLE_ID is correct email address
 2. Regenerate APPLE_APP_PASSWORD at appleid.apple.com
 3. Update GitHub secret with new password
@@ -520,9 +540,11 @@ security find-identity -v -p codesigning
 **Cause:** Invalid MATCH_GIT_BASIC_AUTHORIZATION
 
 **Fix:**
+
 1. Verify GitHub PAT is valid and not expired
 2. Verify PAT has `repo` scope
 3. Re-encode and update secret:
+
    ```bash
    echo -n "username:token" | base64
    ```
@@ -532,6 +554,7 @@ security find-identity -v -p codesigning
 **Cause:** Appcast URL unreachable or signature mismatch
 
 **Fix:**
+
 1. Verify appcast exists:
    - `https://github.com/desaianand1/BatteryBoi-Recharged/releases/latest/download/appcast.xml`
 2. Verify public key in Info.plist matches private key
@@ -542,11 +565,14 @@ security find-identity -v -p codesigning
 **Cause:** Environment differences or timing issues
 
 **Fix:**
+
 1. Check test output artifacts in GitHub Actions
 2. Run tests with same configuration:
+
    ```bash
    bundle exec fastlane test
    ```
+
 3. Add `@MainActor` to test classes if needed
 
 ### Certificate Expired
@@ -554,6 +580,7 @@ security find-identity -v -p codesigning
 **Cause:** Developer ID certificates expire after 5 years
 
 **Fix:**
+
 ```bash
 # Revoke and regenerate
 bundle exec fastlane match nuke developer_id
@@ -572,7 +599,7 @@ If you need to create a release without CI/CD:
 # Set all environment variables
 export MATCH_GIT_URL="..."
 export MATCH_PASSWORD="..."
-export TEAM_ID="QYKKXLKZD6"
+export APPLE_TEAM_ID="your-apple-team-id"
 export APPLE_ID="your.email@example.com"
 export APPLE_APP_PASSWORD="xxxx-xxxx-xxxx-xxxx"
 export SPARKLE_PRIVATE_KEY="..."
@@ -637,6 +664,7 @@ shasum -a 256 "$DMG_PATH"
 - ✅ Enable Hardened Runtime
 - ✅ Sign with Developer ID (not development certificates)
 - ✅ Verify signatures before releasing:
+
   ```bash
   codesign -dv --verbose=4 "App.app"
   spctl -a -vv "App.app"
@@ -663,8 +691,8 @@ shasum -a 256 "$DMG_PATH"
 
 ### Support
 
-- **Issues:** https://github.com/desaianand1/BatteryBoi-Recharged/issues
-- **Discussions:** https://github.com/desaianand1/BatteryBoi-Recharged/discussions
+- **Issues:** <https://github.com/desaianand1/BatteryBoi-Recharged/issues>
+- **Discussions:** <https://github.com/desaianand1/BatteryBoi-Recharged/discussions>
 
 ## Changelog
 
