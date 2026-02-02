@@ -17,7 +17,6 @@ final class EdgeCaseTests: XCTestCase {
 
     // MARK: - Setup
 
-    @MainActor
     override func setUp() {
         super.setUp()
         mockBatteryService = MockBatteryService()

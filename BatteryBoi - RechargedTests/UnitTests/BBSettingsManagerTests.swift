@@ -16,7 +16,6 @@ final class BBSettingsManagerTests: XCTestCase {
 
     // MARK: - Setup
 
-    @MainActor
     override func setUp() {
         super.setUp()
         mockSettingsService = MockSettingsService()

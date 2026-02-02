@@ -16,7 +16,6 @@ final class BBBatteryManagerTests: XCTestCase {
 
     // MARK: - Setup
 
-    @MainActor
     override func setUp() {
         super.setUp()
         mockBatteryService = MockBatteryService()

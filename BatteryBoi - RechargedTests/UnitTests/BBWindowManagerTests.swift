@@ -16,7 +16,6 @@ final class BBWindowManagerTests: XCTestCase {
 
     // MARK: - Setup
 
-    @MainActor
     override func setUp() {
         super.setUp()
         mockWindowService = MockWindowService()
