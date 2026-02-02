@@ -9,10 +9,10 @@ struct EventObject: Equatable {
     var end: Date
 
     init(_ event: EKEvent) {
-        id = event.eventIdentifier
-        name = event.title
-        start = event.startDate
-        end = event.endDate
+        self.id = event.eventIdentifier
+        self.name = event.title
+        self.start = event.startDate
+        self.end = event.endDate
 
     }
 
@@ -35,10 +35,10 @@ final class EventManager {
         }
 
         // Periodic check every 30 minutes (1800 seconds)
-        timerTask = Task { @MainActor [weak self] in
+        self.timerTask = Task { @MainActor [weak self] in
             for await _ in AppManager.shared.appTimerAsync(1800) {
                 guard let self, !Task.isCancelled else { break }
-                eventAuthorizeStatus()
+                self.eventAuthorizeStatus()
             }
         }
     }
@@ -52,11 +52,11 @@ final class EventManager {
             EKEventStore().requestFullAccessToEvents { [weak self] _, _ in
                 Task { @MainActor [weak self] in
                     guard let self else { return }
-                    events = eventsList()
+                    self.events = self.eventsList()
                 }
             }
         } else {
-            events = eventsList()
+            self.events = self.eventsList()
         }
     }
 
