@@ -3,12 +3,15 @@
 <plist version="1.0">
 <dict>
     <key>method</key>
-    <string>mac-application</string>
+    <string>developer-id</string>
     <key>signingStyle</key>
-    <string>automatic</string>
-    <key>destination</key>
-    <string>export</string>
+    <string>manual</string>
     <key>teamID</key>
-    <string></string>
+    <string>QYKKXLKZD6</string>
+    <key>provisioningProfiles</key>
+    <dict>
+        <key>com.nirnshard.batteryboirecharged</key>
+        <string>match Developer ID com.nirnshard.batteryboirecharged</string>
+    </dict>
 </dict>
 </plist>
