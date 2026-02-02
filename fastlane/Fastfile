@@ -24,7 +24,8 @@ platform :mac do
       scheme: SCHEME,
       destination: "platform=macOS",
       clean: true,
-      code_coverage: true
+      code_coverage: true,
+      xcargs: "CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO"
     )
   end
 

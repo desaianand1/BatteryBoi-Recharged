@@ -78,14 +78,6 @@ jobs:
       - name: Install Fastlane
         run: brew install fastlane
 
-      - name: Sync Certificates
-        env:
-          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
-          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: fastlane sync_certs readonly:true
-
       - name: Run Tests
         run: fastlane test
 
