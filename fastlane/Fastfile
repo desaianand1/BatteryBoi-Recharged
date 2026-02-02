@@ -71,7 +71,7 @@ platform :mac do
       bundle_id: BUNDLE_ID,
       username: ENV["APPLE_ID"],
       password: ENV["APPLE_APP_PASSWORD"],
-      team_id: ENV["TEAM_ID"]
+      team_id: ENV["APPLE_TEAM_ID"]
     )
 
     # Staple

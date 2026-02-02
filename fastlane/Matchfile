@@ -1,5 +1,4 @@
 # Matchfile - macOS code signing using match
-# Prerequisites documented in ReMorse/ios/fastlane/Matchfile
 
 git_url(ENV["MATCH_GIT_URL"])
 storage_mode("git")
@@ -7,7 +6,7 @@ git_branch('batteryboirecharged')  # Branch for this project
 app_identifier("com.nirnshard.batteryboirecharged")
 
 # Team ID from environment
-team_id(ENV["TEAM_ID"])
+team_id(ENV["APPLE_TEAM_ID"])
 
 # Developer ID for direct distribution (not App Store)
 type("developer_id")
