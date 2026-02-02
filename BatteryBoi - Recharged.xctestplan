@@ -1,0 +1,30 @@
+{
+  "configurations" : [
+    {
+      "id" : "52DBD84D-609D-4963-BCBD-91F71952A64A",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:BatteryBoi.xcodeproj",
+      "identifier" : "D8D9E59B2A7DE7AB00E295FA",
+      "name" : "BatteryBoi - Recharged"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:BatteryBoi.xcodeproj",
+        "identifier" : "1762F5BD2F30CDC9005DB7BF",
+        "name" : "BatteryBoi - RechargedTests"
+      }
+    }
+  ],
+  "version" : 1
+}
