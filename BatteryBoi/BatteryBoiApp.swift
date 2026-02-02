@@ -320,7 +320,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         ) { [weak self] notification in
             // Extract window before crossing actor boundary to avoid Sendable issues
             guard let window = notification.object as? NSWindow else { return }
-            self?.applicationFocusDidMove(window: window)
+            Task { @MainActor [weak self] in
+                self?.applicationFocusDidMove(window: window)
+            }
         }
 
     }

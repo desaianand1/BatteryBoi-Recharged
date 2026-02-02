@@ -25,7 +25,7 @@
 // THE SOFTWARE.
 
 import Foundation
-import IOKit
+@preconcurrency import IOKit
 import os
 
 // ------------------------------------------------------------------------------

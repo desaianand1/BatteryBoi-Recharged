@@ -196,7 +196,6 @@ final class BatteryManager: BatteryServiceProtocol {
     var metrics: BatteryMetricsObject?
     var thermal: BatteryThemalState = .optimal
 
-    private var counter: Int?
     nonisolated(unsafe) private var fallbackTimerTask: Task<Void, Never>?
     nonisolated(unsafe) private var initialTimer: Timer?
     nonisolated(unsafe) private var statusTask: Task<Void, Never>?
@@ -225,9 +224,8 @@ final class BatteryManager: BatteryServiceProtocol {
 
     init() {
         initialTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { [weak self] _ in
-            guard let self else { return }
-            if counter == nil {
-                powerUpdaterFallback()
+            Task { @MainActor [weak self] in
+                self?.powerUpdaterFallback()
             }
         }
 
@@ -239,7 +237,6 @@ final class BatteryManager: BatteryServiceProtocol {
                 tickCount += 1
                 if tickCount > 1 {
                     powerStatus(true)
-                    counter = nil
                 }
             }
         }
@@ -249,7 +246,6 @@ final class BatteryManager: BatteryServiceProtocol {
             for await _ in AppManager.shared.appTimerAsync(30) {
                 guard let self, !Task.isCancelled else { break }
                 remaining = await fetchPowerRemaining()
-                counter = nil
             }
         }
 
@@ -267,7 +263,6 @@ final class BatteryManager: BatteryServiceProtocol {
                 guard let self, !Task.isCancelled else { break }
                 saver = await fetchPowerSaveModeStatus()
                 metrics = await fetchPowerProfilerDetails()
-                counter = nil
             }
         }
 
@@ -297,21 +292,19 @@ final class BatteryManager: BatteryServiceProtocol {
     private func powerUpdaterFallback() {
         fallbackTimerTask?.cancel()
         fallbackTimerTask = Task { @MainActor [weak self] in
+            var tickCount = 0
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(1))
                 guard let self, !Task.isCancelled else { return }
 
-                if let counter {
-                    if counter.isMultiple(of: 1) {
-                        powerStatus(true)
-                    }
-
-                    if counter.isMultiple(of: 6) {
-                        remaining = await fetchPowerRemaining()
-                    }
+                tickCount += 1
+                if tickCount.isMultiple(of: 1) {
+                    powerStatus(true)
                 }
 
-                counter = (counter ?? 0) + 1
+                if tickCount.isMultiple(of: 6) {
+                    remaining = await fetchPowerRemaining()
+                }
             }
         }
     }
