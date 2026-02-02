@@ -61,62 +61,25 @@ jobs:
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
 
-      - name: Build Release Archive
-        run: |
-          xcodebuild archive \
-            -project "${{ env.PROJECT }}" \
-            -scheme "${{ env.SCHEME }}" \
-            -configuration Release \
-            -archivePath "build/${{ env.APP_NAME }}.xcarchive" \
-            CODE_SIGN_IDENTITY="-" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+      - name: Install Fastlane
+        run: brew install fastlane
 
-      - name: Export App
-        run: |
-          xcodebuild -exportArchive \
-            -archivePath "build/${{ env.APP_NAME }}.xcarchive" \
-            -exportPath build/export \
-            -exportOptionsPlist ExportOptions.plist
+      - name: Build, Sign, and Notarize
+        env:
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: fastlane release
 
-      - name: Create DMG
+      - name: Set DMG path
         run: |
           DMG_NAME="${{ env.APP_NAME }}-${{ env.VERSION }}.dmg"
-
-          # Create DMG folder structure
-          mkdir -p build/dmg
-          cp -R "build/export/${{ env.APP_NAME }}.app" build/dmg/
-
-          # Create symlink to Applications
-          ln -s /Applications build/dmg/Applications
-
-          # Create DMG
-          hdiutil create -volname "${{ env.APP_NAME }}" \
-            -srcfolder build/dmg \
-            -ov -format UDZO \
-            "build/${DMG_NAME}"
-
-          echo "DMG_PATH=build/${DMG_NAME}" >> $GITHUB_ENV
+          echo "DMG_PATH=./build/${DMG_NAME}" >> $GITHUB_ENV
           echo "DMG_NAME=${DMG_NAME}" >> $GITHUB_ENV
-
-      - name: Install Sparkle
-        run: |
-          # Download Sparkle 2.x
-          curl -L -o /tmp/Sparkle.tar.xz "https://github.com/sparkle-project/Sparkle/releases/download/${{env.SPARKLE_VERSION}}/Sparkle-${{env.SPARKLE_VERSION}}.tar.xz"
-          mkdir -p /tmp/Sparkle
-          tar -xf /tmp/Sparkle.tar.xz -C /tmp/Sparkle
-
-          # Make tools available
-          echo "/tmp/Sparkle/bin" >> $GITHUB_PATH
-
-      - name: Sign DMG with Sparkle
-        if: ${{ secrets.SPARKLE_PRIVATE_KEY != '' }}
-        env:
-          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
-        run: |
-          # Sign the DMG and get signature
-          SIGNATURE=$(/tmp/Sparkle/bin/sign_update "${{ env.DMG_PATH }}" --ed-key-file <(echo "$SPARKLE_PRIVATE_KEY"))
-          echo "SPARKLE_SIGNATURE=${SIGNATURE}" >> $GITHUB_ENV
 
       - name: Generate Appcast
         run: |
@@ -132,6 +95,12 @@ jobs:
 
           # DMG download URL
           DMG_URL="https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}/${{ env.DMG_NAME }}"
+
+          # Get Sparkle signature if it exists
+          SPARKLE_SIGNATURE=""
+          if [ -f "./build/sparkle_signature.txt" ]; then
+            SPARKLE_SIGNATURE=$(cat ./build/sparkle_signature.txt)
+          fi
 
           # Create appcast.xml
           cat > build/appcast.xml << EOF
@@ -150,7 +119,7 @@ jobs:
                 <pubDate>${PUB_DATE}</pubDate>
                 <enclosure
                   url="${DMG_URL}"
-                  sparkle:edSignature="${SPARKLE_SIGNATURE:-}"
+                  sparkle:edSignature="${SPARKLE_SIGNATURE}"
                   length="${DMG_SIZE}"
                   type="application/octet-stream"/>
                 <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
@@ -166,19 +135,31 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Upload DMG
+          # Upload DMG to version-specific release
           gh release upload "v${{ env.VERSION }}" \
             "${{ env.DMG_PATH }}" \
             --clobber
 
-          # Upload appcast.xml
+          # Upload appcast.xml to version-specific release
           gh release upload "v${{ env.VERSION }}" \
             "build/appcast.xml" \
             --clobber
 
+          # Also upload appcast.xml to 'latest' release for Sparkle auto-updates
+          # This ensures SUFeedURL pointing to /releases/latest/download/appcast.xml always works
+          if gh release view latest >/dev/null 2>&1; then
+            gh release upload latest \
+              "build/appcast.xml" \
+              --clobber
+            echo "Updated appcast.xml in 'latest' release"
+          else
+            echo "No 'latest' release found, skipping appcast update to latest"
+          fi
+
           echo "Release assets uploaded successfully!"
           echo "DMG: https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}/${{ env.DMG_NAME }}"
           echo "Appcast: https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}/appcast.xml"
+          echo "Appcast (latest): https://github.com/${{ github.repository }}/releases/latest/download/appcast.xml"
 
   create-sentry-release:
     name: Create Sentry Release

@@ -74,25 +74,26 @@ jobs:
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
 
+      - name: Install Fastlane
+        run: brew install fastlane
+
+      - name: Sync Certificates
+        env:
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+        run: fastlane sync_certs readonly:true
+
       - name: Run Tests
-        run: |
-          xcodebuild test \
-            -project ${{ env.PROJECT }} \
-            -scheme ${{ env.SCHEME }} \
-            -destination 'platform=macOS' \
-            -parallel-testing-enabled YES \
-            -derivedDataPath build \
-            CODE_SIGN_IDENTITY="-" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            -resultBundlePath TestResults.xcresult || true
+        run: fastlane test
 
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: TestResults.xcresult
+          path: test_output
           if-no-files-found: ignore
 
   build:
@@ -106,13 +107,16 @@ jobs:
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
 
+      - name: Install Fastlane
+        run: brew install fastlane
+
+      - name: Sync Certificates
+        env:
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+        run: fastlane sync_certs readonly:true
+
       - name: Build
-        run: |
-          xcodebuild build \
-            -project ${{ env.PROJECT }} \
-            -scheme ${{ env.SCHEME }} \
-            -configuration Debug \
-            -derivedDataPath build \
-            CODE_SIGN_IDENTITY="-" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+        run: fastlane build
