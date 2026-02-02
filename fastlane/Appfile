@@ -1,0 +1,5 @@
+# Appfile - macOS app configuration
+app_identifier("com.nirnshard.batteryboirecharged")
+
+# Team ID from environment (TEAM_ID secret in CI)
+team_id(ENV["TEAM_ID"])

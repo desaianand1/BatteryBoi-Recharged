@@ -3,20 +3,16 @@ version: '3'
 vars:
   SCHEME: BatteryBoi - Recharged
   PROJECT: BatteryBoi.xcodeproj
-  BUILD_DIR: build
 
 tasks:
   setup:
-    desc: One-time setup - install tools, pre-commit hooks, npm deps
+    desc: One-time setup
     cmds:
-      - echo "Installing Homebrew dependencies..."
       - brew install swiftlint swiftformat pre-commit go-task
-      - echo "Installing npm dependencies..."
+      - bundle install  # Install Fastlane via Bundler
       - npm install
-      - echo "Installing pre-commit hooks..."
       - pre-commit install
       - pre-commit install --hook-type commit-msg
-      - echo "Setup complete!"
 
   lint:
     desc: Run SwiftLint
@@ -34,75 +30,57 @@ tasks:
       - swiftlint --fix BatteryBoi/
 
   format:
-    desc: Run SwiftFormat (fixes files)
+    desc: Run SwiftFormat
     cmds:
       - swiftformat BatteryBoi/
 
   format:check:
-    desc: Check SwiftFormat without fixing
+    desc: Check SwiftFormat
     cmds:
       - swiftformat --lint BatteryBoi/
 
   fix:
-    desc: Run SwiftFormat & SwiftLint to fix all files
+    desc: Run SwiftFormat & SwiftLint
     cmds:
       - task: format
       - task: lint:fix
+
+  # Simplified build/test with Fastlane
+  test:
+    desc: Run tests
+    cmds:
+      - bundle exec fastlane test
+
   build:
-    desc: Build debug (no code signing)
+    desc: Build with signing
     cmds:
-      - |
-        xcodebuild build \
-          -project {{.PROJECT}} \
-          -scheme {{.SCHEME}} \
-          -configuration Debug \
-          -derivedDataPath {{.BUILD_DIR}} \
-          CODE_SIGN_IDENTITY="-" \
-          CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO
+      - bundle exec fastlane build
 
-  build:release:
-    desc: Build release (no code signing)
+  release:
+    desc: Build, sign, notarize, create DMG
     cmds:
-      - |
-        xcodebuild build \
-          -project {{.PROJECT}} \
-          -scheme {{.SCHEME}} \
-          -configuration Release \
-          -derivedDataPath {{.BUILD_DIR}} \
-          CODE_SIGN_IDENTITY="-" \
-          CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO
+      - bundle exec fastlane release
 
-  archive:
-    desc: Create release archive
+  certs:sync:
+    desc: Sync certificates from Match
     cmds:
-      - |
-        xcodebuild archive \
-          -project {{.PROJECT}} \
-          -scheme {{.SCHEME}} \
-          -configuration Release \
-          -archivePath {{.BUILD_DIR}}/{{.SCHEME}}.xcarchive \
-          CODE_SIGN_IDENTITY="-" \
-          CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO
+      - bundle exec fastlane sync_certs
 
   clean:
-    desc: Remove build artifacts
+    desc: Clean build artifacts
     cmds:
-      - rm -rf {{.BUILD_DIR}}
-      - rm -rf DerivedData
-      - xcodebuild clean -project {{.PROJECT}} -scheme {{.SCHEME}} || true
+      - rm -rf build DerivedData
+      - xcodebuild clean -project {{.PROJECT}} -scheme '{{.SCHEME}}' || true
 
   check:
-    desc: Run all checks (lint + format check)
+    desc: Run all checks
     cmds:
       - task: lint
       - task: format:check
 
   ci:
-    desc: Run CI checks (lint, format, build)
+    desc: Run CI checks
     cmds:
       - task: lint:strict
       - task: format:check
-      - task: build
+      - task: test

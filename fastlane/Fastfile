@@ -1,0 +1,98 @@
+default_platform(:mac)
+
+platform :mac do
+  SCHEME = "BatteryBoi - Recharged"
+  PROJECT = "BatteryBoi.xcodeproj"
+  BUNDLE_ID = "com.nirnshard.batteryboirecharged"
+
+  desc "Sync code signing certificates using match"
+  lane :sync_certs do |options|
+    type = options[:type] || "developer_id"
+    readonly = options[:readonly].nil? ? is_ci : options[:readonly]
+
+    match(
+      type: type,
+      readonly: readonly,
+      git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"]
+    )
+  end
+
+  desc "Run tests"
+  lane :test do
+    run_tests(
+      project: PROJECT,
+      scheme: SCHEME,
+      destination: "platform=macOS",
+      clean: true,
+      code_coverage: true
+    )
+  end
+
+  desc "Build release app with signing"
+  lane :build do
+    setup_ci if ENV["CI"]
+
+    # Sync certificates
+    sync_certs(type: "developer_id", readonly: is_ci)
+
+    # Build the app
+    build_mac_app(
+      scheme: SCHEME,
+      configuration: "Release",
+      output_directory: "./build",
+      export_method: "developer-id",
+      skip_package_dmg: true
+    )
+  end
+
+  desc "Build, sign, notarize and create DMG for release"
+  lane :release do
+    setup_ci if ENV["CI"]
+
+    # Sync certificates
+    sync_certs(type: "developer_id", readonly: is_ci)
+
+    # Get version
+    version = get_version_number(xcodeproj: PROJECT, target: SCHEME)
+
+    # Build app
+    build_mac_app(
+      scheme: SCHEME,
+      configuration: "Release",
+      output_directory: "./build",
+      export_method: "developer-id",
+      skip_package_dmg: true
+    )
+
+    # Notarize
+    app_path = "./build/#{SCHEME}.app"
+    notarize(
+      package: app_path,
+      bundle_id: BUNDLE_ID,
+      username: ENV["APPLE_ID"],
+      password: ENV["APPLE_APP_PASSWORD"],
+      team_id: ENV["TEAM_ID"]
+    )
+
+    # Staple
+    sh("xcrun stapler staple '#{app_path}'")
+
+    # Create DMG
+    dmg_path = "./build/#{SCHEME}-#{version}.dmg"
+    sh("mkdir -p ./build/dmg")
+    sh("cp -R '#{app_path}' ./build/dmg/")
+    sh("ln -s /Applications ./build/dmg/Applications")
+    sh("hdiutil create -volname '#{SCHEME}' -srcfolder ./build/dmg -ov -format UDZO '#{dmg_path}'")
+    sh("rm -rf ./build/dmg")
+
+    # Sign DMG with Sparkle
+    if ENV["SPARKLE_PRIVATE_KEY"]
+      sh("curl -L -o /tmp/Sparkle.tar.xz https://github.com/sparkle-project/Sparkle/releases/download/2.8.1/Sparkle-2.8.1.tar.xz")
+      sh("mkdir -p /tmp/Sparkle && tar -xf /tmp/Sparkle.tar.xz -C /tmp/Sparkle")
+      signature = sh("/tmp/Sparkle/bin/sign_update '#{dmg_path}' --ed-key-file <(echo \"$SPARKLE_PRIVATE_KEY\")").strip
+      File.write("./build/sparkle_signature.txt", signature)
+    end
+
+    UI.success("Release complete: #{dmg_path}")
+  end
+end

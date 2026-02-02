@@ -1,0 +1,5 @@
+*.ipa
+*.dSYM.zip
+*.mobileprovision
+test_output/
+report.xml
