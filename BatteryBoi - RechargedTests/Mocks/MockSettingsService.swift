@@ -39,7 +39,7 @@ import Foundation
 
         // MARK: - Initialization
 
-        init(
+        nonisolated init(
             menu: [SettingsActionObject] = [],
             display: SettingsDisplayType = .percent,
             sfx: SettingsSoundEffects = .enabled,

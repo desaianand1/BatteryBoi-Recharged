@@ -30,7 +30,7 @@ import Foundation
 
         // MARK: - Initialization
 
-        init(
+        nonisolated init(
             charging: BatteryCharging = BatteryCharging(.battery),
             percentage: Double = 75.0,
             remaining: BatteryRemaining? = nil,

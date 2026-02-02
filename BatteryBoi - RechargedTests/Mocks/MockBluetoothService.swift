@@ -28,7 +28,7 @@ import Foundation
 
         // MARK: - Initialization
 
-        init(
+        nonisolated init(
             list: [BluetoothObject] = [],
             connected: [BluetoothObject] = [],
             icons: [String] = []

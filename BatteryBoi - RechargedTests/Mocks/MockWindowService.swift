@@ -36,7 +36,7 @@ import Foundation
 
         // MARK: - Initialization
 
-        init(
+        nonisolated init(
             hover: Bool = false,
             state: HUDState = .hidden,
             position: WindowPosition = .topMiddle,
