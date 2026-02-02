@@ -357,6 +357,11 @@ public enum SMCKit {
     /// Connection to the SMC driver
     nonisolated(unsafe) fileprivate static var connection: io_connect_t = 0
 
+    /// Thread-safe wrapper for mach_task_self_ macro (process-global constant)
+    private static var machTaskSelf: mach_port_t {
+        mach_task_self_
+    }
+
     /// Open connection to the SMC driver. This must be done first before any
     /// other calls
     public static func open() throws {
@@ -369,7 +374,7 @@ public enum SMCKit {
 
         let result = IOServiceOpen(
             service,
-            mach_task_self_,
+            Self.machTaskSelf,
             0,
             &Self.connection
         )
