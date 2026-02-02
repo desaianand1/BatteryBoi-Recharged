@@ -1,17 +1,42 @@
 import SwiftUI
 
 struct SettingsScrollOffsetKey: PreferenceKey {
-    static var defaultValue: CGPoint = .zero
+    nonisolated(unsafe) static var defaultValue: CGPoint = .zero
 
     static func reduce(value _: inout CGPoint, nextValue _: () -> CGPoint) {}
 
 }
 
+/// Helper modifier to conditionally apply keyboard shortcut (helps compiler type-checking)
+struct QuitKeyboardShortcutModifier: ViewModifier {
+    let isQuitButton: Bool
+
+    func body(content: Content) -> some View {
+        if isQuitButton {
+            content.keyboardShortcut("q", modifiers: .command)
+        } else {
+            content
+        }
+    }
+}
+
 struct SettingsItem: View {
-    @EnvironmentObject var manager: AppManager
-    @EnvironmentObject var updates: UpdateManager
-    @EnvironmentObject var settings: SettingsManager
-    @EnvironmentObject var battery: BatteryManager
+    private var manager: AppManager {
+        AppManager.shared
+    }
+
+    private var updates: UpdateManager {
+        UpdateManager.shared
+    }
+
+    private var settings: SettingsManager {
+        SettingsManager.shared
+    }
+
+    private var battery: BatteryManager {
+        BatteryManager.shared
+    }
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @Binding var hover: Bool
@@ -33,20 +58,20 @@ struct SettingsItem: View {
             label: {
                 HStack(alignment: .center) {
                     Image(icon ?? item.type.icon)
-                        .font(.system(size: 23, weight: .medium))
+                        .font(BBTypography.icon)
                         .foregroundColor(color == nil ? Color("BatterySubtitle") : Color("BatteryEfficient"))
                         .frame(height: 36)
                         .padding(.trailing, 6)
 
                     VStack(alignment: .leading) {
                         Text(item.title)
-                            .font(.system(size: 16, weight: .medium))
+                            .font(BBTypography.headingLarge)
                             .foregroundColor(Color("BatteryTitle"))
                             .padding(0)
 
                         if hover == true, subtitle != nil {
                             Text(subtitle ?? "")
-                                .font(.system(size: 10, weight: .bold))
+                                .font(BBTypography.small)
                                 .foregroundColor(Color("BatterySubtitle"))
 
                         }
@@ -173,15 +198,21 @@ struct SettingsItem: View {
         }
         .accessibilityLabel(item.title)
         .accessibilityValue(subtitle ?? "")
-        .accessibilityHint("Double tap to activate")
+        .accessibilityHint("AccessibilityDoubleTapActivate".localise())
 
     }
 
 }
 
 struct SettingsOverlayItem: View {
-    @EnvironmentObject var bluetooth: BluetoothManager
-    @EnvironmentObject var manager: AppManager
+    private var bluetooth: BluetoothManager {
+        BluetoothManager.shared
+    }
+
+    private var manager: AppManager {
+        AppManager.shared
+    }
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var item: SettingsActionType
@@ -217,14 +248,14 @@ struct SettingsOverlayItem: View {
                     .frame(width: 60)
                     .overlay(
                         Image(systemName: icon)
-                            .font(.system(size: 16, weight: .medium))
+                            .font(BBTypography.headingLarge)
                             .foregroundColor(Color("BatterySubtitle")),
 
                     )
             },
         )
         .buttonStyle(.plain)
-        .keyboardShortcut(item == .appQuit ? "q" : nil, modifiers: item == .appQuit ? .command : [])
+        .modifier(QuitKeyboardShortcutModifier(isQuitButton: item == .appQuit))
         .onAppear {
             index = 0
             timeline = bluetooth.connected.map(\.type.icon)
@@ -289,7 +320,7 @@ struct SettingsOverlayItem: View {
 
         }
         .accessibilityLabel(accessibilityLabel)
-        .accessibilityHint("Double tap to activate")
+        .accessibilityHint("AccessibilityDoubleTapActivate".localise())
 
     }
 

@@ -23,7 +23,7 @@ struct BluetoothIcon: View {
                     RadialProgressMiniContainer(item, style: $style)
 
                     Image(systemName: icon)
-                        .font(.system(size: 12, weight: .medium))
+                        .font(BBTypography.bodyMedium)
                         .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatterySubtitle"))
                         .padding(2)
                         .background(
@@ -37,7 +37,7 @@ struct BluetoothIcon: View {
 
                 } else {
                     Image(systemName: icon)
-                        .font(.system(size: 18, weight: .medium))
+                        .font(BBTypography.title)
                         .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatterySubtitle"))
                         .padding(2)
                         .matchedGeometryEffect(id: item?.type.icon ?? "laptopcomputer", in: animation)
@@ -55,8 +55,14 @@ struct BluetoothIcon: View {
 }
 
 struct BluetoothItem: View {
-    @EnvironmentObject var manager: AppManager
-    @EnvironmentObject var battery: BatteryManager
+    private var manager: AppManager {
+        AppManager.shared
+    }
+
+    private var battery: BatteryManager {
+        BatteryManager.shared
+    }
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @Binding var hover: Bool
@@ -116,7 +122,7 @@ struct BluetoothItem: View {
                     VStack(alignment: .leading) {
                         if let item {
                             Text(item.device ?? item.type.type.rawValue)
-                                .font(.system(size: 16, weight: .medium))
+                                .font(BBTypography.headingLarge)
                                 .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatteryTitle"))
                                 .padding(0)
 
@@ -141,18 +147,18 @@ struct BluetoothItem: View {
                                         .frame(width: 6, height: 6)
                                 }
                             }
-                            .font(.system(size: 10, weight: .bold))
+                            .font(BBTypography.small)
                             .foregroundColor(Color("BatterySubtitle"))
 
                         } else {
                             Text(AppManager.shared.appDeviceType.name)
-                                .font(.system(size: 16, weight: .medium))
+                                .font(BBTypography.headingLarge)
                                 .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatteryTitle"))
                                 .padding(0)
 
                             if hover == true {
                                 Text("AlertSomePercentTitle".localise([Int(battery.percentage)]))
-                                    .font(.system(size: 10, weight: .bold))
+                                    .font(BBTypography.small)
                                     .foregroundColor(Color("BatterySubtitle"))
 
                             }
@@ -202,7 +208,7 @@ struct BluetoothItem: View {
         }
         .accessibilityLabel(deviceName)
         .accessibilityValue(batteryInfo)
-        .accessibilityHint("Double tap to select this device")
+        .accessibilityHint("AccessibilityDoubleTapSelect".localise())
         .accessibilityAddTraits(manager.device == item ? .isSelected : [])
 
     }

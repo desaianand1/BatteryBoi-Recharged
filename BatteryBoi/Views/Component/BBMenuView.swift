@@ -1,4 +1,3 @@
-import Combine
 import SwiftUI
 
 enum BatteryStyle: String {
@@ -38,7 +37,10 @@ enum BatteryAnimationType {
 }
 
 public struct BatteryPulsatingIcon: View {
-    @EnvironmentObject var manager: BatteryManager
+    private var manager: BatteryManager {
+        BatteryManager.shared
+    }
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var visible: Bool = false
@@ -118,8 +120,13 @@ public struct BatteryMask: Shape {
 }
 
 private struct BatteryStatus: View {
-    @EnvironmentObject var manager: BatteryManager
-    @EnvironmentObject var stats: StatsManager
+    private var manager: BatteryManager {
+        BatteryManager.shared
+    }
+
+    private var stats: StatsManager {
+        StatsManager.shared
+    }
 
     @State private var size: CGSize
     @State private var font: CGFloat
@@ -220,7 +227,10 @@ private struct BatteryStub: View {
 }
 
 struct BatteryIcon: View {
-    @EnvironmentObject var manager: BatteryManager
+    private var manager: BatteryManager {
+        BatteryManager.shared
+    }
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State var size: CGSize
@@ -312,9 +322,18 @@ struct BatteryIcon: View {
 }
 
 struct BatteryContainer: View {
-    @EnvironmentObject var manager: BatteryManager
-    @EnvironmentObject var updates: UpdateManager
-    @EnvironmentObject var stats: StatsManager
+    private var manager: BatteryManager {
+        BatteryManager.shared
+    }
+
+    private var updates: UpdateManager {
+        UpdateManager.shared
+    }
+
+    private var stats: StatsManager {
+        StatsManager.shared
+    }
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var size: CGSize
@@ -401,10 +420,6 @@ struct BatteryContainer: View {
 struct MenuContainer: View {
     var body: some View {
         BatteryContainer(.init(width: 32, height: 15), radius: 5, font: 11)
-            .environmentObject(BatteryManager.shared)
-            .environmentObject(StatsManager.shared)
-            .environmentObject(UpdateManager.shared)
-
     }
 
 }

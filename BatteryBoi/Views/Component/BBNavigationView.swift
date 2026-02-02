@@ -1,10 +1,21 @@
 import SwiftUI
 
 struct NavigationContainer: View {
-    @EnvironmentObject var manager: AppManager
-    @EnvironmentObject var updates: UpdateManager
-    @EnvironmentObject var settings: SettingsManager
-    @EnvironmentObject var bluetooth: BluetoothManager
+    private var manager: AppManager {
+        AppManager.shared
+    }
+
+    private var updates: UpdateManager {
+        UpdateManager.shared
+    }
+
+    private var settings: SettingsManager {
+        SettingsManager.shared
+    }
+
+    private var bluetooth: BluetoothManager {
+        BluetoothManager.shared
+    }
 
     @State var update: Bool = false
     @State var hover: Bool = false

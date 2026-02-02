@@ -117,9 +117,17 @@ struct RadialProgressBar: View {
 }
 
 struct RadialProgressMiniContainer: View {
-    @EnvironmentObject var manager: AppManager
-    @EnvironmentObject var bluetooth: BluetoothManager
-    @EnvironmentObject var battery: BatteryManager
+    private var manager: AppManager {
+        AppManager.shared
+    }
+
+    private var bluetooth: BluetoothManager {
+        BluetoothManager.shared
+    }
+
+    private var battery: BatteryManager {
+        BatteryManager.shared
+    }
 
     @State private var device: BluetoothObject?
     @State private var progress: Double = 0.0
@@ -142,7 +150,7 @@ struct RadialProgressMiniContainer: View {
             VStack {
                 Text("\(percent)")
                     .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatteryTitle"))
-                    .font(.system(size: 10, weight: .medium))
+                    .font(BBTypography.caption)
 
             }
 
@@ -184,9 +192,18 @@ struct RadialProgressMiniContainer: View {
 }
 
 struct RadialProgressContainer: View {
-    @EnvironmentObject var manager: AppManager
-    @EnvironmentObject var window: WindowManager
-    @EnvironmentObject var battery: BatteryManager
+    private var manager: AppManager {
+        AppManager.shared
+    }
+
+    private var window: WindowManager {
+        WindowManager.shared
+    }
+
+    private var battery: BatteryManager {
+        BatteryManager.shared
+    }
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var percent: Int?
@@ -213,13 +230,13 @@ struct RadialProgressContainer: View {
             ZStack(alignment: .center) {
                 Text("\(percent ?? 0)")
                     .foregroundColor(Color("BatteryTitle"))
-                    .font(.system(size: 20, weight: .bold))
+                    .font(BBTypography.progressLarge)
                     .blur(radius: percent == nil ? 5.0 : 0.0)
                     .opacity(percent == nil ? 0.0 : 1.0)
 
                 Text("N/A")
                     .foregroundColor(Color("BatteryTitle").opacity(0.4))
-                    .font(.system(size: 14, weight: .bold))
+                    .font(BBTypography.heading)
                     .blur(radius: percent == nil ? 0.0 : 5.0)
                     .opacity(percent == nil ? 1.0 : 0.0)
 
@@ -263,7 +280,7 @@ struct RadialProgressContainer: View {
 
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Battery progress")
+        .accessibilityLabel("AccessibilityBatteryProgress".localise())
         .accessibilityValue(percent.map { "\($0) percent" } ?? "Not available")
 
     }

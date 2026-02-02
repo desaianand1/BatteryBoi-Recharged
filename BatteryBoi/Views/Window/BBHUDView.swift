@@ -160,7 +160,9 @@ enum HUDState: Equatable {
 }
 
 struct HUDIcon: View {
-    @EnvironmentObject var stats: StatsManager
+    private var stats: StatsManager {
+        StatsManager.shared
+    }
 
     @Namespace private var animation
 
@@ -196,9 +198,18 @@ struct HUDIcon: View {
 }
 
 struct HUDSummary: View {
-    @EnvironmentObject var stats: StatsManager
-    @EnvironmentObject var updates: UpdateManager
-    @EnvironmentObject var window: WindowManager
+    private var stats: StatsManager {
+        StatsManager.shared
+    }
+
+    private var updates: UpdateManager {
+        UpdateManager.shared
+    }
+
+    private var window: WindowManager {
+        WindowManager.shared
+    }
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var title = ""
@@ -211,7 +222,7 @@ struct HUDSummary: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.system(size: 18, weight: .bold))
+                    .font(BBTypography.titleBold)
                     .foregroundColor(.white)
                     .lineLimit(2)
 
@@ -261,8 +272,13 @@ struct HUDSummary: View {
 }
 
 struct HUDContainer: View {
-    @EnvironmentObject var battery: BatteryManager
-    @EnvironmentObject var window: WindowManager
+    private var battery: BatteryManager {
+        BatteryManager.shared
+    }
+
+    private var window: WindowManager {
+        WindowManager.shared
+    }
 
     @State private var timeline: AnimationObject
     @State private var namespace: Namespace.ID
@@ -318,7 +334,9 @@ struct HUDContainer: View {
 }
 
 struct HUDMaskView: View {
-    @EnvironmentObject var window: WindowManager
+    private var window: WindowManager {
+        WindowManager.shared
+    }
 
     @State private var timeline: AnimationObject
     @State private var animation: AnimationState = .waiting
@@ -357,7 +375,9 @@ struct HUDMaskView: View {
 }
 
 struct HUDGlow: View {
-    @EnvironmentObject var window: WindowManager
+    private var window: WindowManager {
+        WindowManager.shared
+    }
 
     @State private var timeline: AnimationObject
     @State private var animation: AnimationState = .waiting
@@ -392,7 +412,9 @@ struct HUDGlow: View {
 }
 
 struct HUDProgress: View {
-    @EnvironmentObject var window: WindowManager
+    private var window: WindowManager {
+        WindowManager.shared
+    }
 
     @State private var timeline: AnimationObject
     @State private var animation: AnimationState = .waiting
@@ -425,7 +447,9 @@ struct HUDProgress: View {
 }
 
 struct HUDView: View {
-    @EnvironmentObject var window: WindowManager
+    private var window: WindowManager {
+        WindowManager.shared
+    }
 
     @State private var timeline: AnimationObject
     @State private var animation: AnimationState = .waiting
@@ -480,7 +504,7 @@ struct HUDView: View {
 
         })
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Battery status notification")
+        .accessibilityLabel("AccessibilityBatteryNotification".localise())
         .accessibilityAddTraits(.isModal)
 
     }
@@ -502,13 +526,6 @@ struct HUDParent: View {
             HUDView()
 
         }
-        .environmentObject(WindowManager.shared)
-        .environmentObject(AppManager.shared)
-        .environmentObject(BatteryManager.shared)
-        .environmentObject(SettingsManager.shared)
-        .environmentObject(UpdateManager.shared)
-        .environmentObject(StatsManager.shared)
-        .environmentObject(BluetoothManager.shared)
 
     }
 

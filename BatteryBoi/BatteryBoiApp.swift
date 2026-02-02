@@ -35,6 +35,7 @@ public enum SystemSoundEffects: String {
     case high = "highnote"
     case low = "lownote"
 
+    @MainActor
     public func play(_ force: Bool = false) {
         guard SettingsManager.shared.enabledSoundEffects == .enabled || force else { return }
 
@@ -191,8 +192,9 @@ struct BatteryBoiApp: App {
 
 class CustomView: NSView {}
 
-final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDelegate, ObservableObject {
-    static var shared = AppDelegate()
+@MainActor
+final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDelegate {
+    static let shared = AppDelegate()
 
     var status: NSStatusItem?
     var hosting: NSHostingView = .init(rootView: MenuContainer())
@@ -222,11 +224,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
                     }
                     options.enableAutoPerformanceTracing = true
 
-                    // Profiling
+                    // UI Profiling (SDK 9.0+ API)
                     if let profileRate = Bundle.main.infoDictionary?["SentryProfilesSampleRate"] as? String,
-                       let rate = Double(profileRate)
+                       let rate = Float(profileRate)
                     {
-                        options.profilesSampleRate = NSNumber(value: rate)
+                        options.configureProfiling = {
+                            $0.sessionSampleRate = rate
+                            $0.lifecycle = .trace
+                        }
                     }
 
                     // Release version
@@ -252,7 +257,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(800))
+            guard let self else { return }
+
             _ = SettingsManager.shared.enabledTheme
             _ = SettingsManager.shared.enabledDisplay()
 
@@ -264,12 +272,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
             // Set initial display state
             switch SettingsManager.shared.display {
-            case .hidden: self.applicationMenuBarIcon(false)
-            default: self.applicationMenuBarIcon(true)
+            case .hidden: applicationMenuBarIcon(false)
+            default: applicationMenuBarIcon(true)
             }
 
             // Observe display changes using async/await via UserDefaults
-            self.displayObserverTask = Task { @MainActor [weak self] in
+            displayObserverTask = Task { @MainActor [weak self] in
                 for await key in UserDefaults.changedAsync() {
                     guard let self, !Task.isCancelled else { break }
                     if key == .enabledDisplay {
@@ -284,7 +292,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             if SettingsManager.shared.enabledAutoLaunch == .undetermined {
                 SettingsManager.shared.enabledAutoLaunch = .enabled
             }
-
         }
 
         NSAppleEventManager.shared().setEventHandler(
@@ -311,7 +318,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             object: nil,
             queue: .main,
         ) { [weak self] notification in
-            self?.applicationFocusDidMove(notification: notification)
+            // Extract window before crossing actor boundary to avoid Sendable issues
+            guard let window = notification.object as? NSWindow else { return }
+            self?.applicationFocusDidMove(window: window)
         }
 
     }
@@ -359,34 +368,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     }
 
     @objc
-    func applicationHandleURLEvent(event _: NSAppleEventDescriptor, reply _: NSAppleEventDescriptor) {
+    func applicationHandleURLEvent(event _: NSAppleEventDescriptor, reply _: NSAppleEventDescriptor) {}
 
-//        if let path = event.paramDescriptor(forKeyword:
-//        AEKeyword(keyDirectObject))?.stringValue?.components(separatedBy: "://").last {
-//
-//        }
-
-    }
-
-    func applicationFocusDidMove(notification: Notification) {
-        if let window = notification.object as? NSWindow {
-            if window.title == "modalwindow" {
-                // Only add monitor if not already added
-                if globalMouseMonitor == nil {
-                    globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseUp]) { [weak self] _ in
-                        guard self != nil else { return }
-                        window.animator().alphaValue = 1.0
-                        window.animator().setFrame(
-                            WindowManager.shared.windowHandleFrame(),
-                            display: true,
-                            animate: true,
-                        )
-                    }
+    func applicationFocusDidMove(window: NSWindow) {
+        if window.title == "modalwindow" {
+            // Only add monitor if not already added
+            if globalMouseMonitor == nil {
+                globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseUp]) { [weak self] _ in
+                    guard self != nil else { return }
+                    window.animator().alphaValue = 1.0
+                    window.animator().setFrame(
+                        WindowManager.shared.windowHandleFrame(),
+                        display: true,
+                        animate: true,
+                    )
                 }
-
-                _ = WindowManager.shared.windowHandleFrame(moved: window.frame)
-
             }
+
+            _ = WindowManager.shared.windowHandleFrame(moved: window.frame)
 
         }
 

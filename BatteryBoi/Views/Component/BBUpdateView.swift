@@ -1,10 +1,8 @@
 import SwiftUI
 
 struct UpdatePromptView: View {
-    @EnvironmentObject var update: UpdateManager
-
     var body: some View {
-        if update.available != nil {
+        if UpdateManager.shared.available != nil {
             HStack(alignment: .top, spacing: 3) {
                 Circle()
                     .fill(Color("BatteryEfficient"))
