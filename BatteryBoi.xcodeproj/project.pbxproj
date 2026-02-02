@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -11,20 +11,16 @@
 		1743B5742F2FCAA700496B29 /* InMemoryLogging in Frameworks */ = {isa = PBXBuildFile; productRef = 1743B5732F2FCAA700496B29 /* InMemoryLogging */; };
 		1743B5762F2FCAA700496B29 /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 1743B5752F2FCAA700496B29 /* Logging */; };
 		C1A0B0C02C01000000000003 /* ProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C01000000000002 /* ProcessRunner.swift */; };
-		C1A0B0C02C03000000000002 /* BBLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000001 /* BBLogger.swift */; };
-		C1A0B0C02C03000000000004 /* BBConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000003 /* BBConstants.swift */; };
-		C1A0B0C02C03000000000006 /* BBDesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000005 /* BBDesignTokens.swift */; };
-		C1A0B0C02C03000000000008 /* IOKitBatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000007 /* IOKitBatteryService.swift */; };
-		C1A0B0C02C03000000000010 /* IOKitBluetoothService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000009 /* IOKitBluetoothService.swift */; };
 		C1A0B0C02C02000000000011 /* BatteryServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000001 /* BatteryServiceProtocol.swift */; };
 		C1A0B0C02C02000000000012 /* BluetoothServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000002 /* BluetoothServiceProtocol.swift */; };
 		C1A0B0C02C02000000000013 /* SettingsServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000003 /* SettingsServiceProtocol.swift */; };
 		C1A0B0C02C02000000000014 /* WindowServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000004 /* WindowServiceProtocol.swift */; };
 		C1A0B0C02C02000000000015 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000005 /* AppEnvironment.swift */; };
-		C1A0B0C02C02000000000021 /* MockBatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000016 /* MockBatteryService.swift */; };
-		C1A0B0C02C02000000000022 /* MockBluetoothService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000017 /* MockBluetoothService.swift */; };
-		C1A0B0C02C02000000000023 /* MockSettingsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000018 /* MockSettingsService.swift */; };
-		C1A0B0C02C02000000000024 /* MockWindowService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000019 /* MockWindowService.swift */; };
+		C1A0B0C02C03000000000002 /* BBLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000001 /* BBLogger.swift */; };
+		C1A0B0C02C03000000000004 /* BBConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000003 /* BBConstants.swift */; };
+		C1A0B0C02C03000000000006 /* BBDesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000005 /* BBDesignTokens.swift */; };
+		C1A0B0C02C03000000000008 /* IOKitBatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000007 /* IOKitBatteryService.swift */; };
+		C1A0B0C02C03000000000010 /* IOKitBluetoothService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000009 /* IOKitBluetoothService.swift */; };
 		D83CD7452AA8F693004223D7 /* BBBluetoothView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83CD7442AA8F693004223D7 /* BBBluetoothView.swift */; };
 		D83DD3F52A9908E600FCC534 /* BBUpdateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83DD3F42A9908E600FCC534 /* BBUpdateManager.swift */; };
 		D83DD3FA2A9D62AF00FCC534 /* BBStatsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83DD3F92A9D62AF00FCC534 /* BBStatsManager.swift */; };
@@ -57,6 +53,16 @@
 		D8F2671E2AB00558003A6420 /* SMC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8F2671D2AB00557003A6420 /* SMC.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		1762F5C22F30CDC9005DB7BF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D8D9E5942A7DE7AA00E295FA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D8D9E59B2A7DE7AB00E295FA;
+			remoteInfo = "BatteryBoi - Recharged";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		D8DFD55B2A89C4A000732635 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -71,21 +77,19 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1762F5BE2F30CDC9005DB7BF /* BatteryBoi - RechargedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "BatteryBoi - RechargedTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1762F5C72F30CE1C005DB7BF /* BatteryBoi - Recharged.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = "BatteryBoi - Recharged.xctestplan"; sourceTree = "<group>"; };
 		C1A0B0C02C01000000000002 /* ProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessRunner.swift; sourceTree = "<group>"; };
-		C1A0B0C02C03000000000001 /* BBLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBLogger.swift; sourceTree = "<group>"; };
-		C1A0B0C02C03000000000003 /* BBConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBConstants.swift; sourceTree = "<group>"; };
-		C1A0B0C02C03000000000005 /* BBDesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBDesignTokens.swift; sourceTree = "<group>"; };
-		C1A0B0C02C03000000000007 /* IOKitBatteryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOKitBatteryService.swift; sourceTree = "<group>"; };
-		C1A0B0C02C03000000000009 /* IOKitBluetoothService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOKitBluetoothService.swift; sourceTree = "<group>"; };
 		C1A0B0C02C02000000000001 /* BatteryServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryServiceProtocol.swift; sourceTree = "<group>"; };
 		C1A0B0C02C02000000000002 /* BluetoothServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothServiceProtocol.swift; sourceTree = "<group>"; };
 		C1A0B0C02C02000000000003 /* SettingsServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsServiceProtocol.swift; sourceTree = "<group>"; };
 		C1A0B0C02C02000000000004 /* WindowServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowServiceProtocol.swift; sourceTree = "<group>"; };
 		C1A0B0C02C02000000000005 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
-		C1A0B0C02C02000000000016 /* MockBatteryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockBatteryService.swift; sourceTree = "<group>"; };
-		C1A0B0C02C02000000000017 /* MockBluetoothService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockBluetoothService.swift; sourceTree = "<group>"; };
-		C1A0B0C02C02000000000018 /* MockSettingsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockSettingsService.swift; sourceTree = "<group>"; };
-		C1A0B0C02C02000000000019 /* MockWindowService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockWindowService.swift; sourceTree = "<group>"; };
+		C1A0B0C02C03000000000001 /* BBLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBLogger.swift; sourceTree = "<group>"; };
+		C1A0B0C02C03000000000003 /* BBConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBConstants.swift; sourceTree = "<group>"; };
+		C1A0B0C02C03000000000005 /* BBDesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBDesignTokens.swift; sourceTree = "<group>"; };
+		C1A0B0C02C03000000000007 /* IOKitBatteryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOKitBatteryService.swift; sourceTree = "<group>"; };
+		C1A0B0C02C03000000000009 /* IOKitBluetoothService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOKitBluetoothService.swift; sourceTree = "<group>"; };
 		D83CD7442AA8F693004223D7 /* BBBluetoothView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBBluetoothView.swift; sourceTree = "<group>"; };
 		D83DD3F42A9908E600FCC534 /* BBUpdateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBUpdateManager.swift; sourceTree = "<group>"; };
 		D83DD3F92A9D62AF00FCC534 /* BBStatsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBStatsManager.swift; sourceTree = "<group>"; };
@@ -134,7 +138,18 @@
 		D8F2671D2AB00557003A6420 /* SMC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SMC.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		1762F5BF2F30CDC9005DB7BF /* BatteryBoi - RechargedTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "BatteryBoi - RechargedTests"; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
+		1762F5BB2F30CDC9005DB7BF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D8D9E5992A7DE7AB00E295FA /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -184,25 +199,6 @@
 			path = Services;
 			sourceTree = "<group>";
 		};
-		C1A0B0C02C02000000000008 /* Tests */ = {
-			isa = PBXGroup;
-			children = (
-				C1A0B0C02C02000000000009 /* Mocks */,
-			);
-			path = Tests;
-			sourceTree = "<group>";
-		};
-		C1A0B0C02C02000000000009 /* Mocks */ = {
-			isa = PBXGroup;
-			children = (
-				C1A0B0C02C02000000000016 /* MockBatteryService.swift */,
-				C1A0B0C02C02000000000017 /* MockBluetoothService.swift */,
-				C1A0B0C02C02000000000018 /* MockSettingsService.swift */,
-				C1A0B0C02C02000000000019 /* MockWindowService.swift */,
-			);
-			path = Mocks;
-			sourceTree = "<group>";
-		};
 		D83DD3F62A9BBF2E00FCC534 /* Scripts */ = {
 			isa = PBXGroup;
 			children = (
@@ -250,7 +246,9 @@
 		D8D9E5932A7DE7AA00E295FA = {
 			isa = PBXGroup;
 			children = (
+				1762F5C72F30CE1C005DB7BF /* BatteryBoi - Recharged.xctestplan */,
 				D8D9E59E2A7DE7AB00E295FA /* BatteryBoi */,
+				1762F5BF2F30CDC9005DB7BF /* BatteryBoi - RechargedTests */,
 				D8D9E59D2A7DE7AB00E295FA /* Products */,
 				D8DFD5602A89C4BD00732635 /* Frameworks */,
 			);
@@ -260,6 +258,7 @@
 			isa = PBXGroup;
 			children = (
 				D8D9E59C2A7DE7AB00E295FA /* BatteryBoi - Recharged.app */,
+				1762F5BE2F30CDC9005DB7BF /* BatteryBoi - RechargedTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -275,7 +274,6 @@
 				D8D9E5BB2A8064A000E295FA /* Objects */,
 				C1A0B0C02C02000000000006 /* Protocols */,
 				C1A0B0C02C02000000000007 /* Services */,
-				C1A0B0C02C02000000000008 /* Tests */,
 				C1A0B0C02C01000000000001 /* Utilities */,
 				D8D9E5BA2A80649B00E295FA /* Views */,
 				D8D9E5A32A7DE7AE00E295FA /* Assets.xcassets */,
@@ -351,6 +349,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		1762F5BD2F30CDC9005DB7BF /* BatteryBoi - RechargedTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1762F5C62F30CDC9005DB7BF /* Build configuration list for PBXNativeTarget "BatteryBoi - RechargedTests" */;
+			buildPhases = (
+				1762F5BA2F30CDC9005DB7BF /* Sources */,
+				1762F5BB2F30CDC9005DB7BF /* Frameworks */,
+				1762F5BC2F30CDC9005DB7BF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1762F5C32F30CDC9005DB7BF /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				1762F5BF2F30CDC9005DB7BF /* BatteryBoi - RechargedTests */,
+			);
+			name = "BatteryBoi - RechargedTests";
+			packageProductDependencies = (
+			);
+			productName = "BatteryBoi - RechargedTests";
+			productReference = 1762F5BE2F30CDC9005DB7BF /* BatteryBoi - RechargedTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		D8D9E59B2A7DE7AB00E295FA /* BatteryBoi - Recharged */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = D8D9E5AB2A7DE7AE00E295FA /* Build configuration list for PBXNativeTarget "BatteryBoi - Recharged" */;
@@ -385,9 +406,13 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1430;
+				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					1762F5BD2F30CDC9005DB7BF = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = D8D9E59B2A7DE7AB00E295FA;
+					};
 					D8D9E59B2A7DE7AB00E295FA = {
 						CreatedOnToolsVersion = 14.3;
 					};
@@ -430,11 +455,19 @@
 			projectRoot = "";
 			targets = (
 				D8D9E59B2A7DE7AB00E295FA /* BatteryBoi - Recharged */,
+				1762F5BD2F30CDC9005DB7BF /* BatteryBoi - RechargedTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		1762F5BC2F30CDC9005DB7BF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D8D9E59A2A7DE7AB00E295FA /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -450,6 +483,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		1762F5BA2F30CDC9005DB7BF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D8D9E5982A7DE7AB00E295FA /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -465,10 +505,6 @@
 				C1A0B0C02C02000000000013 /* SettingsServiceProtocol.swift in Sources */,
 				C1A0B0C02C02000000000014 /* WindowServiceProtocol.swift in Sources */,
 				C1A0B0C02C02000000000015 /* AppEnvironment.swift in Sources */,
-				C1A0B0C02C02000000000021 /* MockBatteryService.swift in Sources */,
-				C1A0B0C02C02000000000022 /* MockBluetoothService.swift in Sources */,
-				C1A0B0C02C02000000000023 /* MockSettingsService.swift in Sources */,
-				C1A0B0C02C02000000000024 /* MockWindowService.swift in Sources */,
 				D851F8062AB214E8003FCA79 /* BBDataObject.xcdatamodeld in Sources */,
 				D89CCFEE2A9FF97900D9531A /* BBAboutView.swift in Sources */,
 				D83DD3FA2A9D62AF00FCC534 /* BBStatsManager.swift in Sources */,
@@ -494,6 +530,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1762F5C32F30CDC9005DB7BF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D8D9E59B2A7DE7AB00E295FA /* BatteryBoi - Recharged */;
+			targetProxy = 1762F5C22F30CDC9005DB7BF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		D84F4E2D2A86E9E800668582 /* LocalizableMain.strings */ = {
@@ -522,6 +566,57 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		1762F5C42F30CDC9005DB7BF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YF3F2NR98Q;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.nirnshard.BatteryBoi---RechargedTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BatteryBoi - Recharged.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BatteryBoi - Recharged";
+			};
+			name = Debug;
+		};
+		1762F5C52F30CDC9005DB7BF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YF3F2NR98Q;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.nirnshard.BatteryBoi---RechargedTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BatteryBoi - Recharged.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BatteryBoi - Recharged";
+			};
+			name = Release;
+		};
 		D8D9E5A92A7DE7AE00E295FA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = D8D9E5CC2A84069700E295FA /* BBEnviroments.xcconfig */;
@@ -716,6 +811,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		1762F5C62F30CDC9005DB7BF /* Build configuration list for PBXNativeTarget "BatteryBoi - RechargedTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1762F5C42F30CDC9005DB7BF /* Debug */,
+				1762F5C52F30CDC9005DB7BF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		D8D9E5972A7DE7AA00E295FA /* Build configuration list for PBXProject "BatteryBoi" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

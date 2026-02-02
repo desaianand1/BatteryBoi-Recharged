@@ -14,7 +14,8 @@
       "containerPath" : "container:BatteryBoi.xcodeproj",
       "identifier" : "D8D9E59B2A7DE7AB00E295FA",
       "name" : "BatteryBoi - Recharged"
-    }
+    },
+    "testTimeoutsEnabled" : true
   },
   "testTargets" : [
     {
