@@ -2,9 +2,9 @@
 
 A beautiful, powerful battery indicator for your macOS menu bar.
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Swift Version](https://img.shields.io/badge/Swift-6.x-orange.svg)]()
-[![macOS](https://img.shields.io/badge/macOS-14.0+-blue)]()
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-BD0000?logo=gplv3)](https://www.gnu.org/licenses/gpl-3.0)
+[![Swift Version](https://img.shields.io/badge/Swift-6.x-F05138?logo=swift)]()
+[![macOS](https://img.shields.io/badge/macOS-14.0+-black?logo=apple)]()
 
 > [!NOTE]
 > This is a faithful revival of the original [BatteryBoi](https://github.com/thebarbican19/BatteryBoi) app by Joe Barbour, updated and maintained for modern macOS versions.
@@ -59,6 +59,43 @@ BatteryBoi is available in:
 English, Japanese, Russian, Dutch, Turkish, Chinese (Simplified & Traditional), Slovenian, Slovak, Vietnamese, Spanish, German, Korean, French, Italian, Portuguese
 
 Want to help translate? Contributions welcome via pull request.
+
+## Development
+
+### Building from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/desaianand1/BatteryBoi-Recharged.git
+cd BatteryBoi-Recharged
+
+# Install dependencies
+task setup
+
+# Run tests
+task test
+
+# Build the app
+task build
+```
+
+### CI/CD & Release Process
+
+This project uses automated build, sign, test, and release pipelines with:
+- **Fastlane** for build automation
+- **Match** for code signing
+- **GitHub Actions** for CI/CD
+- **Sparkle** for auto-updates
+- **Semantic Release** for versioning
+
+**📖 For complete setup instructions, see [CI/CD Setup Guide](docs/CI-CD-SETUP.md)**
+
+The guide covers:
+- GitHub Secrets configuration
+- Apple Developer credentials
+- Code signing setup
+- Creating releases
+- Troubleshooting
 
 ## FAQ
 
