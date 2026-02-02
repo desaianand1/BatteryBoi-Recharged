@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   XCODE_VERSION: '16.2'
   NODE_VERSION: '24'
@@ -41,9 +45,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
 
       - name: Install SwiftLint
         run: brew install swiftlint

@@ -4,6 +4,10 @@ on:
   release:
     types: [published]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   XCODE_VERSION: '16.2'
   NODE_VERSION: '24'
@@ -22,9 +26,6 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-
-      - name: Pull latest changes
-        run: git pull origin main
 
       - name: Extract version from tag
         run: |
