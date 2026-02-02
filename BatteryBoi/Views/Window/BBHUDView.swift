@@ -246,11 +246,11 @@ struct HUDSummary: View {
             visible = WindowManager.shared.state.visible
 
         }
-        .onChange(of: stats.title) { newValue in
+        .onChange(of: stats.title) { _, newValue in
             title = newValue
 
         }
-        .onChange(of: stats.subtitle) { newValue in
+        .onChange(of: stats.subtitle) { _, newValue in
             subtitle = newValue
 
         }

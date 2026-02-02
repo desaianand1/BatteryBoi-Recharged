@@ -171,7 +171,7 @@ struct RadialProgressMiniContainer: View {
             }
 
         }
-        .onChange(of: bluetooth.list.first(where: { $0.address == device?.address })) { device in
+        .onChange(of: bluetooth.list.first(where: { $0.address == device?.address })) { _, device in
             if let battery = device?.battery {
                 if let percent = battery.percent {
                     progress = percent / 100

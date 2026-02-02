@@ -143,7 +143,7 @@ struct NavigationContainer: View {
             update = updates.available != nil ? true : false
 
         }
-        .onChange(of: bluetooth.connected, perform: { newValue in
+        .onChange(of: bluetooth.connected) { _, newValue in
             if newValue.isEmpty, manager.menu == .devices {
                 withAnimation(Animation.easeOut) {
                     manager.menu = .settings
@@ -152,14 +152,14 @@ struct NavigationContainer: View {
 
             }
 
-        })
-        .onChange(of: updates.available, perform: { newValue in
+        }
+        .onChange(of: updates.available) { _, newValue in
             withAnimation(Animation.easeOut.delay(0.1)) {
                 update = newValue != nil ? true : false
 
             }
 
-        })
+        }
 
     }
 

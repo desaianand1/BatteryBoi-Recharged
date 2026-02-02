@@ -175,7 +175,7 @@ private struct BatteryStatus: View {
             }
 
         }
-        .onChange(of: manager.charging) { newValue in
+        .onChange(of: manager.charging) { _, newValue in
             if newValue.state == .charging, manager.percentage != 100 {
                 icon = "ChargingIcon"
 
@@ -185,7 +185,7 @@ private struct BatteryStatus: View {
             }
 
         }
-        .onChange(of: manager.percentage) { newValue in
+        .onChange(of: manager.percentage) { _, newValue in
             if manager.charging.state == .charging, newValue != 100 {
                 icon = "ChargingIcon"
 
@@ -286,7 +286,7 @@ struct BatteryIcon: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: radius - padding, style: .continuous))
         .padding(padding)
-        .onChange(of: manager.charging.state, perform: { newValue in
+        .onChange(of: manager.charging.state) { _, newValue in
             if let animation = springAnimation {
                 withAnimation(animation) {
                     progress = newValue.progress(manager.percentage, width: size.width)
@@ -295,8 +295,8 @@ struct BatteryIcon: View {
                 progress = newValue.progress(manager.percentage, width: size.width)
             }
 
-        })
-        .onChange(of: manager.percentage, perform: { newValue in
+        }
+        .onChange(of: manager.percentage) { _, newValue in
             if let animation = springAnimation {
                 withAnimation(animation) {
                     progress = manager.charging.state.progress(newValue, width: size.width)
@@ -305,7 +305,7 @@ struct BatteryIcon: View {
                 progress = manager.charging.state.progress(newValue, width: size.width)
             }
 
-        })
+        }
         .onAppear {
             if let animation = springAnimation {
                 withAnimation(animation) {
@@ -377,7 +377,7 @@ struct BatteryContainer: View {
             }
 
         }
-        .onChange(of: manager.charging, perform: { newValue in
+        .onChange(of: manager.charging) { _, newValue in
             if newValue.state == .charging, hover == true {
                 if let animation = hoverAnimation {
                     withAnimation(animation) {
@@ -389,7 +389,7 @@ struct BatteryContainer: View {
 
             }
 
-        })
+        }
         .overlay(
             GeometryReader { geo in
                 if updates.available != nil {
