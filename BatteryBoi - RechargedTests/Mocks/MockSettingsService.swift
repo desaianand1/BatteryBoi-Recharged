@@ -51,7 +51,7 @@ import Foundation
             chargeEighty: SettingsCharged = .disabled,
             progressBar: Bool = true,
             soundEffects: SettingsSoundEffects = .enabled,
-            bluetoothStatus: SettingsStateValue = .enabled,
+            bluetoothStatus: SettingsStateValue = .enabled
         ) {
             self.menu = menu
             self.display = display

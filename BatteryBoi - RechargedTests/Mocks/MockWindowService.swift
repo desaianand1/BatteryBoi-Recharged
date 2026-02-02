@@ -40,7 +40,7 @@ import Foundation
             hover: Bool = false,
             state: HUDState = .hidden,
             position: WindowPosition = .topMiddle,
-            opacity: CGFloat = 1.0,
+            opacity: CGFloat = 1.0
         ) {
             self.hover = hover
             self.state = state

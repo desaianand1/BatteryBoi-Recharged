@@ -31,7 +31,7 @@ import Foundation
         init(
             list: [BluetoothObject] = [],
             connected: [BluetoothObject] = [],
-            icons: [String] = [],
+            icons: [String] = []
         ) {
             self.list = list
             self.connected = connected

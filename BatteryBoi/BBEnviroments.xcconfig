@@ -17,3 +17,8 @@ SENTRY_DSN = https://4ac9d12af2db3e82231ce3ead4ddee4d@o4509241922289664.ingest.d
 SENTRY_TRACES_SAMPLE_RATE = 0.05
 SENTRY_PROFILES_SAMPLE_RATE = 0.01
 SENTRY_ENVIRONMENT = production
+
+// Swift Concurrency Settings
+// Values: complete (strictest), targeted, minimal (least strict)
+// Using targeted to enforce concurrency checking for @MainActor and Sendable types
+SWIFT_STRICT_CONCURRENCY = targeted

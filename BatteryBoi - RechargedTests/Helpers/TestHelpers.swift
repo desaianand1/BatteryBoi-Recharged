@@ -26,14 +26,14 @@ import Foundation
             name: String = "Test Device",
             isConnected: Bool = true,
             batteryPercent: Int? = 75,
-            deviceType: BluetoothDeviceType = .headphones,
+            deviceType: BluetoothDeviceType = .headphones
         ) -> BluetoothObject {
             BluetoothObject(
                 address: address,
                 name: name,
                 isConnected: isConnected,
                 batteryPercent: batteryPercent,
-                deviceType: deviceType.rawValue,
+                deviceType: deviceType.rawValue
             )
         }
     }

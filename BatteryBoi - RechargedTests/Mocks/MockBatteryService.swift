@@ -37,7 +37,7 @@ import Foundation
             saver: BatteryModeType = .normal,
             rate: BatteryEstimateObject? = nil,
             metrics: BatteryMetricsObject? = nil,
-            thermal: BatteryThemalState = .optimal,
+            thermal: BatteryThemalState = .optimal
         ) {
             self.charging = charging
             self.percentage = percentage
