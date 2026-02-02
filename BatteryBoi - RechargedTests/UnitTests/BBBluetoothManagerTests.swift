@@ -16,7 +16,6 @@ final class BBBluetoothManagerTests: XCTestCase {
 
     // MARK: - Setup
 
-    @MainActor
     override func setUp() {
         super.setUp()
         mockBluetoothService = MockBluetoothService()
@@ -127,7 +126,7 @@ final class BBBluetoothManagerTests: XCTestCase {
         let device = BluetoothObject.testDevice(
             address: "AA:BB:CC:DD:EE:FF",
             name: "Test Device",
-            batteryPercent: 75,
+            batteryPercent: 75
         )
 
         // When updating connection
@@ -150,7 +149,7 @@ final class BBBluetoothManagerTests: XCTestCase {
             BluetoothObject.testDevice(
                 address: "AA:BB:CC:DD:EE:FF",
                 name: "AirPods Pro",
-                batteryPercent: 80,
+                batteryPercent: 80
             ),
         ]
         mockBluetoothService.simulateListChange(devices)
