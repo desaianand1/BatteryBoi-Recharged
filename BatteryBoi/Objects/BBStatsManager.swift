@@ -49,7 +49,7 @@ final class StatsManager {
     nonisolated(unsafe) private var bluetoothObserverTask: Task<Void, Never>?
     nonisolated(unsafe) private var wattageTimerTask: Task<Void, Never>?
 
-    nonisolated(unsafe) static var container: StatsContainerObject = {
+    static let container: StatsContainerObject = {
         let object = "BBDataObject"
         let container = NSPersistentCloudKitContainer(name: object)
 
@@ -163,7 +163,7 @@ final class StatsManager {
                     needsUpdate = true
 
                     // Store activity
-                    Task {
+                    Task { @MainActor in
                         switch currentCharging.state {
                         case .battery: await self.statsStore(.disconnected, device: nil)
                         case .charging: await self.statsStore(.connected, device: nil)
@@ -179,7 +179,7 @@ final class StatsManager {
                     needsUpdate = true
 
                     // Store activity
-                    Task {
+                    Task { @MainActor in
                         switch BatteryManager.shared.charging.state {
                         case .battery: await self.statsStore(.depleted, device: nil)
                         case .charging: await self.statsStore(.charging, device: nil)
@@ -234,7 +234,7 @@ final class StatsManager {
                     subtitle = statsSubtitle
 
                     if let device = currentConnected.first(where: { $0.updated.now == true }) {
-                        Task {
+                        Task { @MainActor in
                             await self.statsStore(.depleted, device: device)
                         }
                     }
@@ -437,23 +437,9 @@ final class StatsManager {
 
     }
 
-    private func statsContext() -> NSManagedObjectContext? {
-        if let container = Self.container.container {
-            let context = container.newBackgroundContext()
-            context.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
-
-            return context
-
-        }
-
-        return nil
-
-    }
-
     private func statsStore(_ state: StatsStateType, device: BluetoothObject?) async {
-        guard let context = statsContext() else { return }
-
-        // Capture values from MainActor context before switching
+        // Capture MainActor values immediately
+        let stateRaw = state.rawValue
         let charge = if let percent = device {
             Int64(percent.battery.percent ?? 100)
         } else {
@@ -461,71 +447,85 @@ final class StatsManager {
         }
         let deviceAddress = device?.address ?? ""
 
-        await context.perform {
-            let expiry = Date().addingTimeInterval(-2 * 60)
+        // Move Core Data work to background using Task.detached
+        await Task.detached { [container = Self.container.container] in
+            guard let container else { return }
 
-            let fetch = Activity.fetchRequest() as NSFetchRequest<Activity>
-            fetch.includesPendingChanges = true
-            fetch.predicate = NSPredicate(
-                format: "state == %@ && device == %@ && charge == %d && timestamp > %@",
-                state.rawValue,
-                deviceAddress,
-                charge,
-                expiry as NSDate
-            )
+            let context = container.newBackgroundContext()
+            context.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
 
-            do {
-                if try context.fetch(fetch).first == nil {
-                    let store = Activity(context: context)
-                    store.timestamp = Date()
-                    store.device = deviceAddress
-                    store.state = state.rawValue
-                    store.charge = charge
+            await context.perform {
+                let expiry = Date().addingTimeInterval(-2 * 60)
 
-                    try context.save()
+                let fetch = Activity.fetchRequest() as NSFetchRequest<Activity>
+                fetch.includesPendingChanges = true
+                fetch.predicate = NSPredicate(
+                    format: "state == %@ && device == %@ && charge == %d && timestamp > %@",
+                    stateRaw,
+                    deviceAddress,
+                    charge,
+                    expiry as NSDate
+                )
+
+                do {
+                    if try context.fetch(fetch).first == nil {
+                        let store = Activity(context: context)
+                        store.timestamp = Date()
+                        store.device = deviceAddress
+                        store.state = stateRaw
+                        store.charge = charge
+
+                        try context.save()
+                    }
+                } catch {
+                    BBLogger.stats.error("Error storing activity: \(error)")
+                    #if canImport(Sentry)
+                        SentrySDK.capture(error: error)
+                    #endif
                 }
-            } catch {
-                BBLogger.stats.error("Error storing activity: \(error)")
-                #if canImport(Sentry)
-                    SentrySDK.capture(error: error)
-                #endif
             }
-        }
+        }.value
     }
 
     private func statsWattageStore() async {
-        guard let context = statsContext() else { return }
-
-        // Fetch wattage asynchronously before CoreData operation
+        // Capture MainActor values immediately
         let wattage = await BatteryManager.shared.fetchPowerHourWattage() ?? 0.0
         let deviceName = AppManager.shared.appDeviceType.name
 
-        await context.perform {
-            let calendar = Calendar.current
-            let components = calendar.dateComponents([.year, .month, .day, .hour], from: Date())
+        // Move Core Data work to background
+        await Task.detached { [container = Self.container.container] in
+            guard let container else { return }
 
-            guard let hour = calendar.date(from: components) else { return }
+            let context = container.newBackgroundContext()
+            context.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
 
-            let fetch = Wattage.fetchRequest() as NSFetchRequest<Wattage>
-            fetch.includesPendingChanges = true
-            fetch.predicate = NSPredicate(format: "timestamp == %@", hour as CVarArg)
+            await context.perform {
+                let calendar = Calendar.current
+                let components = calendar.dateComponents([.year, .month, .day, .hour], from: Date())
 
-            do {
-                if try context.fetch(fetch).first == nil {
-                    let store = Wattage(context: context)
-                    store.timestamp = Date()
-                    store.device = deviceName
-                    store.wattage = wattage
+                guard let hour = calendar.date(from: components) else { return }
 
-                    try context.save()
+                let fetch = Wattage.fetchRequest() as NSFetchRequest<Wattage>
+                fetch.includesPendingChanges = true
+                fetch.predicate = NSPredicate(format: "timestamp == %@", hour as CVarArg)
+
+                do {
+                    if try context.fetch(fetch).first == nil {
+                        let store = Wattage(context: context)
+                        store.timestamp = Date()
+                        store.device = deviceName
+                        store.wattage = wattage
+
+                        try context.save()
+                    }
+                } catch {
+                    BBLogger.stats.error("Failed to save CoreData wattage: \(error.localizedDescription)")
+                    #if canImport(Sentry)
+                        SentrySDK.capture(error: error)
+                    #endif
                 }
-            } catch {
-                BBLogger.stats.error("Failed to save CoreData wattage: \(error.localizedDescription)")
-                #if canImport(Sentry)
-                    SentrySDK.capture(error: error)
-                #endif
             }
-        }
+        }.value
     }
 
 }
