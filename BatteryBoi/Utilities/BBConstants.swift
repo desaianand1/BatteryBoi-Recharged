@@ -36,7 +36,40 @@ enum BBConstants {
         static let chargeLimit: Int = 80
     }
 
-    /// Window sizing and positioning constants.
+    /// Animation durations.
+    enum Animation {
+        /// Standard transition duration.
+        static let standard: Double = 0.3
+
+        /// Spring animation response.
+        static let springResponse: Double = 0.6
+
+        /// Spring animation damping.
+        static let springDamping: Double = 0.9
+    }
+
+    /// Progress indicator sizing constants.
+    enum Progress {
+        /// Mini progress indicator size (for device icons).
+        static let miniSize: CGFloat = 28
+
+        /// Normal progress indicator size.
+        static let normalSize: CGFloat = 80
+
+        /// Container size for progress indicators.
+        static let containerSize: CGFloat = 90
+
+        /// Battery bar padding for progress calculation.
+        static let batteryBarPadding: CGFloat = 2.6
+
+        /// Minimum display percentage for low battery (prevents bar from being invisible).
+        static let lowBatteryMinDisplay: Double = 10.0
+
+        /// Maximum display percentage for high battery (prevents visual overflow).
+        static let highBatteryMaxDisplay: Double = 90.0
+    }
+
+    /// Window constants.
     enum Window {
         /// Default HUD width.
         static let hudWidth: CGFloat = 440
@@ -49,17 +82,20 @@ enum BBConstants {
 
         /// Menu bar icon height.
         static let menuBarHeight: CGFloat = 22
+
+        /// Modal window title identifier.
+        static let modalWindowTitle = "modalwindow"
+
+        /// Default window margin from screen edges.
+        static let defaultMargin: CGFloat = 40
     }
 
-    /// Animation durations.
-    enum Animation {
-        /// Standard transition duration.
-        static let standard: Double = 0.3
+    /// Bluetooth-related constants.
+    enum Bluetooth {
+        /// RSSI threshold for "proximate" distance (on desk/table).
+        static let rssiProximateThreshold: Double = -50
 
-        /// Spring animation response.
-        static let springResponse: Double = 0.6
-
-        /// Spring animation damping.
-        static let springDamping: Double = 0.9
+        /// RSSI threshold for "near" distance (same room).
+        static let rssiNearThreshold: Double = -70
     }
 }
