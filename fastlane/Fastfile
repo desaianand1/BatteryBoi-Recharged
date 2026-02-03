@@ -100,6 +100,41 @@ platform :mac do
       skip_package_pkg: true
     )
 
+    # Re-sign Sparkle framework components with Developer ID certificate
+    # Required for notarization - Sparkle binaries from SPM aren't signed with our cert
+    app_path = "./build/#{SCHEME}.app"
+    sparkle_framework = "#{app_path}/Contents/Frameworks/Sparkle.framework"
+
+    UI.message("Re-signing Sparkle framework components...")
+
+    # Sign from innermost to outermost (XPC services, nested apps, executables, then framework)
+    [
+      "#{sparkle_framework}/Versions/B/XPCServices/Installer.xpc",
+      "#{sparkle_framework}/Versions/B/XPCServices/Downloader.xpc",
+      "#{sparkle_framework}/Versions/B/Updater.app",
+      "#{sparkle_framework}/Versions/B/Autoupdate",
+      sparkle_framework
+    ].each do |component|
+      if File.exist?(component)
+        sh("codesign --force --sign 'Developer ID Application' --timestamp --options runtime '#{component}'")
+        UI.success("Signed: #{File.basename(component)}")
+      else
+        UI.error("Component not found: #{component}")
+        UI.user_error!("Required Sparkle component missing: #{component}")
+      end
+    end
+
+    # Re-sign the main app to encompass the Sparkle framework changes
+    # Critical: modifying embedded frameworks invalidates the parent app's signature
+    UI.message("Re-signing main app bundle to encompass framework changes...")
+    sh("codesign --force --sign 'Developer ID Application' --timestamp --options runtime '#{app_path}'")
+    UI.success("Main app re-signed successfully")
+
+    # Verify the signature
+    UI.message("Verifying code signature...")
+    sh("codesign --verify --deep --strict --verbose=2 '#{app_path}'")
+    UI.success("Code signature verification passed")
+
     # Re-enable automatic code signing
     if ENV["CI"]
       update_code_signing_settings(
@@ -110,12 +145,27 @@ platform :mac do
 
     # Notarize
     app_path = "./build/#{SCHEME}.app"
-    notarize(
-      package: app_path,
-      bundle_id: BUNDLE_ID,
-      username: ENV["APPLE_ID"],
-      asc_provider: ENV["APPLE_TEAM_ID"]
-    )
+    UI.message("Starting notarization for: #{app_path}")
+    UI.message("Bundle ID: #{BUNDLE_ID}")
+
+    begin
+      notarize(
+        package: app_path,
+        bundle_id: BUNDLE_ID,
+        username: ENV["APPLE_ID"],
+        asc_provider: ENV["APPLE_TEAM_ID"],
+        print_log: true,
+        verbose: true
+      )
+      UI.success("Notarization completed successfully")
+    rescue => ex
+      UI.error("Notarization failed: #{ex.message}")
+      UI.important("Common causes:")
+      UI.important("  1. App-specific password expired or invalid")
+      UI.important("  2. Code signing or hardened runtime issues")
+      UI.important("  3. Team ID mismatch")
+      raise ex
+    end
 
     # Staple
     sh("xcrun stapler staple '#{app_path}'")
