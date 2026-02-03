@@ -1,3 +1,9 @@
+## [12.51.2](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.1...v12.51.2) (2026-02-03)
+
+### Bug Fixes
+
+* **fastlane:** correct notarize action parameters for notarytool ([f15cd68](https://github.com/desaianand1/BatteryBoi-Recharged/commit/f15cd689ac1d4790c0b2f6ee193f36da0c15fe77))
+
 ## [12.51.1](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.0...v12.51.1) (2026-02-03)
 
 ### Bug Fixes
