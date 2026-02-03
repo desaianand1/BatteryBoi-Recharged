@@ -1,3 +1,9 @@
+## [12.51.4](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.3...v12.51.4) (2026-02-03)
+
+### Bug Fixes
+
+* **fastlane:** dynamically discover and sign Sparkle components ([c61b3f6](https://github.com/desaianand1/BatteryBoi-Recharged/commit/c61b3f61b362433b7a59c681832c0c5ca5bc780c))
+
 ## [12.51.3](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.2...v12.51.3) (2026-02-03)
 
 ### Bug Fixes
