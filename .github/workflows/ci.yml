@@ -155,6 +155,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Create Sentry release
         uses: getsentry/action-release@v1
@@ -165,3 +167,4 @@ jobs:
         with:
           environment: staging
           finalize: true
+          ignore_missing: true
