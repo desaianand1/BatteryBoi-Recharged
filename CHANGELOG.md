@@ -1,3 +1,9 @@
+## [12.51.1](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.0...v12.51.1) (2026-02-03)
+
+### Bug Fixes
+
+* **release:** disable PR success comments to prevent 404 errors ([be08992](https://github.com/desaianand1/BatteryBoi-Recharged/commit/be0899203e5e3f9e9833c826443c720086e33a3a))
+
 ## 1.0.0 (2026-02-03)
 
 ### ⚠ BREAKING CHANGES
