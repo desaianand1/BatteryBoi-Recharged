@@ -1,3 +1,9 @@
+## [12.51.3](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.2...v12.51.3) (2026-02-03)
+
+### Bug Fixes
+
+* **fastlane:** re-sign Sparkle framework components for notarization ([0a1a535](https://github.com/desaianand1/BatteryBoi-Recharged/commit/0a1a5355e79526c4d74a1c0e3eb0affa8b9fa37d))
+
 ## [12.51.2](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.1...v12.51.2) (2026-02-03)
 
 ### Bug Fixes
