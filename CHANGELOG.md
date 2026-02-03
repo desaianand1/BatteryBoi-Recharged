@@ -1,3 +1,11 @@
+## [12.51.5](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.4...v12.51.5) (2026-02-03)
+
+### Bug Fixes
+
+* **ci:** add ignore_missing flag to Sentry release steps ([3019cf2](https://github.com/desaianand1/BatteryBoi-Recharged/commit/3019cf24c3e168976a0bc42a09c45a75608386ea))
+* **fastlane:** locate app in archive for Sparkle re-signing ([f2dadc8](https://github.com/desaianand1/BatteryBoi-Recharged/commit/f2dadc8e119bf472d93ff0fdaff6f4322a9998b5))
+* **fastlane:** remove print_log parameter from notarize action ([39887e7](https://github.com/desaianand1/BatteryBoi-Recharged/commit/39887e736f3cec9aa14ef6c1761df8de3a3834fe))
+
 ## [12.51.4](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.3...v12.51.4) (2026-02-03)
 
 ### Bug Fixes
