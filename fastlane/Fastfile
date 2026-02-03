@@ -70,6 +70,9 @@ platform :mac do
   lane :release do
     setup_ci if ENV["CI"]
 
+    # Map GitHub workflow env vars to fastlane-specific env vars
+    ENV['FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD'] = ENV['APPLE_APP_PASSWORD'] if ENV['APPLE_APP_PASSWORD']
+
     # Sync certificates
     sync_certs(type: "developer_id", readonly: is_ci)
 
@@ -111,8 +114,7 @@ platform :mac do
       package: app_path,
       bundle_id: BUNDLE_ID,
       username: ENV["APPLE_ID"],
-      password: ENV["APPLE_APP_PASSWORD"],
-      team_id: ENV["APPLE_TEAM_ID"]
+      asc_provider: ENV["APPLE_TEAM_ID"]
     )
 
     # Staple
