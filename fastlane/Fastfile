@@ -215,6 +215,7 @@ platform :mac do
       if app_path.include?("xcarchive")
         build_app_path = "./build/#{SCHEME}.app"
         UI.message("Copying re-signed app from archive to build directory...")
+        sh("mkdir -p ./build")
         sh("rm -rf '#{build_app_path}'") if File.exist?(build_app_path)
         sh("cp -R '#{app_path}' '#{build_app_path}'")
         UI.success("App copied to: #{build_app_path}")
