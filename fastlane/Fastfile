@@ -105,35 +105,90 @@ platform :mac do
     app_path = "./build/#{SCHEME}.app"
     sparkle_framework = "#{app_path}/Contents/Frameworks/Sparkle.framework"
 
-    UI.message("Re-signing Sparkle framework components...")
+    if File.exist?(sparkle_framework)
+      UI.message("Re-signing Sparkle framework components...")
 
-    # Sign from innermost to outermost (XPC services, nested apps, executables, then framework)
-    [
-      "#{sparkle_framework}/Versions/B/XPCServices/Installer.xpc",
-      "#{sparkle_framework}/Versions/B/XPCServices/Downloader.xpc",
-      "#{sparkle_framework}/Versions/B/Updater.app",
-      "#{sparkle_framework}/Versions/B/Autoupdate",
-      sparkle_framework
-    ].each do |component|
-      if File.exist?(component)
+      # Discover and sign all executables and nested bundles in Sparkle framework
+      # Must sign from innermost to outermost
+      components_to_sign = []
+
+      # Find the actual version directory (could be A, B, or Current symlink)
+      versions_base = "#{sparkle_framework}/Versions"
+      version_dir = nil
+      if Dir.exist?(versions_base)
+        # Try common version directories
+        ['Current', 'B', 'A'].each do |ver|
+          candidate = "#{versions_base}/#{ver}"
+          if Dir.exist?(candidate) && !File.symlink?(candidate)
+            version_dir = candidate
+            break
+          # If Current is a symlink, resolve it
+          elsif ver == 'Current' && File.symlink?(candidate)
+            version_dir = File.realpath(candidate)
+            break
+          end
+        end
+      end
+
+      if version_dir
+        UI.message("Found Sparkle version directory: #{File.basename(version_dir)}")
+
+        # Find XPC services
+        xpc_dir = "#{version_dir}/XPCServices"
+        if Dir.exist?(xpc_dir)
+          Dir.glob("#{xpc_dir}/*.xpc").sort.each do |xpc|
+            components_to_sign << xpc
+            UI.message("  Found XPC service: #{File.basename(xpc)}")
+          end
+        end
+
+        # Find nested apps
+        Dir.glob("#{version_dir}/*.app").sort.each do |app|
+          components_to_sign << app
+          UI.message("  Found nested app: #{File.basename(app)}")
+        end
+
+        # Find standalone executables
+        ['Autoupdate', 'updater'].each do |exec_name|
+          exec_path = "#{version_dir}/#{exec_name}"
+          if File.exist?(exec_path) && File.executable?(exec_path)
+            components_to_sign << exec_path
+            UI.message("  Found executable: #{exec_name}")
+          end
+        end
+      else
+        UI.important("Could not find Sparkle Versions directory, will sign framework only")
+      end
+
+      # Always add the framework itself last (outermost)
+      components_to_sign << sparkle_framework
+
+      # Log summary
+      if components_to_sign.length == 1
+        UI.important("No nested components found, signing framework only")
+      else
+        UI.message("Signing #{components_to_sign.length} components (including framework)")
+      end
+
+      # Sign all components
+      components_to_sign.each do |component|
         sh("codesign --force --sign 'Developer ID Application' --timestamp --options runtime '#{component}'")
         UI.success("Signed: #{File.basename(component)}")
-      else
-        UI.error("Component not found: #{component}")
-        UI.user_error!("Required Sparkle component missing: #{component}")
       end
+
+      # Re-sign the main app to encompass the Sparkle framework changes
+      # Critical: modifying embedded frameworks invalidates the parent app's signature
+      UI.message("Re-signing main app bundle to encompass framework changes...")
+      sh("codesign --force --sign 'Developer ID Application' --timestamp --options runtime '#{app_path}'")
+      UI.success("Main app re-signed successfully")
+
+      # Verify the signature
+      UI.message("Verifying code signature...")
+      sh("codesign --verify --deep --strict --verbose=2 '#{app_path}'")
+      UI.success("Code signature verification passed")
+    else
+      UI.important("Sparkle framework not found at: #{sparkle_framework}")
     end
-
-    # Re-sign the main app to encompass the Sparkle framework changes
-    # Critical: modifying embedded frameworks invalidates the parent app's signature
-    UI.message("Re-signing main app bundle to encompass framework changes...")
-    sh("codesign --force --sign 'Developer ID Application' --timestamp --options runtime '#{app_path}'")
-    UI.success("Main app re-signed successfully")
-
-    # Verify the signature
-    UI.message("Verifying code signature...")
-    sh("codesign --verify --deep --strict --verbose=2 '#{app_path}'")
-    UI.success("Code signature verification passed")
 
     # Re-enable automatic code signing
     if ENV["CI"]
