@@ -242,7 +242,6 @@ platform :mac do
         bundle_id: BUNDLE_ID,
         username: ENV["APPLE_ID"],
         asc_provider: ENV["APPLE_TEAM_ID"],
-        print_log: true,
         verbose: true
       )
       UI.success("Notarization completed successfully")
