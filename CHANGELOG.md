@@ -1,3 +1,9 @@
+## [12.51.6](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.5...v12.51.6) (2026-02-03)
+
+### Bug Fixes
+
+* **fastlane:** create build directory before copying app ([ae3d4f8](https://github.com/desaianand1/BatteryBoi-Recharged/commit/ae3d4f89fc43e476c5d1fba0f104489fef8c8032))
+
 ## [12.51.5](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.4...v12.51.5) (2026-02-03)
 
 ### Bug Fixes
