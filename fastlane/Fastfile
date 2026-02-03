@@ -36,8 +36,17 @@ platform :mac do
     # Sync certificates
     sync_certs(type: "developer_id", readonly: is_ci)
 
-    # Disable automatic code signing for CI builds
-    disable_automatic_code_signing(path: PROJECT) if ENV["CI"]
+    # Configure code signing for CI builds
+    if ENV["CI"]
+      update_code_signing_settings(
+        use_automatic_signing: false,
+        path: PROJECT,
+        team_id: ENV["APPLE_TEAM_ID"],
+        code_sign_identity: "Developer ID Application",
+        profile_name: "match Direct com.nirnshard.batteryboirecharged macos",
+        targets: ["BatteryBoi - Recharged"]
+      )
+    end
 
     # Build the app
     build_mac_app(
@@ -49,7 +58,12 @@ platform :mac do
     )
 
     # Re-enable automatic code signing
-    enable_automatic_code_signing(path: PROJECT) if ENV["CI"]
+    if ENV["CI"]
+      update_code_signing_settings(
+        use_automatic_signing: true,
+        path: PROJECT
+      )
+    end
   end
 
   desc "Build, sign, notarize and create DMG for release"
@@ -62,8 +76,17 @@ platform :mac do
     # Get version
     version = get_version_number(xcodeproj: PROJECT, target: SCHEME)
 
-    # Disable automatic code signing for CI builds
-    disable_automatic_code_signing(path: PROJECT) if ENV["CI"]
+    # Configure code signing for CI builds
+    if ENV["CI"]
+      update_code_signing_settings(
+        use_automatic_signing: false,
+        path: PROJECT,
+        team_id: ENV["APPLE_TEAM_ID"],
+        code_sign_identity: "Developer ID Application",
+        profile_name: "match Direct com.nirnshard.batteryboirecharged macos",
+        targets: ["BatteryBoi - Recharged"]
+      )
+    end
 
     # Build app
     build_mac_app(
@@ -75,7 +98,12 @@ platform :mac do
     )
 
     # Re-enable automatic code signing
-    enable_automatic_code_signing(path: PROJECT) if ENV["CI"]
+    if ENV["CI"]
+      update_code_signing_settings(
+        use_automatic_signing: true,
+        path: PROJECT
+      )
+    end
 
     # Notarize
     app_path = "./build/#{SCHEME}.app"
