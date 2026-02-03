@@ -102,8 +102,32 @@ platform :mac do
 
     # Re-sign Sparkle framework components with Developer ID certificate
     # Required for notarization - Sparkle binaries from SPM aren't signed with our cert
+
+    # Get the actual app path - it might be in the archive, not in ./build
+    archive_path = lane_context[SharedValues::XCODEBUILD_ARCHIVE]
     app_path = "./build/#{SCHEME}.app"
+
+    # If the app doesn't exist in ./build, look in the archive
+    if !File.exist?(app_path) && archive_path
+      archive_app_path = "#{archive_path}/Products/Applications/#{SCHEME}.app"
+      if File.exist?(archive_app_path)
+        UI.important("App not found in ./build, using archive path: #{archive_app_path}")
+        app_path = archive_app_path
+      end
+    end
+
+    UI.message("Looking for Sparkle framework in: #{app_path}")
     sparkle_framework = "#{app_path}/Contents/Frameworks/Sparkle.framework"
+
+    if File.exist?(app_path)
+      UI.message("App exists at: #{app_path}")
+      # List contents to debug
+      UI.message("App contents:")
+      sh("ls -la '#{app_path}/Contents' || true")
+      sh("ls -la '#{app_path}/Contents/Frameworks' || true")
+    else
+      UI.error("App not found at: #{app_path}")
+    end
 
     if File.exist?(sparkle_framework)
       UI.message("Re-signing Sparkle framework components...")
@@ -186,6 +210,15 @@ platform :mac do
       UI.message("Verifying code signature...")
       sh("codesign --verify --deep --strict --verbose=2 '#{app_path}'")
       UI.success("Code signature verification passed")
+
+      # If we modified the app in the archive, copy it to ./build
+      if app_path.include?("xcarchive")
+        build_app_path = "./build/#{SCHEME}.app"
+        UI.message("Copying re-signed app from archive to build directory...")
+        sh("rm -rf '#{build_app_path}'") if File.exist?(build_app_path)
+        sh("cp -R '#{app_path}' '#{build_app_path}'")
+        UI.success("App copied to: #{build_app_path}")
+      end
     else
       UI.important("Sparkle framework not found at: #{sparkle_framework}")
     end
