@@ -91,13 +91,14 @@ platform :mac do
       )
     end
 
-    # Build app
+    # Build app with hardened runtime explicitly enabled
     build_mac_app(
       scheme: SCHEME,
       configuration: "Release",
       output_directory: "./build",
       export_method: "developer-id",
-      skip_package_pkg: true
+      skip_package_pkg: true,
+      xcargs: "OTHER_CODE_SIGN_FLAGS='--timestamp --options runtime'"
     )
 
     # Re-sign Sparkle framework components with Developer ID certificate
@@ -132,21 +133,19 @@ platform :mac do
     if File.exist?(sparkle_framework)
       UI.message("Re-signing Sparkle framework components...")
 
-      # Discover and sign all executables and nested bundles in Sparkle framework
-      # CRITICAL: Sign executables INSIDE bundles BEFORE signing the bundles themselves
-      components_to_sign = []
+      # Re-sign Sparkle framework using --deep to handle all nested components
+      # This is the most reliable approach for re-signing a complete framework tree
+      UI.message("Discovering Sparkle components...")
 
-      # Find the actual version directory (could be A, B, or Current symlink)
+      # Find the version directory
       versions_base = "#{sparkle_framework}/Versions"
       version_dir = nil
       if Dir.exist?(versions_base)
-        # Try common version directories
         ['Current', 'B', 'A'].each do |ver|
           candidate = "#{versions_base}/#{ver}"
           if Dir.exist?(candidate) && !File.symlink?(candidate)
             version_dir = candidate
             break
-          # If Current is a symlink, resolve it
           elsif ver == 'Current' && File.symlink?(candidate)
             version_dir = File.realpath(candidate)
             break
@@ -154,77 +153,23 @@ platform :mac do
         end
       end
 
+      # Log what we found
       if version_dir
-        UI.message("Found Sparkle version directory: #{File.basename(version_dir)}")
-
-        # PHASE 1: Find and sign executables INSIDE XPC bundles
-        xpc_dir = "#{version_dir}/XPCServices"
-        if Dir.exist?(xpc_dir)
-          Dir.glob("#{xpc_dir}/*.xpc").sort.each do |xpc|
-            # Sign the executable inside the XPC bundle FIRST
-            xpc_binary = "#{xpc}/Contents/MacOS/#{File.basename(xpc, '.xpc')}"
-            if File.exist?(xpc_binary)
-              sh("codesign --force --sign 'Developer ID Application' --timestamp --options runtime '#{xpc_binary}'")
-              UI.success("Signed executable: #{File.basename(xpc_binary)}")
-            end
-            # Then add the XPC bundle itself to be signed later
-            components_to_sign << xpc
-            UI.message("  Found XPC service: #{File.basename(xpc)}")
-          end
-        end
-
-        # PHASE 2: Find and sign executables INSIDE nested apps
-        Dir.glob("#{version_dir}/*.app").sort.each do |app|
-          # Sign the executable inside the app bundle FIRST
-          app_binary = "#{app}/Contents/MacOS/#{File.basename(app, '.app')}"
-          if File.exist?(app_binary)
-            sh("codesign --force --sign 'Developer ID Application' --timestamp --options runtime '#{app_binary}'")
-            UI.success("Signed executable: #{File.basename(app_binary)}")
-          end
-          # Then add the app bundle itself to be signed later
-          components_to_sign << app
-          UI.message("  Found nested app: #{File.basename(app)}")
-        end
-
-        # PHASE 3: Find standalone executables
-        ['Autoupdate', 'updater'].each do |exec_name|
-          exec_path = "#{version_dir}/#{exec_name}"
-          if File.exist?(exec_path) && File.executable?(exec_path)
-            components_to_sign << exec_path
-            UI.message("  Found executable: #{exec_name}")
-          end
-        end
-      else
-        UI.important("Could not find Sparkle Versions directory, will sign framework only")
+        UI.message("Found Sparkle version: #{File.basename(version_dir)}")
+        Dir.glob("#{version_dir}/XPCServices/*.xpc").each { |xpc| UI.message("  - XPC: #{File.basename(xpc)}") }
+        Dir.glob("#{version_dir}/*.app").each { |app| UI.message("  - App: #{File.basename(app)}") }
       end
 
-      # Always add the framework itself last (outermost)
-      components_to_sign << sparkle_framework
+      # Sign the entire framework tree with --deep
+      # This recursively signs all nested code with our Developer ID certificate
+      UI.message("Signing Sparkle framework tree...")
+      sh("codesign --deep --force --sign 'Developer ID Application' --timestamp --options runtime '#{sparkle_framework}'")
+      UI.success("Sparkle framework signed")
 
-      # Log summary
-      if components_to_sign.length == 1
-        UI.important("No nested components found, signing framework only")
-      else
-        UI.message("Signing #{components_to_sign.length} components (including framework)")
-      end
-
-      # PHASE 4: Sign all bundles and framework
-      # Use --preserve-metadata for the framework to keep nested signatures intact
-      components_to_sign.each do |component|
-        if component.end_with?('.framework')
-          # Preserve nested signatures when signing the framework
-          sh("codesign --force --sign 'Developer ID Application' --timestamp --options runtime --preserve-metadata=identifier,entitlements,requirements,flags,runtime '#{component}'")
-        else
-          sh("codesign --force --sign 'Developer ID Application' --timestamp --options runtime '#{component}'")
-        end
-        UI.success("Signed: #{File.basename(component)}")
-      end
-
-      # Re-sign the main app to encompass the Sparkle framework changes
+      # Re-sign the main app with --deep to encompass all framework changes
       # Critical: modifying embedded frameworks invalidates the parent app's signature
-      # Use --preserve-metadata to keep framework and nested signatures intact
-      UI.message("Re-signing main app bundle to encompass framework changes...")
-      sh("codesign --force --sign 'Developer ID Application' --timestamp --options runtime --preserve-metadata=identifier,entitlements,requirements,flags,runtime '#{app_path}'")
+      UI.message("Re-signing main app bundle with all frameworks...")
+      sh("codesign --deep --force --sign 'Developer ID Application' --timestamp --options runtime '#{app_path}'")
       UI.success("Main app re-signed successfully")
 
       # Verify the signature
