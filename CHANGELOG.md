@@ -1,3 +1,10 @@
+## [12.51.8](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.7...v12.51.8) (2026-02-04)
+
+### Bug Fixes
+
+* **fastlane:** preserve nested signatures when signing framework and app ([41715fe](https://github.com/desaianand1/BatteryBoi-Recharged/commit/41715fe750cbc5f26e4b7b777979a4fa9c75d224))
+* **fastlane:** use deep signing and add explicit hardened runtime ([038018d](https://github.com/desaianand1/BatteryBoi-Recharged/commit/038018dc37e68fdce6f721f0c0132d9463b4af3f))
+
 ## [12.51.7](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.6...v12.51.7) (2026-02-04)
 
 ### Bug Fixes
