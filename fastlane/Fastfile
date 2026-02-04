@@ -133,9 +133,10 @@ platform :mac do
     if File.exist?(sparkle_framework)
       UI.message("Re-signing Sparkle framework components...")
 
-      # Re-sign Sparkle framework using --deep to handle all nested components
-      # This is the most reliable approach for re-signing a complete framework tree
-      UI.message("Discovering Sparkle components...")
+      # Find the exact Developer ID certificate identity
+      # Critical: Must use the FULL identity string, not just "Developer ID Application"
+      cert_identity = sh("security find-identity -v -p codesigning | grep 'Developer ID Application' | head -1 | grep -o '\"[^\"]*\"' | tr -d '\"'").strip
+      UI.important("Using certificate: #{cert_identity}")
 
       # Find the version directory
       versions_base = "#{sparkle_framework}/Versions"
@@ -153,23 +154,64 @@ platform :mac do
         end
       end
 
-      # Log what we found
       if version_dir
         UI.message("Found Sparkle version: #{File.basename(version_dir)}")
-        Dir.glob("#{version_dir}/XPCServices/*.xpc").each { |xpc| UI.message("  - XPC: #{File.basename(xpc)}") }
-        Dir.glob("#{version_dir}/*.app").each { |app| UI.message("  - App: #{File.basename(app)}") }
+
+        # Phase 1: Sign XPC service executables with preserved entitlements
+        xpc_dir = "#{version_dir}/XPCServices"
+        if Dir.exist?(xpc_dir)
+          Dir.glob("#{xpc_dir}/*.xpc").sort.each do |xpc|
+            xpc_name = File.basename(xpc, '.xpc')
+            xpc_binary = "#{xpc}/Contents/MacOS/#{xpc_name}"
+            if File.exist?(xpc_binary)
+              # Extract existing entitlements
+              entitlements_file = "/tmp/#{xpc_name}.entitlements"
+              sh("codesign -d --entitlements '#{entitlements_file}' '#{xpc_binary}' 2>/dev/null || true")
+
+              # Sign with entitlements if they exist
+              if File.exist?(entitlements_file) && File.size(entitlements_file) > 0
+                sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime --entitlements '#{entitlements_file}' '#{xpc_binary}'")
+              else
+                sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{xpc_binary}'")
+              end
+              UI.success("Signed: #{xpc_name} executable")
+            end
+
+            # Sign the XPC bundle itself
+            sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{xpc}'")
+            UI.success("Signed: #{xpc_name}.xpc")
+          end
+        end
+
+        # Phase 2: Sign nested app executables and bundles
+        Dir.glob("#{version_dir}/*.app").sort.each do |app|
+          app_name = File.basename(app, '.app')
+          app_binary = "#{app}/Contents/MacOS/#{app_name}"
+          if File.exist?(app_binary)
+            sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{app_binary}'")
+            UI.success("Signed: #{app_name} executable")
+          end
+          sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{app}'")
+          UI.success("Signed: #{app_name}.app")
+        end
+
+        # Phase 3: Sign standalone executables
+        ['Autoupdate', 'updater'].each do |exec_name|
+          exec_path = "#{version_dir}/#{exec_name}"
+          if File.exist?(exec_path) && File.executable?(exec_path)
+            sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{exec_path}'")
+            UI.success("Signed: #{exec_name}")
+          end
+        end
       end
 
-      # Sign the entire framework tree with --deep
-      # This recursively signs all nested code with our Developer ID certificate
-      UI.message("Signing Sparkle framework tree...")
-      sh("codesign --deep --force --sign 'Developer ID Application' --timestamp --options runtime '#{sparkle_framework}'")
-      UI.success("Sparkle framework signed")
+      # Phase 4: Sign the framework itself
+      sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{sparkle_framework}'")
+      UI.success("Signed: Sparkle.framework")
 
-      # Re-sign the main app with --deep to encompass all framework changes
-      # Critical: modifying embedded frameworks invalidates the parent app's signature
-      UI.message("Re-signing main app bundle with all frameworks...")
-      sh("codesign --deep --force --sign 'Developer ID Application' --timestamp --options runtime '#{app_path}'")
+      # Phase 5: Sign the main app (without --deep, all nested code is already signed)
+      UI.message("Re-signing main app bundle...")
+      sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{app_path}'")
       UI.success("Main app re-signed successfully")
 
       # Verify the signature
