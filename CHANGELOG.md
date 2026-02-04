@@ -1,3 +1,9 @@
+## [12.51.7](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.6...v12.51.7) (2026-02-04)
+
+### Bug Fixes
+
+* **fastlane:** sign executables inside Sparkle bundles before bundles ([69acf8c](https://github.com/desaianand1/BatteryBoi-Recharged/commit/69acf8caca7b2cfe000b72c53d1a002ca8dcb58a))
+
 ## [12.51.6](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.5...v12.51.6) (2026-02-03)
 
 ### Bug Fixes
