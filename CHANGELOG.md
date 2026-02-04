@@ -1,3 +1,10 @@
+## [12.51.9](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.8...v12.51.9) (2026-02-04)
+
+### Bug Fixes
+
+* **fastlane:** add signature verification and improve entitlements extraction ([0f38fce](https://github.com/desaianand1/BatteryBoi-Recharged/commit/0f38fce3c251c159da26102d125d0a8cbb09cc55))
+* **fastlane:** use full certificate identity and preserve XPC entitlements ([60e0114](https://github.com/desaianand1/BatteryBoi-Recharged/commit/60e0114b1ea4d2ef5dad74d9788d435fab3b205f))
+
 ## [12.51.8](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.7...v12.51.8) (2026-02-04)
 
 ### Bug Fixes
