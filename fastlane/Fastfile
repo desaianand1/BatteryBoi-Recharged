@@ -133,7 +133,7 @@ platform :mac do
       UI.message("Re-signing Sparkle framework components...")
 
       # Discover and sign all executables and nested bundles in Sparkle framework
-      # Must sign from innermost to outermost
+      # CRITICAL: Sign executables INSIDE bundles BEFORE signing the bundles themselves
       components_to_sign = []
 
       # Find the actual version directory (could be A, B, or Current symlink)
@@ -157,22 +157,36 @@ platform :mac do
       if version_dir
         UI.message("Found Sparkle version directory: #{File.basename(version_dir)}")
 
-        # Find XPC services
+        # PHASE 1: Find and sign executables INSIDE XPC bundles
         xpc_dir = "#{version_dir}/XPCServices"
         if Dir.exist?(xpc_dir)
           Dir.glob("#{xpc_dir}/*.xpc").sort.each do |xpc|
+            # Sign the executable inside the XPC bundle FIRST
+            xpc_binary = "#{xpc}/Contents/MacOS/#{File.basename(xpc, '.xpc')}"
+            if File.exist?(xpc_binary)
+              sh("codesign --force --sign 'Developer ID Application' --timestamp --options runtime '#{xpc_binary}'")
+              UI.success("Signed executable: #{File.basename(xpc_binary)}")
+            end
+            # Then add the XPC bundle itself to be signed later
             components_to_sign << xpc
             UI.message("  Found XPC service: #{File.basename(xpc)}")
           end
         end
 
-        # Find nested apps
+        # PHASE 2: Find and sign executables INSIDE nested apps
         Dir.glob("#{version_dir}/*.app").sort.each do |app|
+          # Sign the executable inside the app bundle FIRST
+          app_binary = "#{app}/Contents/MacOS/#{File.basename(app, '.app')}"
+          if File.exist?(app_binary)
+            sh("codesign --force --sign 'Developer ID Application' --timestamp --options runtime '#{app_binary}'")
+            UI.success("Signed executable: #{File.basename(app_binary)}")
+          end
+          # Then add the app bundle itself to be signed later
           components_to_sign << app
           UI.message("  Found nested app: #{File.basename(app)}")
         end
 
-        # Find standalone executables
+        # PHASE 3: Find standalone executables
         ['Autoupdate', 'updater'].each do |exec_name|
           exec_path = "#{version_dir}/#{exec_name}"
           if File.exist?(exec_path) && File.executable?(exec_path)
@@ -194,7 +208,7 @@ platform :mac do
         UI.message("Signing #{components_to_sign.length} components (including framework)")
       end
 
-      # Sign all components
+      # PHASE 4: Sign all bundles and framework
       components_to_sign.each do |component|
         sh("codesign --force --sign 'Developer ID Application' --timestamp --options runtime '#{component}'")
         UI.success("Signed: #{File.basename(component)}")
