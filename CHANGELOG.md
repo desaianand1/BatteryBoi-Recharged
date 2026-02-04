@@ -1,3 +1,9 @@
+## [12.51.10](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.9...v12.51.10) (2026-02-04)
+
+### Bug Fixes
+
+* **ci:** use --preserve-metadata=entitlements for code signing ([4c3a91d](https://github.com/desaianand1/BatteryBoi-Recharged/commit/4c3a91d77c0050909f730d6b4a018df3291289e5))
+
 ## [12.51.9](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.8...v12.51.9) (2026-02-04)
 
 ### Bug Fixes
