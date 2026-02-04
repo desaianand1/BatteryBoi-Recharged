@@ -209,15 +209,22 @@ platform :mac do
       end
 
       # PHASE 4: Sign all bundles and framework
+      # Use --preserve-metadata for the framework to keep nested signatures intact
       components_to_sign.each do |component|
-        sh("codesign --force --sign 'Developer ID Application' --timestamp --options runtime '#{component}'")
+        if component.end_with?('.framework')
+          # Preserve nested signatures when signing the framework
+          sh("codesign --force --sign 'Developer ID Application' --timestamp --options runtime --preserve-metadata=identifier,entitlements,requirements,flags,runtime '#{component}'")
+        else
+          sh("codesign --force --sign 'Developer ID Application' --timestamp --options runtime '#{component}'")
+        end
         UI.success("Signed: #{File.basename(component)}")
       end
 
       # Re-sign the main app to encompass the Sparkle framework changes
       # Critical: modifying embedded frameworks invalidates the parent app's signature
+      # Use --preserve-metadata to keep framework and nested signatures intact
       UI.message("Re-signing main app bundle to encompass framework changes...")
-      sh("codesign --force --sign 'Developer ID Application' --timestamp --options runtime '#{app_path}'")
+      sh("codesign --force --sign 'Developer ID Application' --timestamp --options runtime --preserve-metadata=identifier,entitlements,requirements,flags,runtime '#{app_path}'")
       UI.success("Main app re-signed successfully")
 
       # Verify the signature
