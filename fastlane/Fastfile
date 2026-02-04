@@ -164,25 +164,16 @@ platform :mac do
             xpc_name = File.basename(xpc, '.xpc')
             xpc_binary = "#{xpc}/Contents/MacOS/#{xpc_name}"
             if File.exist?(xpc_binary)
-              # Extract existing entitlements
-              entitlements_file = "/tmp/#{xpc_name}.entitlements"
-              sh("codesign -d --entitlements '#{entitlements_file}' '#{xpc_binary}' 2>&1 || echo '<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"><plist version=\"1.0\"><dict></dict></plist>' > '#{entitlements_file}'")
-
-              # Verify extraction and sign with entitlements if they exist
-              if File.exist?(entitlements_file) && File.size(entitlements_file) > 0
-                UI.message("  Extracted entitlements for #{xpc_name} (#{File.size(entitlements_file)} bytes)")
-                sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime --entitlements '#{entitlements_file}' '#{xpc_binary}'")
-              else
-                UI.important("  No entitlements found for #{xpc_name}, signing without")
-                sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{xpc_binary}'")
-              end
+              # Sign with preserved entitlements (don't extract/re-inject, just preserve)
+              UI.message("  Signing #{xpc_name} executable with preserved entitlements")
+              sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime --preserve-metadata=entitlements '#{xpc_binary}'")
               # Verify signature
               sh("codesign --verify --verbose=2 '#{xpc_binary}' 2>&1")
               UI.success("Signed and verified: #{xpc_name} executable")
             end
 
-            # Sign the XPC bundle itself
-            sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{xpc}'")
+            # Sign the XPC bundle itself (preserve entitlements at bundle level too)
+            sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime --preserve-metadata=entitlements '#{xpc}'")
             # Verify signature
             sh("codesign --verify --verbose=2 '#{xpc}' 2>&1")
             UI.success("Signed and verified: #{xpc_name}.xpc")
@@ -194,11 +185,11 @@ platform :mac do
           app_name = File.basename(app, '.app')
           app_binary = "#{app}/Contents/MacOS/#{app_name}"
           if File.exist?(app_binary)
-            sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{app_binary}'")
+            sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime --preserve-metadata=entitlements '#{app_binary}'")
             sh("codesign --verify --verbose=2 '#{app_binary}' 2>&1")
             UI.success("Signed and verified: #{app_name} executable")
           end
-          sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{app}'")
+          sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime --preserve-metadata=entitlements '#{app}'")
           sh("codesign --verify --verbose=2 '#{app}' 2>&1")
           UI.success("Signed and verified: #{app_name}.app")
         end
@@ -207,7 +198,7 @@ platform :mac do
         ['Autoupdate', 'updater'].each do |exec_name|
           exec_path = "#{version_dir}/#{exec_name}"
           if File.exist?(exec_path) && File.executable?(exec_path)
-            sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{exec_path}'")
+            sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime --preserve-metadata=entitlements '#{exec_path}'")
             sh("codesign --verify --verbose=2 '#{exec_path}' 2>&1")
             UI.success("Signed and verified: #{exec_name}")
           end
@@ -215,13 +206,13 @@ platform :mac do
       end
 
       # Phase 4: Sign the framework itself
-      sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{sparkle_framework}'")
+      sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime --preserve-metadata=entitlements '#{sparkle_framework}'")
       sh("codesign --verify --verbose=2 '#{sparkle_framework}' 2>&1")
       UI.success("Signed and verified: Sparkle.framework")
 
       # Phase 5: Sign the main app (without --deep, all nested code is already signed)
       UI.message("Re-signing main app bundle...")
-      sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{app_path}'")
+      sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime --preserve-metadata=entitlements '#{app_path}'")
       sh("codesign --verify --verbose=2 '#{app_path}' 2>&1")
       UI.success("Main app re-signed and verified successfully")
 
