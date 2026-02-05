@@ -1,3 +1,10 @@
+## [12.51.11](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.10...v12.51.11) (2026-02-05)
+
+### Bug Fixes
+
+* **ci:** correct build artifact paths in release workflow ([c8658ea](https://github.com/desaianand1/BatteryBoi-Recharged/commit/c8658eafc1dc08f9c1f1f08dadf20160f1c1658b))
+* **fastlane:** resolve notarization failures with Developer ID signing ([122e43c](https://github.com/desaianand1/BatteryBoi-Recharged/commit/122e43c62dfd383cc8f2a600634e04cd93e1e67a))
+
 ## [12.51.10](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.9...v12.51.10) (2026-02-04)
 
 ### Bug Fixes
