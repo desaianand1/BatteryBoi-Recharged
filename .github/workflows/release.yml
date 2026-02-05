@@ -55,8 +55,20 @@ jobs:
       - name: Set DMG path
         run: |
           DMG_NAME="${{ env.APP_NAME }}-${{ env.VERSION }}.dmg"
-          echo "DMG_PATH=./build/${DMG_NAME}" >> $GITHUB_ENV
+          # Fastlane outputs to fastlane/build/ (relative to its working directory)
+          echo "DMG_PATH=fastlane/build/${DMG_NAME}" >> $GITHUB_ENV
           echo "DMG_NAME=${DMG_NAME}" >> $GITHUB_ENV
+
+      - name: Verify build artifacts
+        run: |
+          if [ ! -f "${{ env.DMG_PATH }}" ]; then
+            echo "❌ DMG not found at ${{ env.DMG_PATH }}"
+            echo "Available files in fastlane/build/:"
+            ls -la fastlane/build/ || echo "Directory does not exist"
+            exit 1
+          fi
+          echo "✅ DMG found: ${{ env.DMG_PATH }}"
+          ls -la "${{ env.DMG_PATH }}"
 
       - name: Generate Appcast
         run: |
@@ -75,12 +87,12 @@ jobs:
 
           # Get Sparkle signature if it exists
           SPARKLE_SIGNATURE=""
-          if [ -f "./build/sparkle_signature.txt" ]; then
-            SPARKLE_SIGNATURE=$(cat ./build/sparkle_signature.txt)
+          if [ -f "fastlane/build/sparkle_signature.txt" ]; then
+            SPARKLE_SIGNATURE=$(cat fastlane/build/sparkle_signature.txt)
           fi
 
-          # Create appcast.xml
-          cat > build/appcast.xml << EOF
+          # Create appcast.xml in fastlane/build/ alongside other artifacts
+          cat > fastlane/build/appcast.xml << EOF
           <?xml version="1.0" encoding="utf-8"?>
           <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
             <channel>
@@ -106,7 +118,7 @@ jobs:
           EOF
 
           echo "Generated appcast.xml:"
-          cat build/appcast.xml
+          cat fastlane/build/appcast.xml
 
       - name: Upload Release Assets
         env:
@@ -119,14 +131,14 @@ jobs:
 
           # Upload appcast.xml to version-specific release
           gh release upload "v${{ env.VERSION }}" \
-            "build/appcast.xml" \
+            "fastlane/build/appcast.xml" \
             --clobber
 
           # Also upload appcast.xml to 'latest' release for Sparkle auto-updates
           # This ensures SUFeedURL pointing to /releases/latest/download/appcast.xml always works
           if gh release view latest >/dev/null 2>&1; then
             gh release upload latest \
-              "build/appcast.xml" \
+              "fastlane/build/appcast.xml" \
               --clobber
             echo "Updated appcast.xml in 'latest' release"
           else
