@@ -33,8 +33,8 @@ platform :mac do
   lane :build do
     setup_ci if ENV["CI"]
 
-    # Sync certificates
-    sync_certs(type: "developer_id", readonly: is_ci)
+    # Sync certificates (readonly: true to skip Developer Portal verification)
+    sync_certs(type: "developer_id", readonly: true)
 
     # Configure code signing for CI builds
     if ENV["CI"]
@@ -70,26 +70,32 @@ platform :mac do
   lane :release do
     setup_ci if ENV["CI"]
 
-    # Map GitHub workflow env vars to fastlane-specific env vars
-    ENV['FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD'] = ENV['APPLE_APP_PASSWORD'] if ENV['APPLE_APP_PASSWORD']
+    # Validate required environment variables
+    required_env_vars = %w[APPLE_ID APPLE_APP_PASSWORD APPLE_TEAM_ID]
+    missing_vars = required_env_vars.select { |var| ENV[var].nil? || ENV[var].empty? }
+    unless missing_vars.empty?
+      UI.user_error!("Missing required environment variables: #{missing_vars.join(', ')}")
+    end
 
-    # Sync certificates
-    sync_certs(type: "developer_id", readonly: is_ci)
+    # Map GitHub workflow env vars to fastlane-specific env vars
+    ENV['FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD'] = ENV['APPLE_APP_PASSWORD']
+
+    # Sync certificates (readonly: true to skip Developer Portal verification)
+    sync_certs(type: "developer_id", readonly: true)
 
     # Get version
     version = get_version_number(xcodeproj: PROJECT, target: SCHEME)
 
-    # Configure code signing for CI builds
-    if ENV["CI"]
-      update_code_signing_settings(
-        use_automatic_signing: false,
-        path: PROJECT,
-        team_id: ENV["APPLE_TEAM_ID"],
-        code_sign_identity: "Developer ID Application",
-        profile_name: "match Direct com.nirnshard.batteryboirecharged macos",
-        targets: ["BatteryBoi - Recharged"]
-      )
-    end
+    # Configure code signing for Developer ID (required for notarization)
+    # This must run for ALL builds, not just CI, to ensure correct signing
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: PROJECT,
+      team_id: ENV["APPLE_TEAM_ID"],
+      code_sign_identity: "Developer ID Application",
+      profile_name: "match Direct com.nirnshard.batteryboirecharged macos",
+      targets: ["BatteryBoi - Recharged"]
+    )
 
     # Build app with hardened runtime explicitly enabled
     build_mac_app(
@@ -101,169 +107,140 @@ platform :mac do
       xcargs: "OTHER_CODE_SIGN_FLAGS='--timestamp --options runtime'"
     )
 
-    # Re-sign Sparkle framework components with Developer ID certificate
-    # Required for notarization - Sparkle binaries from SPM aren't signed with our cert
-
-    # Get the actual app path - it might be in the archive, not in ./build
-    archive_path = lane_context[SharedValues::XCODEBUILD_ARCHIVE]
+    # Post-build: Re-sign all code with Developer ID for notarization
     app_path = "./build/#{SCHEME}.app"
 
-    # If the app doesn't exist in ./build, look in the archive
-    if !File.exist?(app_path) && archive_path
-      archive_app_path = "#{archive_path}/Products/Applications/#{SCHEME}.app"
-      if File.exist?(archive_app_path)
-        UI.important("App not found in ./build, using archive path: #{archive_app_path}")
-        app_path = archive_app_path
+    # Verify app exists - check archive if not in build directory
+    unless File.exist?(app_path)
+      archive_path = lane_context[SharedValues::XCODEBUILD_ARCHIVE]
+      if archive_path
+        archive_app = "#{archive_path}/Products/Applications/#{SCHEME}.app"
+        if File.exist?(archive_app)
+          sh("mkdir -p ./build")
+          sh("cp -R '#{archive_app}' '#{app_path}'")
+          UI.success("Copied app from archive to build directory")
+        end
       end
     end
 
-    UI.message("Looking for Sparkle framework in: #{app_path}")
-    sparkle_framework = "#{app_path}/Contents/Frameworks/Sparkle.framework"
+    UI.user_error!("App not found at #{app_path}") unless File.exist?(app_path)
 
-    if File.exist?(app_path)
-      UI.message("App exists at: #{app_path}")
-      # List contents to debug
-      UI.message("App contents:")
-      sh("ls -la '#{app_path}/Contents' || true")
-      sh("ls -la '#{app_path}/Contents/Frameworks' || true")
-    else
-      UI.error("App not found at: #{app_path}")
+    # Get Developer ID certificate
+    cert_identity = sh("security find-identity -v -p codesigning | grep 'Developer ID Application' | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/'").strip
+    UI.user_error!("Developer ID Application certificate not found in keychain") if cert_identity.empty?
+    UI.important("Using certificate: #{cert_identity}")
+
+    # Remove XPC services (not needed for non-sandboxed apps)
+    # Using sh() because FileUtils.rm_rf doesn't always work reliably
+    xpc_path = "#{app_path}/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices"
+    if Dir.exist?(xpc_path)
+      UI.message("Removing Sparkle XPC services...")
+      sh("rm -rf '#{xpc_path}'")
+      UI.success("Removed XPC services")
     end
 
-    if File.exist?(sparkle_framework)
-      UI.message("Re-signing Sparkle framework components...")
+    # Sign Sparkle framework components explicitly (innermost first)
+    # This is more reliable than trying to discover binaries automatically
+    sparkle_path = "#{app_path}/Contents/Frameworks/Sparkle.framework/Versions/B"
 
-      # Find the exact Developer ID certificate identity
-      # Critical: Must use the FULL identity string, not just "Developer ID Application"
-      cert_identity = sh("security find-identity -v -p codesigning | grep 'Developer ID Application' | head -1 | grep -o '\"[^\"]*\"' | tr -d '\"'").strip
-      UI.important("Using certificate: #{cert_identity}")
+    if Dir.exist?(sparkle_path)
+      UI.message("Signing Sparkle framework components...")
 
-      # Find the version directory
-      versions_base = "#{sparkle_framework}/Versions"
-      version_dir = nil
-      if Dir.exist?(versions_base)
-        ['Current', 'B', 'A'].each do |ver|
-          candidate = "#{versions_base}/#{ver}"
-          if Dir.exist?(candidate) && !File.symlink?(candidate)
-            version_dir = candidate
-            break
-          elsif ver == 'Current' && File.symlink?(candidate)
-            version_dir = File.realpath(candidate)
-            break
-          end
-        end
+      # Sign Autoupdate binary
+      autoupdate = "#{sparkle_path}/Autoupdate"
+      if File.exist?(autoupdate)
+        sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{autoupdate}'")
+        UI.message("  Signed Autoupdate")
       end
 
-      if version_dir
-        UI.message("Found Sparkle version: #{File.basename(version_dir)}")
-
-        # Phase 1: Sign XPC service executables with preserved entitlements
-        xpc_dir = "#{version_dir}/XPCServices"
-        if Dir.exist?(xpc_dir)
-          Dir.glob("#{xpc_dir}/*.xpc").sort.each do |xpc|
-            xpc_name = File.basename(xpc, '.xpc')
-            xpc_binary = "#{xpc}/Contents/MacOS/#{xpc_name}"
-            if File.exist?(xpc_binary)
-              # Sign with preserved entitlements (don't extract/re-inject, just preserve)
-              UI.message("  Signing #{xpc_name} executable with preserved entitlements")
-              sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime --preserve-metadata=entitlements '#{xpc_binary}'")
-              # Verify signature
-              sh("codesign --verify --verbose=2 '#{xpc_binary}' 2>&1")
-              UI.success("Signed and verified: #{xpc_name} executable")
-            end
-
-            # Sign the XPC bundle itself (preserve entitlements at bundle level too)
-            sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime --preserve-metadata=entitlements '#{xpc}'")
-            # Verify signature
-            sh("codesign --verify --verbose=2 '#{xpc}' 2>&1")
-            UI.success("Signed and verified: #{xpc_name}.xpc")
-          end
-        end
-
-        # Phase 2: Sign nested app executables and bundles
-        Dir.glob("#{version_dir}/*.app").sort.each do |app|
-          app_name = File.basename(app, '.app')
-          app_binary = "#{app}/Contents/MacOS/#{app_name}"
-          if File.exist?(app_binary)
-            sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime --preserve-metadata=entitlements '#{app_binary}'")
-            sh("codesign --verify --verbose=2 '#{app_binary}' 2>&1")
-            UI.success("Signed and verified: #{app_name} executable")
-          end
-          sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime --preserve-metadata=entitlements '#{app}'")
-          sh("codesign --verify --verbose=2 '#{app}' 2>&1")
-          UI.success("Signed and verified: #{app_name}.app")
-        end
-
-        # Phase 3: Sign standalone executables
-        ['Autoupdate', 'updater'].each do |exec_name|
-          exec_path = "#{version_dir}/#{exec_name}"
-          if File.exist?(exec_path) && File.executable?(exec_path)
-            sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime --preserve-metadata=entitlements '#{exec_path}'")
-            sh("codesign --verify --verbose=2 '#{exec_path}' 2>&1")
-            UI.success("Signed and verified: #{exec_name}")
-          end
-        end
+      # Sign Updater.app binary then bundle
+      updater_binary = "#{sparkle_path}/Updater.app/Contents/MacOS/Updater"
+      updater_app = "#{sparkle_path}/Updater.app"
+      if File.exist?(updater_binary)
+        sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{updater_binary}'")
+        UI.message("  Signed Updater binary")
+      end
+      if Dir.exist?(updater_app)
+        sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{updater_app}'")
+        UI.message("  Signed Updater.app")
       end
 
-      # Phase 4: Sign the framework itself
-      sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime --preserve-metadata=entitlements '#{sparkle_framework}'")
-      sh("codesign --verify --verbose=2 '#{sparkle_framework}' 2>&1")
-      UI.success("Signed and verified: Sparkle.framework")
-
-      # Phase 5: Sign the main app (without --deep, all nested code is already signed)
-      UI.message("Re-signing main app bundle...")
-      sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime --preserve-metadata=entitlements '#{app_path}'")
-      sh("codesign --verify --verbose=2 '#{app_path}' 2>&1")
-      UI.success("Main app re-signed and verified successfully")
-
-      # Verify the signature
-      UI.message("Verifying code signature...")
-      sh("codesign --verify --deep --strict --verbose=2 '#{app_path}'")
-      UI.success("Code signature verification passed")
-
-      # If we modified the app in the archive, copy it to ./build
-      if app_path.include?("xcarchive")
-        build_app_path = "./build/#{SCHEME}.app"
-        UI.message("Copying re-signed app from archive to build directory...")
-        sh("mkdir -p ./build")
-        sh("rm -rf '#{build_app_path}'") if File.exist?(build_app_path)
-        sh("cp -R '#{app_path}' '#{build_app_path}'")
-        UI.success("App copied to: #{build_app_path}")
+      # Sign Sparkle binary
+      sparkle_binary = "#{sparkle_path}/Sparkle"
+      if File.exist?(sparkle_binary)
+        sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{sparkle_binary}'")
+        UI.message("  Signed Sparkle binary")
       end
-    else
-      UI.important("Sparkle framework not found at: #{sparkle_framework}")
+
+      # Sign Sparkle.framework bundle
+      sparkle_fw = "#{app_path}/Contents/Frameworks/Sparkle.framework"
+      sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{sparkle_fw}'")
+      UI.message("  Signed Sparkle.framework")
     end
 
-    # Re-enable automatic code signing
-    if ENV["CI"]
-      update_code_signing_settings(
-        use_automatic_signing: true,
-        path: PROJECT
-      )
+    # Sign any other frameworks (e.g., Sentry)
+    other_frameworks = Dir.glob("#{app_path}/Contents/Frameworks/*.framework").reject { |f| f.include?("Sparkle") }
+    other_frameworks.each do |fw|
+      UI.message("Signing #{File.basename(fw)}...")
+      sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{fw}'")
     end
 
-    # Notarize
+    # Sign main app binary then bundle
+    main_binary = "#{app_path}/Contents/MacOS/#{SCHEME}"
+    sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{main_binary}'")
+    UI.message("  Signed main binary")
+
+    sh("codesign --force --sign '#{cert_identity}' --timestamp --options runtime '#{app_path}'")
+    UI.message("  Signed main app bundle")
+
+    # Verify BEFORE notarization
+    UI.message("Verifying code signature...")
+    sh("codesign --verify --deep --strict --verbose=2 '#{app_path}'")
+
+    # Check that it's actually signed with Developer ID
+    verify_output = sh("codesign -dvv '#{app_path}' 2>&1")
+    unless verify_output.include?("Developer ID Application")
+      UI.user_error!("App is not signed with Developer ID Application certificate!")
+    end
+
+    UI.success("All code signed with Developer ID Application")
+
+    # Restore automatic signing in project (so Xcode works normally)
+    update_code_signing_settings(
+      use_automatic_signing: true,
+      path: PROJECT
+    )
+
+    # Notarize using xcrun notarytool directly (fastlane's notarize action has JSON parsing bugs)
     app_path = "./build/#{SCHEME}.app"
+    zip_path = "./build/#{SCHEME}.zip"
     UI.message("Starting notarization for: #{app_path}")
-    UI.message("Bundle ID: #{BUNDLE_ID}")
 
-    begin
-      notarize(
-        package: app_path,
-        bundle_id: BUNDLE_ID,
-        username: ENV["APPLE_ID"],
-        asc_provider: ENV["APPLE_TEAM_ID"],
-        verbose: true
-      )
+    # Create zip for notarization (notarytool requires zip/dmg/pkg)
+    sh("ditto -c -k --keepParent '#{app_path}' '#{zip_path}'")
+    UI.message("Created zip archive for notarization")
+
+    # Submit for notarization and wait
+    UI.message("Submitting to Apple notary service...")
+    notarize_output = sh("xcrun notarytool submit '#{zip_path}' --apple-id '#{ENV['APPLE_ID']}' --password '#{ENV['APPLE_APP_PASSWORD']}' --team-id '#{ENV['APPLE_TEAM_ID']}' --wait 2>&1")
+
+    if notarize_output.include?("status: Accepted")
       UI.success("Notarization completed successfully")
-    rescue => ex
-      UI.error("Notarization failed: #{ex.message}")
-      UI.important("Common causes:")
-      UI.important("  1. App-specific password expired or invalid")
-      UI.important("  2. Code signing or hardened runtime issues")
-      UI.important("  3. Team ID mismatch")
-      raise ex
+    else
+      # Extract submission ID and fetch log
+      if notarize_output =~ /id:\s*([a-f0-9-]{36})/i
+        submission_id = $1
+        UI.important("Fetching notarization log for submission: #{submission_id}")
+        log_output = sh("xcrun notarytool log '#{submission_id}' --apple-id '#{ENV['APPLE_ID']}' --password '#{ENV['APPLE_APP_PASSWORD']}' --team-id '#{ENV['APPLE_TEAM_ID']}' 2>&1 || true")
+        UI.important("========== APPLE NOTARIZATION LOG ==========")
+        UI.important(log_output)
+        UI.important("========== END NOTARIZATION LOG ==========")
+      end
+      UI.user_error!("Notarization failed. See log above for details.")
     end
+
+    # Clean up zip
+    sh("rm -f '#{zip_path}'")
 
     # Staple
     sh("xcrun stapler staple '#{app_path}'")
@@ -276,12 +253,24 @@ platform :mac do
     sh("hdiutil create -volname '#{SCHEME}' -srcfolder ./build/dmg -ov -format UDZO '#{dmg_path}'")
     sh("rm -rf ./build/dmg")
 
-    # Sign DMG with Sparkle
-    if ENV["SPARKLE_PRIVATE_KEY"]
+    # Sign DMG with Sparkle EdDSA signature for auto-updates
+    if ENV["SPARKLE_PRIVATE_KEY"] && !ENV["SPARKLE_PRIVATE_KEY"].empty?
+      UI.message("Signing DMG with Sparkle EdDSA key...")
       sh("curl -L -o /tmp/Sparkle.tar.xz https://github.com/sparkle-project/Sparkle/releases/download/2.8.1/Sparkle-2.8.1.tar.xz")
       sh("mkdir -p /tmp/Sparkle && tar -xf /tmp/Sparkle.tar.xz -C /tmp/Sparkle")
-      signature = sh("/tmp/Sparkle/bin/sign_update '#{dmg_path}' --ed-key-file <(echo \"$SPARKLE_PRIVATE_KEY\")").strip
-      File.write("./build/sparkle_signature.txt", signature)
+      # Write key to temp file to avoid shell escaping issues with process substitution
+      key_file = "/tmp/sparkle_ed_key"
+      File.write(key_file, ENV["SPARKLE_PRIVATE_KEY"])
+      begin
+        signature = sh("/tmp/Sparkle/bin/sign_update '#{dmg_path}' --ed-key-file '#{key_file}'").strip
+        File.write("./build/sparkle_signature.txt", signature)
+        UI.success("Sparkle signature generated")
+      ensure
+        # Clean up key file
+        FileUtils.rm_f(key_file)
+      end
+    else
+      UI.important("SPARKLE_PRIVATE_KEY not set, skipping DMG signing for auto-updates")
     end
 
     UI.success("Release complete: #{dmg_path}")
