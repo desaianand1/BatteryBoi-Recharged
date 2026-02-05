@@ -525,6 +525,27 @@ bundle exec fastlane sync_certs readonly:false
 security find-identity -v -p codesigning
 ```
 
+### Release Fails: "Missing required environment variables"
+
+**Cause:** Required environment variables not set
+
+**Fix:**
+
+The release lane validates these variables before running:
+- `APPLE_ID` - Your Apple Developer account email
+- `APPLE_APP_PASSWORD` - App-specific password for notarization
+- `APPLE_TEAM_ID` - Your Apple Developer Team ID
+
+For local builds, set them in your shell or use a `.batteryboirc` file:
+
+```bash
+export APPLE_ID="your.email@example.com"
+export APPLE_APP_PASSWORD="xxxx-xxxx-xxxx-xxxx"
+export APPLE_TEAM_ID="XXXXXXXXXX"
+```
+
+For CI, ensure all secrets are configured in GitHub repository settings.
+
 ### Notarization Fails: "Authentication failed"
 
 **Cause:** Invalid Apple ID or app-specific password
@@ -611,8 +632,8 @@ bundle exec fastlane release
 ### 2. Manual Upload
 
 ```bash
-# DMG will be in build/ directory
-DMG_PATH="./build/BatteryBoi - Recharged-X.Y.Z.dmg"
+# DMG will be in fastlane/build/ directory (fastlane runs from fastlane/ dir)
+DMG_PATH="fastlane/build/BatteryBoi - Recharged-X.Y.Z.dmg"
 
 # Create GitHub release manually
 gh release create vX.Y.Z \
@@ -623,8 +644,8 @@ gh release create vX.Y.Z \
 gh release upload vX.Y.Z "$DMG_PATH"
 
 # Upload appcast
-gh release upload vX.Y.Z "./build/appcast.xml"
-gh release upload latest "./build/appcast.xml" --clobber
+gh release upload vX.Y.Z "fastlane/build/appcast.xml"
+gh release upload latest "fastlane/build/appcast.xml" --clobber
 ```
 
 ### 3. Update Homebrew Cask (Optional)
@@ -700,8 +721,9 @@ shasum -a 256 "$DMG_PATH"
 |------|--------|--------|
 | 2026-02-02 | Initial CI/CD setup with Fastlane/Match | - |
 | 2026-02-02 | Added comprehensive documentation | - |
+| 2026-02-05 | Fixed build artifact paths, added env var validation docs | - |
 
 ---
 
-**Last Updated:** 2026-02-02
+**Last Updated:** 2026-02-05
 **Maintainer:** @desaianand1
