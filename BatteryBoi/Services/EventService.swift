@@ -56,7 +56,7 @@ final class EventService: EventServiceProtocol {
         }
 
         // Periodic check every 30 minutes (1800 seconds)
-        timerTask = Task(name: "EventService.monitor") { [weak self] in
+        timerTask = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(1800))
                 guard let self, !Task.isCancelled else { break }

@@ -94,7 +94,7 @@ final class BluetoothService: BluetoothServiceProtocol {
 
     private func startMonitoring() {
         // Scan for Bluetooth devices every 15 seconds using native IOKit
-        scanTimerTask = Task(name: "BluetoothService.scan") { [weak self] in
+        scanTimerTask = Task { [weak self] in
             var skipFirst = true
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(15))
@@ -106,7 +106,7 @@ final class BluetoothService: BluetoothServiceProtocol {
         }
 
         // Observe device selection changes to auto-connect
-        deviceObserverTask = Task(name: "BluetoothService.observe") { [weak self] in
+        deviceObserverTask = Task { [weak self] in
             var previousDevice: BluetoothObject?
             while !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(200))

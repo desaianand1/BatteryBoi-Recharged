@@ -90,7 +90,7 @@ final class BatteryService: BatteryServiceProtocol {
 
     private func startMonitoring() {
         // Battery status check every 5 seconds
-        statusTask = Task(name: "BatteryService.status") { [weak self] in
+        statusTask = Task { [weak self] in
             var tickCount = 0
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(5))
@@ -103,7 +103,7 @@ final class BatteryService: BatteryServiceProtocol {
         }
 
         // Remaining time check every 30 seconds
-        remainingTask = Task(name: "BatteryService.remaining") { [weak self] in
+        remainingTask = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(30))
                 guard let self, !Task.isCancelled else { break }
@@ -112,7 +112,7 @@ final class BatteryService: BatteryServiceProtocol {
         }
 
         // Thermal check every 90 seconds
-        thermalTask = Task(name: "BatteryService.thermal") { [weak self] in
+        thermalTask = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(90))
                 guard let self, !Task.isCancelled else { break }
@@ -121,7 +121,7 @@ final class BatteryService: BatteryServiceProtocol {
         }
 
         // Metrics check every 300 seconds
-        metricsTask = Task(name: "BatteryService.metrics") { [weak self] in
+        metricsTask = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(300))
                 guard let self, !Task.isCancelled else { break }
@@ -144,7 +144,7 @@ final class BatteryService: BatteryServiceProtocol {
 
     private func powerUpdaterFallback() {
         fallbackTimerTask?.cancel()
-        fallbackTimerTask = Task(name: "BatteryService.fallback") { [weak self] in
+        fallbackTimerTask = Task { [weak self] in
             var tickCount = 0
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(1))
