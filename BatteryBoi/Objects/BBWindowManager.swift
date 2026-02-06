@@ -109,26 +109,33 @@ final class WindowManager: WindowServiceProtocol {
     var opacity: CGFloat = 1.0
 
     init() {
-        self.lastChargingState = BatteryManager.shared.charging.state
+        // Don't access BatteryManager during init - defer to first observer tick
+        self.lastChargingState = nil
 
         // Observe charging state changes with debounce
         self.chargingObserverTask = Task { @MainActor [weak self] in
+            // Small delay to let BatteryManager initialize
+            try? await Task.sleep(for: .milliseconds(100))
+            guard let strongSelf = self, !Task.isCancelled else { return }
+
             var previousCharging = BatteryManager.shared.charging
+            strongSelf.lastChargingState = previousCharging.state // Set initial state here
+
             while !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(100))
-                guard let self, !Task.isCancelled else { break }
+                guard let strongSelf = self, !Task.isCancelled else { break }
 
                 let currentCharging = BatteryManager.shared.charging
                 if currentCharging != previousCharging {
                     // Reset thresholds when charging starts
                     if currentCharging.state == .charging {
-                        self.notifiedThresholds.removeAll()
+                        strongSelf.notifiedThresholds.removeAll()
                     }
 
                     // Debounce the charging state change notification (2 seconds)
-                    self.chargingDebounceTask?.cancel()
+                    strongSelf.chargingDebounceTask?.cancel()
                     let newState = currentCharging.state
-                    self.chargingDebounceTask = Task { @MainActor [weak self] in
+                    strongSelf.chargingDebounceTask = Task { @MainActor [weak self] in
                         do {
                             try await Task.sleep(for: .seconds(2))
                             guard let self, !Task.isCancelled else { return }
@@ -403,29 +410,29 @@ final class WindowManager: WindowServiceProtocol {
         self.dismissalTask?.cancel()
         self.dismissalTask = nil
 
-        if let window = windowExists(type) {
-            window.contentView = WindowHostingView(rootView: HUDParent(type, device: device))
+        guard let window = windowExists(type) else {
+            BBLogger.window.error("Failed to create window for alert: \(type)")
+            return
+        }
 
-            if window.canBecomeKeyWindow {
-                window.makeKeyAndOrderFront(nil)
-                window.alphaValue = 1.0
+        window.contentView = WindowHostingView(rootView: HUDParent(type, device: device))
+        window.makeKeyAndOrderFront(nil) // Always call - our KeyableWindow ensures it works
+        window.alphaValue = 1.0
 
-                if AppManager.shared.alert == nil {
-                    if let sfx = type.sfx {
-                        sfx.play()
-                    }
-                }
-
-                if !BluetoothManager.shared.connected.isEmpty {
-                    AppManager.shared.menu = .devices
-                }
-
-                AppManager.shared.device = device
-                AppManager.shared.alert = type
-
-                self.windowSetState(.progress)
+        if AppManager.shared.alert == nil {
+            if let sfx = type.sfx {
+                sfx.play()
             }
         }
+
+        if !BluetoothManager.shared.connected.isEmpty {
+            AppManager.shared.menu = .devices
+        }
+
+        AppManager.shared.device = device
+        AppManager.shared.alert = type
+
+        self.windowSetState(.progress)
     }
 
     private func windowClose() {
@@ -446,7 +453,7 @@ final class WindowManager: WindowServiceProtocol {
 
     private func windowDefault(_: HUDAlertTypes) -> NSWindow? {
         var window: NSWindow?
-        window = NSWindow()
+        window = KeyableWindow()
         window?.styleMask = [.borderless, .miniaturizable]
         window?.level = .statusBar
         window?.contentView?.translatesAutoresizingMaskIntoConstraints = false
@@ -593,6 +600,17 @@ final class WindowManager: WindowServiceProtocol {
 
     }
 
+}
+
+/// Custom NSWindow that allows borderless windows to become key.
+class KeyableWindow: NSWindow {
+    override var canBecomeKey: Bool {
+        true
+    }
+
+    override var canBecomeMain: Bool {
+        true
+    }
 }
 
 class WindowHostingView<Content: View>: NSHostingView<Content> {

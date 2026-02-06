@@ -258,8 +258,7 @@ extension UserDefaults {
     }
 
     static var main: UserDefaults {
-        UserDefaults()
-
+        UserDefaults.standard // Use standard singleton, not new instance!
     }
 
     static var list: [SystemDefaultsKeys] {
@@ -310,25 +309,19 @@ extension UserDefaults {
 }
 
 extension CodingUserInfoKey {
-    // swiftlint:disable:next force_unwrapping
-    static let device = CodingUserInfoKey(rawValue: "device")!
-    // swiftlint:disable:next force_unwrapping
-    static let connected = CodingUserInfoKey(rawValue: "connected")!
+    static let device: CodingUserInfoKey = {
+        guard let key = CodingUserInfoKey(rawValue: "device") else {
+            fatalError("Failed to create CodingUserInfoKey for 'device'")
+        }
+        return key
+    }()
 
-}
-
-extension NSWindow: SystemMainWindow {
-    var canBecomeKeyWindow: Bool {
-        true
-
-    }
-
-}
-
-@MainActor
-protocol SystemMainWindow {
-    var canBecomeKeyWindow: Bool { get }
-
+    static let connected: CodingUserInfoKey = {
+        guard let key = CodingUserInfoKey(rawValue: "connected") else {
+            fatalError("Failed to create CodingUserInfoKey for 'connected'")
+        }
+        return key
+    }()
 }
 
 extension String {
