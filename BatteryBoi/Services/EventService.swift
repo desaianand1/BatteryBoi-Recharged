@@ -24,7 +24,8 @@ final class EventService: EventServiceProtocol {
     var events = [EventObject]()
 
     /// Single shared EKEventStore - creating multiple instances is expensive
-    private let eventStore = EKEventStore()
+    /// Thread-safe per Apple documentation, marked nonisolated for Swift 6.1 compatibility
+    nonisolated(unsafe) private let eventStore = EKEventStore()
 
     /// Timer task for periodic authorization checks (nonisolated(unsafe) for deinit access per SE-0371)
     nonisolated(unsafe) private var timerTask: Task<Void, Never>?
