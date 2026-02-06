@@ -63,8 +63,8 @@ final class EventManager {
             }
         case .fullAccess, .authorized:
             self.events = self.eventsList()
-        case .denied, .restricted:
-            BBLogger.events.info("EventKit access denied or restricted")
+        case .denied, .restricted, .writeOnly:
+            BBLogger.events.info("EventKit access denied, restricted, or write-only")
         @unknown default:
             break
         }
