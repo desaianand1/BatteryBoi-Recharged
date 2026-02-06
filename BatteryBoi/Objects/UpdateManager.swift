@@ -164,7 +164,7 @@ final class UpdateManager: NSObject, SPUUpdaterDelegate, UpdateManagerProtocol {
         // Extract values before async context to avoid Sendable issues
         let title = item.title
         let id = item.propertiesDictionary["id"] as? String
-        let semver = item.propertiesDictionary["sparkle:shortVersionString"] as? String ?? item.versionString ?? "0.0.0"
+        let semver = item.propertiesDictionary["sparkle:shortVersionString"] as? String ?? item.versionString
         let lastCheck = updater.lastUpdateCheckDate
 
         Task { @MainActor [weak self] in
