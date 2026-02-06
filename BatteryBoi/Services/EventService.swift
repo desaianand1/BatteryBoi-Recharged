@@ -56,7 +56,7 @@ final class EventService: EventServiceProtocol {
         }
 
         // Periodic check every 30 minutes (1800 seconds)
-        timerTask = Task(name: "EventService.monitor") { [weak self] in
+        timerTask = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(1800))
                 guard let self, !Task.isCancelled else { break }
@@ -71,7 +71,7 @@ final class EventService: EventServiceProtocol {
         switch status {
         case .notDetermined:
             // Use async API to avoid callback isolation violations
-            Task { [weak self] in
+            Task { @MainActor [weak self] in
                 guard let self else { return }
 
                 let granted: Bool = if #available(macOS 14.0, *) {

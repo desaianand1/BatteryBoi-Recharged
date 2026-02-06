@@ -152,20 +152,20 @@ final class WindowService: WindowServiceProtocol {
 
                 // Debounce mouse events
                 let now = Date()
-                guard now.timeIntervalSince(lastMouseEventTime) > mouseEventDebounceInterval else { return }
-                lastMouseEventTime = now
+                guard now.timeIntervalSince(self.lastMouseEventTime) > self.mouseEventDebounceInterval else { return }
+                self.lastMouseEventTime = now
 
                 if NSRunningApplication.current == NSWorkspace.shared.frontmostApplication {
-                    if state == .revealed || state == .progress {
-                        windowSetState(.detailed)
+                    if self.state == .revealed || self.state == .progress {
+                        self.windowSetState(.detailed)
                     }
                 } else {
                     if SettingsService.shared.enabledPinned == .disabled {
-                        if state.visible == true {
-                            windowSetState(.dismissed)
+                        if self.state.visible == true {
+                            self.windowSetState(.dismissed)
                         }
                     } else {
-                        windowSetState(.revealed)
+                        self.windowSetState(.revealed)
                     }
                 }
             }

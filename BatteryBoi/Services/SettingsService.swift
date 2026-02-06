@@ -104,7 +104,7 @@ final class SettingsService: SettingsServiceProtocol {
     // MARK: - Private Methods
 
     private func startObserving() {
-        settingsTask = Task(name: "SettingsService.observe") { [weak self] in
+        settingsTask = Task { [weak self] in
             for await key in UserDefaults.changedAsync() {
                 guard let self, !Task.isCancelled else { break }
                 switch key {
