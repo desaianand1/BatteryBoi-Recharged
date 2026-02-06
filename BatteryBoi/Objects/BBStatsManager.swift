@@ -102,18 +102,17 @@ final class StatsManager {
                 #if canImport(Sentry)
                     SentrySDK.capture(error: error)
                 #endif
-
+                return // Don't configure if failed
             }
+
+            // Configure AFTER store loads successfully
+            container.viewContext.automaticallyMergesChangesFromParent = true
 
             if let path = directory {
                 directory = storeDescription.url
                 BBLogger.stats.debug("CoreData directory: \(directory?.absoluteString ?? "nil")")
-
             }
-
         })
-
-        container.viewContext.automaticallyMergesChangesFromParent = true
 
         return .init(container: container, directory: directory, parent: subdirectory)
 
