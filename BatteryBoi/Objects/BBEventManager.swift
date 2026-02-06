@@ -25,6 +25,9 @@ final class EventManager {
 
     nonisolated(unsafe) private var timerTask: Task<Void, Never>?
 
+    /// Single shared EKEventStore - creating multiple instances is expensive
+    private let eventStore = EKEventStore()
+
     var events = [EventObject]()
 
     init() {
@@ -48,15 +51,22 @@ final class EventManager {
     }
 
     private func eventAuthorizeStatus() {
-        if EKEventStore.authorizationStatus(for: .event) == .notDetermined {
-            EKEventStore().requestFullAccessToEvents { [weak self] _, _ in
+        let status = EKEventStore.authorizationStatus(for: .event)
+
+        switch status {
+        case .notDetermined:
+            eventStore.requestFullAccessToEvents { [weak self] granted, _ in
                 Task { @MainActor [weak self] in
-                    guard let self else { return }
+                    guard let self, granted else { return }
                     self.events = self.eventsList()
                 }
             }
-        } else {
+        case .fullAccess, .authorized:
             self.events = self.eventsList()
+        case .denied, .restricted:
+            BBLogger.events.info("EventKit access denied or restricted")
+        @unknown default:
+            break
         }
     }
 
@@ -65,23 +75,19 @@ final class EventManager {
 
         let start = Calendar.current.startOfDay(for: Date())
         let end = Calendar.current.date(byAdding: .day, value: 1, to: start) ?? start
-        let predicate = EKEventStore().predicateForEvents(withStart: Date(), end: end, calendars: nil)
+        let predicate = eventStore.predicateForEvents(withStart: Date(), end: end, calendars: nil)
 
         BBLogger.events.debug("Fetching events from \(start) to \(end)")
 
-        for event in EKEventStore().events(matching: predicate) {
+        for event in eventStore.events(matching: predicate) {
             if let notes = event.notes, notes.contains("http://") || notes.contains("https://") {
                 output.append(.init(event))
-
             } else if let url = event.url?.absoluteString, url.contains("http://") || url.contains("https://") {
                 output.append(.init(event))
-
             }
-
         }
 
         return output
-
     }
 
 }
