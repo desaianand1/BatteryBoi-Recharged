@@ -323,21 +323,27 @@ final class BatteryManager: BatteryServiceProtocol {
     }
 
     private var powerCharging: BatteryChargingState {
-        let snapshot = IOPSCopyPowerSourcesInfo().takeRetainedValue()
-        let source = IOPSGetProvidingPowerSourceType(snapshot).takeRetainedValue()
+        guard let snapshotRef = IOPSCopyPowerSourcesInfo() else { return .battery }
+        let snapshot = snapshotRef.takeRetainedValue()
+
+        guard let sourceRef = IOPSGetProvidingPowerSourceType(snapshot) else { return .battery }
+        let source = sourceRef.takeRetainedValue()
 
         switch source as String == kIOPSACPowerValue {
         case true: return .charging
         case false: return .battery
         }
-
     }
 
     private var powerPercentage: Double {
-        let snapshot = IOPSCopyPowerSourcesInfo().takeRetainedValue()
-        let sources = IOPSCopyPowerSourcesList(snapshot).takeRetainedValue() as Array
+        guard let snapshotRef = IOPSCopyPowerSourcesInfo() else { return 100.0 }
+        let snapshot = snapshotRef.takeRetainedValue()
+
+        guard let sourcesRef = IOPSCopyPowerSourcesList(snapshot) else { return 100.0 }
+        let sources = sourcesRef.takeRetainedValue() as Array
+
         for source in sources {
-            if let description = IOPSGetPowerSourceDescription(snapshot, source)
+            if let description = IOPSGetPowerSourceDescription(snapshot, source)?
                 .takeUnretainedValue() as? [String: Any],
                 description["Type"] as? String == kIOPSInternalBatteryType
             {
@@ -346,7 +352,6 @@ final class BatteryManager: BatteryServiceProtocol {
         }
 
         return 100.0
-
     }
 
     private func fetchPowerRemaining() async -> BatteryRemaining? {

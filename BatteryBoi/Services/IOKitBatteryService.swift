@@ -151,10 +151,13 @@ actor IOKitBatteryService {
     nonisolated func startPowerSourceNotifications(onChange: @escaping @Sendable () -> Void) {
         IOKitBatteryService.powerSourceCallback = onChange
 
-        let source = IOPSNotificationCreateRunLoopSource({ _ in
+        guard let sourceRef = IOPSNotificationCreateRunLoopSource({ _ in
             IOKitBatteryService.powerSourceCallback?()
-        }, nil).takeRetainedValue()
-
+        }, nil) else {
+            BBLogger.battery.error("Failed to create power source notification run loop source")
+            return
+        }
+        let source = sourceRef.takeRetainedValue()
         CFRunLoopAddSource(CFRunLoopGetMain(), source, .defaultMode)
     }
 
