@@ -21,7 +21,7 @@ import Foundation
         var saver: BatteryModeType
         var rate: BatteryEstimateObject?
         var metrics: BatteryMetricsObject?
-        var thermal: BatteryThemalState
+        var thermal: BatteryThermalState
 
         // MARK: - Test Helpers
 
@@ -30,16 +30,16 @@ import Foundation
 
         // MARK: - Initialization
 
-        nonisolated init(
-            charging: BatteryCharging = BatteryCharging(.battery),
+        init(
+            charging: BatteryCharging? = nil,
             percentage: Double = 75.0,
             remaining: BatteryRemaining? = nil,
             saver: BatteryModeType = .normal,
             rate: BatteryEstimateObject? = nil,
             metrics: BatteryMetricsObject? = nil,
-            thermal: BatteryThemalState = .optimal
+            thermal: BatteryThermalState = .optimal
         ) {
-            self.charging = charging
+            self.charging = charging ?? BatteryCharging(.battery)
             self.percentage = percentage
             self.remaining = remaining
             self.saver = saver
@@ -77,7 +77,7 @@ import Foundation
             percentage = newPercentage
         }
 
-        func simulateThermalChange(_ newThermal: BatteryThemalState) {
+        func simulateThermalChange(_ newThermal: BatteryThermalState) {
             thermal = newThermal
         }
     }

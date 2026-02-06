@@ -71,12 +71,45 @@ import Foundation
 
         // MARK: - Test Simulation
 
+        var forceRefreshCallCount = 0
+
+        func forceRefresh() {
+            forceRefreshCallCount += 1
+        }
+
         func simulateListChange(_ newList: [BluetoothObject]) {
             list = newList
         }
 
         func simulateConnectedChange(_ newConnected: [BluetoothObject]) {
             connected = newConnected
+        }
+
+        func simulateDeviceConnected(_ device: BluetoothObject) {
+            // Add to list if not already present
+            if !list.contains(where: { $0.address == device.address }) {
+                list.append(device)
+            }
+            // Add to connected if not already present
+            if !connected.contains(where: { $0.address == device.address }) {
+                connected.append(device)
+            }
+        }
+
+        func simulateDeviceDisconnected(address: String) {
+            let normalizedAddress = address.lowercased().replacingOccurrences(of: ":", with: "-")
+            connected.removeAll { $0.address == normalizedAddress }
+        }
+
+        func simulateBatteryUpdate(_ device: BluetoothObject) {
+            // Update battery in list
+            if let index = list.firstIndex(where: { $0.address == device.address }) {
+                list[index] = device
+            }
+            // Update battery in connected
+            if let index = connected.firstIndex(where: { $0.address == device.address }) {
+                connected[index] = device
+            }
         }
     }
 

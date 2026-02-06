@@ -25,7 +25,7 @@ platform :mac do
       destination: "platform=macOS",
       clean: true,
       code_coverage: true,
-      xcargs: "CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO SWIFT_STRICT_CONCURRENCY=minimal"
+      xcargs: "CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO SWIFT_STRICT_CONCURRENCY=complete OTHER_SWIFT_FLAGS='-DMACOS_13_AND_ABOVE'"
     )
   end
 

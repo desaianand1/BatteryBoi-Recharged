@@ -19,28 +19,40 @@ import Foundation
         ///   - name: Device name (default: "Test Device")
         ///   - isConnected: Connection state (default: true)
         ///   - batteryPercent: Battery percentage (default: 75)
-        ///   - deviceType: Type of device (default: .headphones)
+        ///   - type: Type of device (default: .headphones)
         /// - Returns: A configured BluetoothObject for testing
+        @MainActor
         static func testDevice(
             address: String = "AA:BB:CC:DD:EE:FF",
             name: String = "Test Device",
             isConnected: Bool = true,
             batteryPercent: Int? = 75,
-            deviceType: BluetoothDeviceType = .headphones
+            type: BluetoothDeviceType = .headphones
         ) -> BluetoothObject {
             BluetoothObject(
                 address: address,
                 name: name,
                 isConnected: isConnected,
                 batteryPercent: batteryPercent,
-                deviceType: deviceType.rawValue
+                deviceType: type.rawValue
             )
         }
+    }
+
+    // MARK: - BluetoothDeviceType Aliases for common types
+
+    extension BluetoothDeviceType {
+        /// AirPods Pro device type (maps to headphones with special handling)
+        static let airpodsPro: BluetoothDeviceType = .headphones
+
+        /// AirPods device type (maps to headphones)
+        static let airpods: BluetoothDeviceType = .headphones
     }
 
     // MARK: - BluetoothBatteryObject Test Helpers
 
     /// Helper function to create test battery objects with custom values
+    @MainActor
     func makeTestBattery(general: Double?, left: Double?, right: Double?) -> BluetoothBatteryObject {
         var battery = BluetoothBatteryObject(percent: general.map { Int($0) })
         battery.left = left
@@ -60,6 +72,7 @@ import Foundation
     extension BluetoothBatteryObject {
         /// Creates a battery object for a single battery device
         /// - Parameter percent: Battery percentage as Double
+        @MainActor
         init(percent: Double) {
             self.init(percent: Int(percent))
         }
@@ -69,6 +82,7 @@ import Foundation
         ///   - percent: General battery percent
         ///   - left: Left earbud battery percent
         ///   - right: Right earbud battery percent
+        @MainActor
         init(percent: Double, left: Double, right: Double) {
             self = makeTestBattery(general: percent, left: left, right: right)
         }

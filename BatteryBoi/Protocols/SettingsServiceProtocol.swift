@@ -58,6 +58,11 @@ protocol SettingsServiceProtocol: AnyObject {
     @discardableResult
     func toggleDisplay() -> SettingsDisplayType
 
+    /// Get current display type, optionally toggling to next
+    /// - Parameter toggle: If true, toggles to the next display type before returning
+    /// - Returns: The current (or new) display type
+    func enabledDisplay(_ toggle: Bool) -> SettingsDisplayType
+
     /// Perform a settings action
     /// - Parameter action: The action to perform
     func performAction(_ action: SettingsActionObject)

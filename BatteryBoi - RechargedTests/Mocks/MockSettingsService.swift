@@ -88,6 +88,13 @@ import Foundation
             return display
         }
 
+        func enabledDisplay(_ toggle: Bool) -> SettingsDisplayType {
+            if toggle {
+                return toggleDisplay()
+            }
+            return display
+        }
+
         func performAction(_ action: SettingsActionObject) {
             performActionCallCount += 1
             lastPerformedAction = action

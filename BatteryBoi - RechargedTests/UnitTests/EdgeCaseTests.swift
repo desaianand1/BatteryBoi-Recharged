@@ -6,24 +6,28 @@
 //
 
 @testable import BatteryBoi___Recharged
-import XCTest
+@preconcurrency import XCTest
 
 final class EdgeCaseTests: XCTestCase {
 
     // MARK: - Properties
 
-    var mockBatteryService: MockBatteryService!
-    var mockWindowService: MockWindowService!
+    /// Mock services (nonisolated for setUp/tearDown compatibility with Swift 6)
+    nonisolated(unsafe) var mockBatteryService: MockBatteryService!
+    nonisolated(unsafe) var mockWindowService: MockWindowService!
 
     // MARK: - Setup
 
-    override func setUp() {
+    override nonisolated func setUp() {
         super.setUp()
-        mockBatteryService = MockBatteryService()
-        mockWindowService = MockWindowService()
+        let (battery, window) = MainActor.assumeIsolated {
+            (MockBatteryService(), MockWindowService())
+        }
+        mockBatteryService = battery
+        mockWindowService = window
     }
 
-    override func tearDown() {
+    override nonisolated func tearDown() {
         mockBatteryService = nil
         mockWindowService = nil
         super.tearDown()

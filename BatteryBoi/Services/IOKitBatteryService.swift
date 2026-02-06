@@ -154,7 +154,7 @@ actor IOKitBatteryService {
         guard let sourceRef = IOPSNotificationCreateRunLoopSource({ _ in
             IOKitBatteryService.powerSourceCallback?()
         }, nil) else {
-            BBLogger.battery.error("Failed to create power source notification run loop source")
+            BLogger.battery.error("Failed to create power source notification run loop source")
             return
         }
         let source = sourceRef.takeRetainedValue()

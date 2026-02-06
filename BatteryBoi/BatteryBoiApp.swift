@@ -37,7 +37,7 @@ public enum SystemSoundEffects: String {
 
     @MainActor
     public func play(_ force: Bool = false) {
-        guard SettingsManager.shared.enabledSoundEffects == .enabled || force else { return }
+        guard SettingsService.shared.enabledSoundEffects == .enabled || force else { return }
 
         guard let sound = NSSound(named: rawValue) else {
             return
@@ -246,6 +246,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             }
         #endif
 
+        // Start ServiceContainer to begin state observation
+        Task { @MainActor in
+            await ServiceContainer.shared.start()
+        }
+
         status = NSStatusBar.system.statusItem(withLength: 45)
         hosting.frame.size = NSSize(width: 45, height: 22)
 
@@ -258,17 +263,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             try? await Task.sleep(for: .milliseconds(800))
             guard let self else { return }
 
-            _ = SettingsManager.shared.enabledTheme
-            _ = SettingsManager.shared.enabledDisplay()
+            _ = SettingsService.shared.enabledTheme
+            _ = SettingsService.shared.enabledDisplay()
 
-            _ = EventManager.shared
+            _ = EventService.shared
 
             UpdateManager.shared.updateCheck()
 
-            WindowManager.shared.windowOpen(.userLaunched, device: nil)
+            WindowService.shared.open(.userLaunched, device: nil)
 
             // Set initial display state
-            switch SettingsManager.shared.display {
+            switch SettingsService.shared.display {
             case .hidden: applicationMenuBarIcon(false)
             default: applicationMenuBarIcon(true)
             }
@@ -278,7 +283,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
                 for await key in UserDefaults.changedAsync() {
                     guard let self, !Task.isCancelled else { break }
                     if key == .enabledDisplay {
-                        switch SettingsManager.shared.display {
+                        switch SettingsService.shared.display {
                         case .hidden: applicationMenuBarIcon(false)
                         default: applicationMenuBarIcon(true)
                         }
@@ -286,8 +291,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
                 }
             }
 
-            if SettingsManager.shared.enabledAutoLaunch == .undetermined {
-                SettingsManager.shared.enabledAutoLaunch = .enabled
+            if SettingsService.shared.enabledAutoLaunch == .undetermined {
+                SettingsService.shared.enabledAutoLaunch = .enabled
             }
         }
 
@@ -332,7 +337,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
                 button.action = #selector(applicationStatusBarButtonClicked(sender:))
                 button.target = self
 
-                SettingsManager.shared.enabledPinned = .disabled
+                SettingsService.shared.enabledPinned = .disabled
 
             }
 
@@ -348,11 +353,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
     @objc
     func applicationStatusBarButtonClicked(sender _: NSStatusBarButton) {
-        if WindowManager.shared.windowIsVisible(.userInitiated) == false {
-            WindowManager.shared.windowOpen(.userInitiated, device: nil)
+        if WindowService.shared.isVisible(.userInitiated) == false {
+            WindowService.shared.open(.userInitiated, device: nil)
 
         } else {
-            WindowManager.shared.windowSetState(.dismissed)
+            WindowService.shared.setState(.dismissed, animated: true)
 
         }
 
@@ -360,7 +365,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
     @objc
     func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows _: Bool) -> Bool {
-        WindowManager.shared.windowOpen(.userInitiated, device: nil)
+        WindowService.shared.open(.userInitiated, device: nil)
 
         return false
 
@@ -377,14 +382,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
                     guard self != nil else { return }
                     window.animator().alphaValue = 1.0
                     window.animator().setFrame(
-                        WindowManager.shared.windowHandleFrame(),
+                        WindowService.shared.calculateFrame(moved: nil),
                         display: true,
                         animate: true
                     )
                 }
             }
 
-            _ = WindowManager.shared.windowHandleFrame(moved: window.frame)
+            _ = WindowService.shared.calculateFrame(moved: window.frame)
 
         }
 
@@ -398,7 +403,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             // Short delay to let system stabilize after wake
             try? await Task.sleep(for: .seconds(0.5))
             guard self != nil, !Task.isCancelled else { return }
-            BatteryManager.shared.powerForceRefresh()
+            BatteryService.shared.forceRefresh()
         }
     }
 

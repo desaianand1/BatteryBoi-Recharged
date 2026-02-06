@@ -32,7 +32,7 @@ protocol BatteryServiceProtocol: AnyObject {
     var metrics: BatteryMetricsObject? { get }
 
     /// Current thermal state
-    var thermal: BatteryThemalState { get }
+    var thermal: BatteryThermalState { get }
 
     // MARK: - Methods
 

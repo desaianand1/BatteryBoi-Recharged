@@ -3,6 +3,7 @@
 //  BatteryBoi
 //
 //  Created for architecture modernization.
+//  Updated for Swift 6.2 ServiceContainer architecture.
 //
 
 import Foundation
@@ -11,6 +12,9 @@ import SwiftUI
 /// Dependency injection container holding all service references.
 /// Provides centralized access to app services for SwiftUI views.
 /// Services are accessed via protocol types to enable testability.
+///
+/// Note: This class uses the new service architecture.
+/// Old managers are kept for backward compatibility during migration.
 @MainActor
 @Observable
 final class AppEnvironment {
@@ -36,27 +40,30 @@ final class AppEnvironment {
     /// App lifecycle manager
     let app: AppManager
 
-    /// Statistics aggregation manager
-    let stats: StatsManager
+    /// Statistics aggregation service
+    let stats: StatsService
 
     /// Update manager
     let update: UpdateManager
 
-    /// Event manager
-    let event: EventManager
+    /// Event service
+    let event: EventService
 
     // MARK: - Initialization
 
     /// Initialize with default production services.
     init() {
-        battery = BatteryManager.shared
-        bluetooth = BluetoothManager.shared
-        settings = SettingsManager.shared
-        window = WindowManager.shared
+        // Use new services for migrated components
+        battery = BatteryService.shared
+        bluetooth = BluetoothService.shared
+        settings = SettingsService.shared
+        window = WindowService.shared
+        stats = StatsService.shared
+
+        // Keep these as managers until services exist
         app = AppManager.shared
-        stats = StatsManager.shared
         update = UpdateManager.shared
-        event = EventManager.shared
+        event = EventService.shared
     }
 
     /// Initialize with custom services for testing.
@@ -66,18 +73,18 @@ final class AppEnvironment {
     ///   - settings: Custom settings service
     ///   - window: Custom window service
     ///   - app: Custom app manager
-    ///   - stats: Custom stats manager
+    ///   - stats: Custom stats service
     ///   - update: Custom update manager
-    ///   - event: Custom event manager
+    ///   - event: Custom event service
     init(
         battery: any BatteryServiceProtocol,
         bluetooth: any BluetoothServiceProtocol,
         settings: any SettingsServiceProtocol,
         window: any WindowServiceProtocol,
         app: AppManager,
-        stats: StatsManager,
+        stats: StatsService,
         update: UpdateManager,
-        event: EventManager
+        event: EventService
     ) {
         self.battery = battery
         self.bluetooth = bluetooth

@@ -7,7 +7,7 @@ on:
 jobs:
   bump-cask:
     name: Bump Homebrew Cask
-    runs-on: macos-latest
+    runs-on: macos-15
     # Only run for stable releases (not prereleases or drafts)
     if: >-
       github.event.release.prerelease == false &&
