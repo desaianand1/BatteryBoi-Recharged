@@ -45,6 +45,7 @@ public struct BatteryPulsatingIcon: View {
 
     @State private var visible: Bool = false
     @State private var icon: String = "ChargingIcon"
+    @State private var pulsatingTask: Task<Void, Never>?
 
     init(_ icon: String) {
         _icon = State(initialValue: icon)
@@ -75,15 +76,23 @@ public struct BatteryPulsatingIcon: View {
             .onChange(of: visible) { _, newVisible in
                 // Skip pulsating animation if reduce motion is enabled
                 guard !reduceMotion else { return }
-                Task { @MainActor in
-                    try? await Task.sleep(for: .seconds(newVisible ? 2.0 : 0.8))
-                    withAnimation(Animation.easeInOut) {
-                        visible.toggle()
 
+                pulsatingTask?.cancel()
+                pulsatingTask = Task { @MainActor in
+                    do {
+                        try await Task.sleep(for: .seconds(newVisible ? 2.0 : 0.8))
+                        guard !Task.isCancelled else { return }
+                        withAnimation(Animation.easeInOut) {
+                            visible.toggle()
+                        }
+                    } catch {
+                        // Task cancelled
                     }
-
                 }
-
+            }
+            .onDisappear {
+                pulsatingTask?.cancel()
+                pulsatingTask = nil
             }
             .accessibilityHidden(true)
 
