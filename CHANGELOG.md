@@ -1,3 +1,14 @@
+## [12.51.12](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.11...v12.51.12) (2026-02-06)
+
+### Bug Fixes
+
+* **battery:** add nil guards to IOKit power source calls ([c78327c](https://github.com/desaianand1/BatteryBoi-Recharged/commit/c78327c4c3f11dd0bda9aa3a0f29c81c4bfaa1d9))
+* **coredata:** configure viewContext after store loads ([5c85b7e](https://github.com/desaianand1/BatteryBoi-Recharged/commit/5c85b7e2008b6fda7c4daa0029f196a1c0a195ec))
+* **events:** handle writeOnly case in EKAuthorizationStatus switch ([fa18ef3](https://github.com/desaianand1/BatteryBoi-Recharged/commit/fa18ef331e96e95bf2b0ddd8d2e6ae00d1c093eb))
+* **events:** reuse single EKEventStore instance ([ea42c20](https://github.com/desaianand1/BatteryBoi-Recharged/commit/ea42c20194b5e55148a4af02bfa93f730b12f381))
+* **ui:** track and cancel pulsating animation task ([996268f](https://github.com/desaianand1/BatteryBoi-Recharged/commit/996268faf1d2be6e36b907f8316a1df76acfc0b7))
+* **window:** resolve borderless window focus and persistence bugs ([b964024](https://github.com/desaianand1/BatteryBoi-Recharged/commit/b964024289aff2ea53fa072a2c684f472731a400))
+
 ## [12.51.11](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.10...v12.51.11) (2026-02-05)
 
 ### Bug Fixes
