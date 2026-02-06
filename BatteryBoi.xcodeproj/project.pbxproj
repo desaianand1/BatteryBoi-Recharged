@@ -48,7 +48,7 @@
 		D84F4E2B2A86E9E800668582 /* LocalizableMain.strings in Resources */ = {isa = PBXBuildFile; fileRef = D84F4E2D2A86E9E800668582 /* LocalizableMain.strings */; };
 		D851F7FF2AB0FC20003FCA79 /* HUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D851F7FE2AB0FC20003FCA79 /* HUDView.swift */; };
 		D851F8022AB152B7003FCA79 /* UpdateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D851F8012AB152B7003FCA79 /* UpdateView.swift */; };
-		D851F8062AB214E8003FCA79 /* BBDataObject.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D851F8042AB214E8003FCA79 /* BBDataObject.xcdatamodeld */; };
+		D851F8062AB214E8003FCA79 /* DataObject.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D851F8042AB214E8003FCA79 /* DataObject.xcdatamodeld */; };
 		D851F80A2ABA29A0003FCA79 /* NavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D851F8092ABA299F003FCA79 /* NavigationView.swift */; };
 		D891134D2AAC34DC00B5E4F5 /* AnimationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D891134C2AAC34DC00B5E4F5 /* AnimationManager.swift */; };
 		D89CCFEE2A9FF97900D9531A /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D89CCFED2A9FF97900D9531A /* AboutView.swift */; };
@@ -136,7 +136,7 @@
 		D851F7FE2AB0FC20003FCA79 /* HUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDView.swift; sourceTree = "<group>"; };
 		D851F8002AB126AA003FCA79 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/LocalizableMain.strings; sourceTree = "<group>"; };
 		D851F8012AB152B7003FCA79 /* UpdateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateView.swift; sourceTree = "<group>"; };
-		D851F8052AB214E8003FCA79 /* BBDataObject.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = BBDataObject.xcdatamodel; sourceTree = "<group>"; };
+		D851F8052AB214E8003FCA79 /* DataObject.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = DataObject.xcdatamodel; sourceTree = "<group>"; };
 		D851F8092ABA299F003FCA79 /* NavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationView.swift; sourceTree = "<group>"; };
 		D864D09E2AAF9C1E00842526 /* sk */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sk; path = sk.lproj/LocalizableMain.strings; sourceTree = "<group>"; };
 		D864D09F2AAF9C8500842526 /* sl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sl; path = sl.lproj/LocalizableMain.strings; sourceTree = "<group>"; };
@@ -255,7 +255,7 @@
 		D851F8032AB21259003FCA79 /* Database */ = {
 			isa = PBXGroup;
 			children = (
-				D851F8042AB214E8003FCA79 /* BBDataObject.xcdatamodeld */,
+				D851F8042AB214E8003FCA79 /* DataObject.xcdatamodeld */,
 			);
 			path = Database;
 			sourceTree = "<group>";
@@ -564,7 +564,7 @@
 				C1A0B0C02C05000000000007 /* SettingsModels.swift in Sources */,
 				C1A0B0C02C0500000000000D /* StatsModels.swift in Sources */,
 				C1A0B0C02C0500000000000B /* EventModels.swift in Sources */,
-				D851F8062AB214E8003FCA79 /* BBDataObject.xcdatamodeld in Sources */,
+				D851F8062AB214E8003FCA79 /* DataObject.xcdatamodeld in Sources */,
 				D89CCFEE2A9FF97900D9531A /* AboutView.swift in Sources */,
 				D8DFD5842A8C26F300732635 /* SettingsView.swift in Sources */,
 				D891134D2AAC34DC00B5E4F5 /* AnimationManager.swift in Sources */,
@@ -988,13 +988,13 @@
 /* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
-		D851F8042AB214E8003FCA79 /* BBDataObject.xcdatamodeld */ = {
+		D851F8042AB214E8003FCA79 /* DataObject.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
-				D851F8052AB214E8003FCA79 /* BBDataObject.xcdatamodel */,
+				D851F8052AB214E8003FCA79 /* DataObject.xcdatamodel */,
 			);
-			currentVersion = D851F8052AB214E8003FCA79 /* BBDataObject.xcdatamodel */;
-			path = BBDataObject.xcdatamodeld;
+			currentVersion = D851F8052AB214E8003FCA79 /* DataObject.xcdatamodel */;
+			path = DataObject.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
 		};

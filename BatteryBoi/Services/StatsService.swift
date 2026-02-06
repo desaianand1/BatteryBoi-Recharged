@@ -55,7 +55,7 @@ actor StatsService {
     // MARK: - Initialization
 
     init() {
-        let objectName = "BBDataObject"
+        let objectName = "DataObject"
         let persistentContainer = NSPersistentCloudKitContainer(name: objectName)
 
         var directory: URL?

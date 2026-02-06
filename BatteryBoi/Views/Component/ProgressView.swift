@@ -152,7 +152,7 @@ struct RadialProgressMiniContainer: View {
             VStack {
                 Text("\(percent)")
                     .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatteryTitle"))
-                    .font(BBTypography.caption)
+                    .font(Typography.caption)
 
             }
 
@@ -234,13 +234,13 @@ struct RadialProgressContainer: View {
             ZStack(alignment: .center) {
                 Text("\(percent ?? 0)")
                     .foregroundColor(Color("BatteryTitle"))
-                    .font(BBTypography.progressLarge)
+                    .font(Typography.progressLarge)
                     .blur(radius: percent == nil ? 5.0 : 0.0)
                     .opacity(percent == nil ? 0.0 : 1.0)
 
                 Text("N/A")
                     .foregroundColor(Color("BatteryTitle").opacity(0.4))
-                    .font(BBTypography.heading)
+                    .font(Typography.heading)
                     .blur(radius: percent == nil ? 0.0 : 5.0)
                     .opacity(percent == nil ? 1.0 : 0.0)
 

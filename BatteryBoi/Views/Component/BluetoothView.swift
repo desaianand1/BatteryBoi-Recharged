@@ -29,7 +29,7 @@ struct BluetoothIcon: View {
                     RadialProgressMiniContainer(item, style: $style)
 
                     Image(systemName: icon)
-                        .font(BBTypography.bodyMedium)
+                        .font(Typography.bodyMedium)
                         .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatterySubtitle"))
                         .padding(2)
                         .background(
@@ -43,7 +43,7 @@ struct BluetoothIcon: View {
 
                 } else {
                     Image(systemName: icon)
-                        .font(BBTypography.title)
+                        .font(Typography.title)
                         .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatterySubtitle"))
                         .padding(2)
                         .matchedGeometryEffect(id: item?.type.icon ?? "laptopcomputer", in: animation)
@@ -130,7 +130,7 @@ struct BluetoothItem: View {
                     VStack(alignment: .leading) {
                         if let item {
                             Text(item.device ?? item.type.type.rawValue)
-                                .font(BBTypography.headingLarge)
+                                .font(Typography.headingLarge)
                                 .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatteryTitle"))
                                 .padding(0)
 
@@ -155,18 +155,18 @@ struct BluetoothItem: View {
                                         .frame(width: 6, height: 6)
                                 }
                             }
-                            .font(BBTypography.small)
+                            .font(Typography.small)
                             .foregroundColor(Color("BatterySubtitle"))
 
                         } else {
                             Text(manager.appDeviceType.name)
-                                .font(BBTypography.headingLarge)
+                                .font(Typography.headingLarge)
                                 .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatteryTitle"))
                                 .padding(0)
 
                             if hover == true {
                                 Text("AlertSomePercentTitle".localise([Int(battery.percentage)]))
-                                    .font(BBTypography.small)
+                                    .font(Typography.small)
                                     .foregroundColor(Color("BatterySubtitle"))
 
                             }

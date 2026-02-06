@@ -60,20 +60,20 @@ struct SettingsItem: View {
             label: {
                 HStack(alignment: .center) {
                     Image(icon ?? item.type.icon)
-                        .font(BBTypography.icon)
+                        .font(Typography.icon)
                         .foregroundColor(color == nil ? Color("BatterySubtitle") : Color("BatteryEfficient"))
                         .frame(height: 36)
                         .padding(.trailing, 6)
 
                     VStack(alignment: .leading) {
                         Text(item.title)
-                            .font(BBTypography.headingLarge)
+                            .font(Typography.headingLarge)
                             .foregroundColor(Color("BatteryTitle"))
                             .padding(0)
 
                         if hover == true, subtitle != nil {
                             Text(subtitle ?? "")
-                                .font(BBTypography.small)
+                                .font(Typography.small)
                                 .foregroundColor(Color("BatterySubtitle"))
 
                         }
@@ -257,7 +257,7 @@ struct SettingsOverlayItem: View {
                     .frame(width: 60)
                     .overlay(
                         Image(systemName: icon)
-                            .font(BBTypography.headingLarge)
+                            .font(Typography.headingLarge)
                             .foregroundColor(Color("BatterySubtitle"))
 
                     )

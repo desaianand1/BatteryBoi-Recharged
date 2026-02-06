@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-enum BBTypography {
+enum Typography {
     static let largeTitle = Font.system(size: 26, weight: .bold)
     static let title = Font.system(size: 18, weight: .semibold)
     static let titleBold = Font.system(size: 18, weight: .bold)
@@ -21,7 +21,7 @@ enum BBTypography {
     static let progressLarge = Font.system(size: 20, weight: .bold)
 }
 
-enum BBSpacing {
+enum Spacing {
     static let xs: CGFloat = 4
     static let sm: CGFloat = 8
     static let md: CGFloat = 16
@@ -30,7 +30,7 @@ enum BBSpacing {
     static let xxl: CGFloat = 60
 }
 
-enum BBAnimation {
+enum DesignAnimation {
     /// Returns nil if reduce motion is enabled, otherwise returns the specified animation
     static func spring(
         response: Double = 0.4,

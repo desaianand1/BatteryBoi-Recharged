@@ -68,7 +68,7 @@ struct HUDSummary: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(BBTypography.titleBold)
+                    .font(Typography.titleBold)
                     .foregroundColor(.white)
                     .lineLimit(2)
 
