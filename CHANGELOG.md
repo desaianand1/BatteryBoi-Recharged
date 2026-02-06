@@ -1,3 +1,32 @@
+## [12.51.13](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.12...v12.51.13) (2026-02-06)
+
+### ⚠ BREAKING CHANGES
+
+* Complete rewrite of service layer architecture
+
+- Rename BBConstants to Constants and update all references
+- Remove dead BBProfileScript.py code from AppManager
+- Clean up legacy BB* manager comments in service files
+- Add new service layer with proper task lifecycle management
+- Add ServiceContainer and ServiceCoordinator for DI
+- Add AppState for centralized observable state
+- Rename BB* files to remove prefix
+- Add comprehensive test coverage with mocks
+
+### Bug Fixes
+
+* **ci:** mark eventStore as nonisolated for Swift 6.1 compatibility ([f1dae17](https://github.com/desaianand1/BatteryBoi-Recharged/commit/f1dae177b1c84f398f9115fc02657e6f537ee17a))
+* **ci:** remove Swift 6.2 default-isolation flag ([edc2f0f](https://github.com/desaianand1/BatteryBoi-Recharged/commit/edc2f0f43a7d668c2b53bc31853fe57edfae11e0))
+* **ci:** remove Swift 6.2 Task name parameter for Swift 6.1 compatibility ([631265a](https://github.com/desaianand1/BatteryBoi-Recharged/commit/631265a42a1c67c18d6585b9b52b9f257ca28c92))
+* **ci:** remove Swift 6.2 Task name parameter for Swift 6.1 compatibility ([3c4db19](https://github.com/desaianand1/BatteryBoi-Recharged/commit/3c4db195258d95426ad54047cd6e72126789e141))
+* **concurrency:** resolve Swift 6 isolation crash on launch ([0b547f0](https://github.com/desaianand1/BatteryBoi-Recharged/commit/0b547f0b5bee8d1171feee71ccc1c9e498bad5ed))
+
+### Refactoring
+
+* complete Swift 6.2 service architecture migration ([f4a6cb6](https://github.com/desaianand1/BatteryBoi-Recharged/commit/f4a6cb63c39219f09b147392b685fc77cf51079b))
+* rename remaining BB* types ([fab9e5d](https://github.com/desaianand1/BatteryBoi-Recharged/commit/fab9e5d806baf2d9f64d8465b28f0bc4c8fc1efc))
+* **update:** remove unnecessary version fallback ([6a58173](https://github.com/desaianand1/BatteryBoi-Recharged/commit/6a58173a59516025a7a708b0f9cac781aa3b7348))
+
 ## [12.51.12](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.11...v12.51.12) (2026-02-06)
 
 ### Bug Fixes
