@@ -1,5 +1,8 @@
 version: '3'
 
+dotenv:
+  - .env.local
+
 vars:
   SCHEME: BatteryBoi - Recharged
   PROJECT: BatteryBoi.xcodeproj
