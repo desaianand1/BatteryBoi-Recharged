@@ -55,10 +55,22 @@ final class EventManager {
 
         switch status {
         case .notDetermined:
-            eventStore.requestFullAccessToEvents { [weak self] granted, _ in
-                Task { @MainActor [weak self] in
-                    guard let self, granted else { return }
-                    self.events = self.eventsList()
+            // Use async API to avoid callback isolation violations
+            Task {
+                let granted: Bool = if #available(macOS 14.0, *) {
+                    await (try? eventStore.requestFullAccessToEvents()) ?? false
+                } else {
+                    await withCheckedContinuation { continuation in
+                        eventStore.requestFullAccessToEvents { result, _ in
+                            continuation.resume(returning: result)
+                        }
+                    }
+                }
+
+                if granted {
+                    await MainActor.run {
+                        self.events = self.eventsList()
+                    }
                 }
             }
         case .fullAccess, .authorized:
