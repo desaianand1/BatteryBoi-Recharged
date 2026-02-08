@@ -128,6 +128,10 @@ struct HUDContainer: View {
         env.window
     }
 
+    private var manager: AppManager {
+        env.app
+    }
+
     @State private var timeline: AnimationObject
     @State private var namespace: Namespace.ID
     @State private var animation: AnimationState = .waiting
@@ -142,14 +146,34 @@ struct HUDContainer: View {
     }
 
     var body: some View {
-        HStack(alignment: .center) {
-            HUDSummary()
+        ZStack(alignment: .topTrailing) {
+            HStack(alignment: .center) {
+                HUDSummary()
 
-            if progress == .trailing {
-                HUDProgress().matchedGeometryEffect(id: "progress", in: namespace)
+                if progress == .trailing {
+                    HUDProgress().matchedGeometryEffect(id: "progress", in: namespace)
+
+                }
 
             }
 
+            // Settings button overlay
+            if window.state == .detailed {
+                Button(
+                    action: { manager.appToggleMenu(true) },
+                    label: {
+                        Image(systemName: manager.menu == .settings ? "rectangle.3.group" : "gearshape.fill")
+                            .font(Typography.heading)
+                            .foregroundColor(Color("BatterySubtitle"))
+                            .frame(width: 32, height: 32)
+                            .background(Circle().fill(Color("BatteryButton")))
+                    }
+                )
+                .buttonStyle(.plain)
+                .padding(.top, 8)
+                .padding(.trailing, 8)
+                .transition(.scale.combined(with: .opacity))
+            }
         }
         .timeline($timeline, state: $animation)
         .padding(.leading, 20)

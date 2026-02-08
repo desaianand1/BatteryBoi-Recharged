@@ -12,7 +12,7 @@ final class AppManager: AppManagerProtocol {
     var counter = 0
 
     /// Current menu view state (synced with AppState for view compatibility)
-    var menu: SystemMenuView = .devices {
+    var menu: SystemMenuView = .settings {
         didSet {
             ServiceContainer.shared.state.currentMenu = menu
         }

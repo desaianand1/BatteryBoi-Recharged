@@ -89,7 +89,8 @@ struct SettingsItem: View {
                 .padding(.leading, 18)
                 .padding(.trailing, 26)
                 .background(
-                    RoundedRectangle(cornerRadius: 30, style: .continuous).fill(Color("BatteryButton"))
+                    RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
+                        .fill(Color("BatteryButton"))
 
                 )
             }
@@ -256,7 +257,7 @@ struct SettingsOverlayItem: View {
         Button(
             action: handleOverlayAction,
             label: {
-                RoundedRectangle(cornerRadius: 30, style: .continuous)
+                RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
                     .fill(Color("BatteryButton"))
                     .frame(width: 60)
                     .overlay(

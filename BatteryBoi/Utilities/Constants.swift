@@ -98,4 +98,16 @@ enum Constants {
         /// RSSI threshold for "near" distance (same room).
         static let rssiNearThreshold: Double = -70
     }
+
+    /// Corner radius constants for UI elements.
+    enum CornerRadius {
+        /// Button corner radius.
+        static let button: CGFloat = 30
+
+        /// Container corner radius.
+        static let container: CGFloat = 20
+
+        /// HUD window corner radius.
+        static let hud: CGFloat = 42
+    }
 }
