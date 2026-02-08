@@ -194,7 +194,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     static let shared = AppDelegate()
 
     var status: NSStatusItem?
-    var hosting: NSHostingView = .init(rootView: MenuContainer())
+    var hosting: NSHostingView<AnyView>!
+
+    private func createHostingView() {
+        hosting = NSHostingView(rootView: AnyView(MenuContainer().withAppEnvironment()))
+    }
 
     private var globalMouseMonitor: Any?
     private var windowMoveObserver: NSObjectProtocol?
@@ -251,8 +255,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             await ServiceContainer.shared.start()
         }
 
+        // Create hosting view with environment injected
+        createHostingView()
+
         status = NSStatusBar.system.statusItem(withLength: 45)
         hosting.frame.size = NSSize(width: 45, height: 22)
+
+        // Show icon immediately after status item creation
+        applicationMenuBarIcon(true)
 
         if let window = NSApplication.shared.windows.first {
             window.close()
@@ -330,6 +340,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     }
 
     private func applicationMenuBarIcon(_ visible: Bool) {
+        BLogger.app.debug("applicationMenuBarIcon called with visible: \(visible)")
+
         if visible == true {
             if let button = status?.button {
                 button.title = ""
@@ -338,12 +350,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
                 button.target = self
 
                 SettingsService.shared.enabledPinned = .disabled
+                BLogger.app.debug("Menu bar icon added to status button")
 
+            } else {
+                BLogger.app.warning("Menu bar icon: status button is nil")
             }
 
         } else {
             if let button = status?.button {
                 button.subviews.forEach { $0.removeFromSuperview() }
+                BLogger.app.debug("Menu bar icon removed from status button")
 
             }
 
