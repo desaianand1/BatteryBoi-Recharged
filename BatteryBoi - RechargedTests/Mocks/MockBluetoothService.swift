@@ -18,6 +18,7 @@ import Foundation
         var list: [BluetoothObject]
         var connected: [BluetoothObject]
         var icons: [String]
+        var permissionStatus: BluetoothPermissionStatus
 
         // MARK: - Test Helpers
 
@@ -31,11 +32,13 @@ import Foundation
         nonisolated init(
             list: [BluetoothObject] = [],
             connected: [BluetoothObject] = [],
-            icons: [String] = []
+            icons: [String] = [],
+            permissionStatus: BluetoothPermissionStatus = .authorized
         ) {
             self.list = list
             self.connected = connected
             self.icons = icons
+            self.permissionStatus = permissionStatus
         }
 
         // MARK: - Methods

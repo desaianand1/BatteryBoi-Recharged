@@ -77,6 +77,8 @@ struct BluetoothItem: View {
 
     @State var item: BluetoothObject?
     @State var style: RadialStyle = .light
+    @State private var isConnecting: Bool = false
+    @State private var connectionError: BluetoothConnectionState?
 
     @Namespace private var animation
 
@@ -115,12 +117,30 @@ struct BluetoothItem: View {
     var body: some View {
         Button(
             action: {
+                guard !isConnecting else { return }
+
                 if let animation = easeOutAnimation {
                     withAnimation(animation) {
                         container.state.selectedDevice = item
                     }
                 } else {
                     container.state.selectedDevice = item
+                }
+
+                // Handle connection for disconnected devices
+                if let item, item.connected == .disconnected {
+                    isConnecting = true
+                    connectionError = nil
+
+                    Task {
+                        let result = env.bluetooth.updateConnection(item, state: .connected)
+                        await MainActor.run {
+                            isConnecting = false
+                            if result != .connected {
+                                connectionError = result
+                            }
+                        }
+                    }
                 }
             },
             label: {
@@ -137,8 +157,13 @@ struct BluetoothItem: View {
                                 .padding(0)
 
                             HStack(spacing: 4) {
-                                // Always show battery info (not just on hover)
-                                if item.connected == .disconnected {
+                                // Show connecting state with spinner
+                                if isConnecting {
+                                    ProgressView()
+                                        .scaleEffect(0.6)
+                                        .frame(width: 12, height: 12)
+                                    Text("BluetoothConnectingLabel".localise())
+                                } else if item.connected == .disconnected {
                                     Text("BluetoothNotConnectedLabel".localise())
                                 } else {
                                     // Show left/right battery for AirPods-style devices
@@ -153,7 +178,8 @@ struct BluetoothItem: View {
 
                                 // Connection status indicator (always visible)
                                 Circle()
-                                    .fill(item.connected == .connected ? Color.green : Color.gray)
+                                    .fill(isConnecting ? Color
+                                        .orange : (item.connected == .connected ? Color.green : Color.gray))
                                     .frame(width: 6, height: 6)
                             }
                             .font(Typography.small)
@@ -179,7 +205,7 @@ struct BluetoothItem: View {
                 .padding(.leading, 16)
                 .padding(.trailing, 26)
                 .background(
-                    RoundedRectangle(cornerRadius: 30, style: .continuous)
+                    RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
                         .fill(style == .light ? Color("BatteryTitle") : Color("BatteryButton"))
 
                 )
@@ -243,9 +269,138 @@ struct BluetoothEmptyStateView: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
         .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
+            RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
                 .fill(Color("BatteryButton"))
         )
         .accessibilityElement(children: .combine)
+    }
+}
+
+struct BluetoothPermissionDeniedView: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            ZStack {
+                Image(systemName: "antenna.radiowaves.left.and.right")
+                    .font(.system(size: 32))
+                    .foregroundColor(Color("BatterySubtitle").opacity(0.4))
+
+                Image(systemName: "exclamationmark.circle.fill")
+                    .font(.system(size: 14))
+                    .foregroundColor(.orange)
+                    .offset(x: 16, y: 12)
+            }
+
+            VStack(spacing: 6) {
+                Text("BluetoothPermissionDeniedTitle".localise())
+                    .font(Typography.headingLarge)
+                    .foregroundColor(Color("BatteryTitle"))
+
+                Text("BluetoothPermissionDeniedBody".localise())
+                    .font(Typography.small)
+                    .foregroundColor(Color("BatterySubtitle"))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(3)
+            }
+
+            Button(action: openSystemPreferences) {
+                HStack(spacing: 6) {
+                    Image(systemName: "gear")
+                    Text("BluetoothOpenSettingsButton".localise())
+                }
+                .font(Typography.heading)
+                .foregroundColor(Color("BatteryButton"))
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
+                        .fill(Color("BatteryTitle"))
+                )
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 20)
+        .background(
+            RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
+                .fill(Color("BatteryButton"))
+        )
+        .accessibilityElement(children: .combine)
+    }
+
+    private func openSystemPreferences() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Bluetooth") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+}
+
+struct BluetoothConnectionFailedView: View {
+    let deviceName: String
+    let errorType: BluetoothConnectionState
+    let retryAction: () -> Void
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: errorIcon)
+                .font(.system(size: 24))
+                .foregroundColor(errorColor)
+
+            VStack(spacing: 4) {
+                Text(deviceName)
+                    .font(Typography.heading)
+                    .foregroundColor(Color("BatteryTitle"))
+
+                Text(errorMessage)
+                    .font(Typography.small)
+                    .foregroundColor(Color("BatterySubtitle"))
+                    .multilineTextAlignment(.center)
+            }
+
+            if errorType != .restricted {
+                Button(action: retryAction) {
+                    Text("BluetoothRetryButton".localise())
+                        .font(Typography.small)
+                        .foregroundColor(Color("BatteryTitle"))
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
+                                .stroke(Color("BatterySubtitle"), lineWidth: 1)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
+                .fill(Color("BatteryButton"))
+        )
+    }
+
+    private var errorIcon: String {
+        switch errorType {
+        case .restricted: "lock.shield"
+        case .failed: "exclamationmark.triangle"
+        case .unavailable: "questionmark.circle"
+        default: "xmark.circle"
+        }
+    }
+
+    private var errorColor: Color {
+        switch errorType {
+        case .restricted: .orange
+        case .failed: .red
+        default: Color("BatterySubtitle")
+        }
+    }
+
+    private var errorMessage: String {
+        switch errorType {
+        case .restricted: "BluetoothRestrictedError".localise()
+        case .failed: "BluetoothConnectionFailedError".localise()
+        case .unavailable: "BluetoothUnavailableError".localise()
+        default: "BluetoothGenericError".localise()
+        }
     }
 }

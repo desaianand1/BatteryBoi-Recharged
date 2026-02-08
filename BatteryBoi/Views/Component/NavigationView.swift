@@ -55,7 +55,7 @@ struct NavigationContainer: View {
 
                             }
 
-                            ForEach(self.bluetooth.list, id: \.address) { item in
+                            ForEach(self.bluetooth.connected, id: \.address) { item in
                                 if self.manager.menu == .devices {
                                     BluetoothItem(item, hover: self.$hover)
 
@@ -63,9 +63,15 @@ struct NavigationContainer: View {
 
                             }
 
-                            // Show empty state when in devices tab with no connected devices
-                            if self.manager.menu == .devices, self.bluetooth.connected.isEmpty {
-                                BluetoothEmptyStateView()
+                            // Show appropriate state when in devices tab
+                            if self.manager.menu == .devices {
+                                if self.bluetooth.permissionStatus == .denied || self.bluetooth
+                                    .permissionStatus == .restricted
+                                {
+                                    BluetoothPermissionDeniedView()
+                                } else if self.bluetooth.connected.isEmpty {
+                                    BluetoothEmptyStateView()
+                                }
                             }
 
                             if !self.bluetooth.connected.isEmpty {
@@ -103,8 +109,6 @@ struct NavigationContainer: View {
                     ZStack(alignment: .trailing) {
                         HStack(spacing: 8) {
                             SettingsOverlayItem(.appDevices)
-                                .opacity(!self.bluetooth.connected.isEmpty ? 1.0 : 0.0)
-                                .scaleEffect(!self.bluetooth.connected.isEmpty ? 1.0 : 0.8)
 
                             SettingsOverlayItem(.appQuit)
 

@@ -29,6 +29,7 @@ final class BluetoothService: BluetoothServiceProtocol {
     var list = [BluetoothObject]()
     var connected = [BluetoothObject]()
     var icons = [String]()
+    var permissionStatus: BluetoothPermissionStatus = .notDetermined
 
     // MARK: - Private Properties
 
@@ -59,6 +60,7 @@ final class BluetoothService: BluetoothServiceProtocol {
     init() {
         setupBridge()
         startMonitoring()
+        checkBluetoothPermission()
 
         // Initial scan using native IOKit
         Task {
@@ -133,6 +135,17 @@ final class BluetoothService: BluetoothServiceProtocol {
         bridge.cleanupStaleNotifications(currentAddresses: currentAddresses)
     }
 
+    /// Checks and updates Bluetooth permission status
+    private func checkBluetoothPermission() {
+        switch CBCentralManager.authorization {
+        case .allowedAlways: permissionStatus = .authorized
+        case .denied: permissionStatus = .denied
+        case .restricted: permissionStatus = .restricted
+        case .notDetermined: permissionStatus = .notDetermined
+        @unknown default: permissionStatus = .notDetermined
+        }
+    }
+
     func bluetoothUpdateConnection(_ device: BluetoothObject, state: BluetoothState) -> BluetoothConnectionState {
         if let btDevice = IOBluetoothDevice(addressString: device.address) {
             if btDevice.isConnected() {
@@ -142,6 +155,9 @@ final class BluetoothService: BluetoothServiceProtocol {
                     let result = btDevice.closeConnection()
                     if result == kIOReturnSuccess {
                         return .disconnected
+                    } else if result == kIOReturnNotPermitted {
+                        BLogger.bluetooth.warning("Bluetooth disconnect denied: permission not granted")
+                        return .restricted
                     } else {
                         #if canImport(Sentry)
                             SentrySDK.capture(message: "Bluetooth disconnect failed") { scope in
@@ -157,6 +173,9 @@ final class BluetoothService: BluetoothServiceProtocol {
                     let result = btDevice.openConnection()
                     if result == kIOReturnSuccess {
                         return .connected
+                    } else if result == kIOReturnNotPermitted {
+                        BLogger.bluetooth.warning("Bluetooth connect denied: permission not granted")
+                        return .restricted
                     } else {
                         #if canImport(Sentry)
                             SentrySDK.capture(message: "Bluetooth connect failed") { scope in
@@ -216,6 +235,7 @@ final class BluetoothService: BluetoothServiceProtocol {
             bridge.startListening()
         }
 
+        checkBluetoothPermission()
         updateDerivedState()
     }
 

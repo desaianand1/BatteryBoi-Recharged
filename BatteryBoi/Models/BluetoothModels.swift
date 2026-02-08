@@ -14,6 +14,16 @@ enum BluetoothConnectionState: Sendable {
     case disconnected
     case failed
     case unavailable
+    case restricted
+}
+
+// MARK: - Permission Status
+
+enum BluetoothPermissionStatus: Sendable {
+    case authorized
+    case denied
+    case notDetermined
+    case restricted
 }
 
 // MARK: - Vendor Identification

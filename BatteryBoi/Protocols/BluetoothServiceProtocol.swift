@@ -22,6 +22,9 @@ protocol BluetoothServiceProtocol: AnyObject {
     /// Icons for connected devices
     var icons: [String] { get }
 
+    /// Current Bluetooth permission status
+    var permissionStatus: BluetoothPermissionStatus { get }
+
     // MARK: - Methods
 
     /// Update connection state for a device
