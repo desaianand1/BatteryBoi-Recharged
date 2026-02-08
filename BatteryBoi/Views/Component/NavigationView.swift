@@ -63,6 +63,11 @@ struct NavigationContainer: View {
 
                             }
 
+                            // Show empty state when in devices tab with no connected devices
+                            if self.manager.menu == .devices, self.bluetooth.connected.isEmpty {
+                                BluetoothEmptyStateView()
+                            }
+
                             if !self.bluetooth.connected.isEmpty {
                                 Spacer().frame(width: self.size.width)
 
@@ -156,15 +161,9 @@ struct NavigationContainer: View {
             self.update = self.updates.available != nil ? true : false
 
         }
-        .onChange(of: self.bluetooth.connected) { _, newValue in
-            if newValue.isEmpty, self.manager.menu == .devices {
-                withAnimation(Animation.easeOut) {
-                    self.manager.menu = .settings
-
-                }
-
-            }
-
+        .onChange(of: self.bluetooth.connected) { _, _ in
+            // Empty state is now shown via BluetoothEmptyStateView
+            // No longer auto-switch to settings when devices disconnect
         }
         .onChange(of: self.updates.available) { _, newValue in
             withAnimation(Animation.easeOut.delay(0.1)) {

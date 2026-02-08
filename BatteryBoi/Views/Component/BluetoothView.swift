@@ -132,28 +132,29 @@ struct BluetoothItem: View {
                             Text(item.device ?? item.type.type.rawValue)
                                 .font(Typography.headingLarge)
                                 .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatteryTitle"))
+                                .lineLimit(1)
+                                .truncationMode(.tail)
                                 .padding(0)
 
                             HStack(spacing: 4) {
-                                if hover == true {
-                                    if item.connected == .disconnected {
-                                        Text("BluetoothNotConnectedLabel".localise())
+                                // Always show battery info (not just on hover)
+                                if item.connected == .disconnected {
+                                    Text("BluetoothNotConnectedLabel".localise())
+                                } else {
+                                    // Show left/right battery for AirPods-style devices
+                                    if let left = item.battery.left, let right = item.battery.right {
+                                        Text("L: \(Int(left))%  R: \(Int(right))%")
+                                    } else if let percent = item.battery.percent {
+                                        Text("AlertSomePercentTitle".localise([Int(percent)]))
                                     } else {
-                                        // Show left/right battery for AirPods-style devices
-                                        if let left = item.battery.left, let right = item.battery.right {
-                                            Text("L: \(Int(left))%  R: \(Int(right))%")
-                                        } else if let percent = item.battery.percent {
-                                            Text("AlertSomePercentTitle".localise([Int(percent)]))
-                                        } else {
-                                            Text("BluetoothInvalidLabel".localise())
-                                        }
+                                        Text("BluetoothInvalidLabel".localise())
                                     }
-
-                                    // Connection status indicator
-                                    Circle()
-                                        .fill(item.connected == .connected ? Color.green : Color.gray)
-                                        .frame(width: 6, height: 6)
                                 }
+
+                                // Connection status indicator (always visible)
+                                Circle()
+                                    .fill(item.connected == .connected ? Color.green : Color.gray)
+                                    .frame(width: 6, height: 6)
                             }
                             .font(Typography.small)
                             .foregroundColor(Color("BatterySubtitle"))
@@ -164,19 +165,17 @@ struct BluetoothItem: View {
                                 .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatteryTitle"))
                                 .padding(0)
 
-                            if hover == true {
-                                Text("AlertSomePercentTitle".localise([Int(battery.percentage)]))
-                                    .font(Typography.small)
-                                    .foregroundColor(Color("BatterySubtitle"))
-
-                            }
+                            // Always show battery percentage for Mac device
+                            Text("AlertSomePercentTitle".localise([Int(battery.percentage)]))
+                                .font(Typography.small)
+                                .foregroundColor(Color("BatterySubtitle"))
 
                         }
 
                     }
 
                 }
-                .frame(height: 60)
+                .frame(minHeight: 60)
                 .padding(.leading, 16)
                 .padding(.trailing, 26)
                 .background(
@@ -221,4 +220,32 @@ struct BluetoothItem: View {
 
     }
 
+}
+
+struct BluetoothEmptyStateView: View {
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            Image(systemName: "airpodspro")
+                .font(.system(size: 24))
+                .foregroundColor(Color("BatterySubtitle").opacity(0.6))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("BluetoothNoDevicesTitle".localise())
+                    .font(Typography.headingLarge)
+                    .foregroundColor(Color("BatteryTitle"))
+
+                Text("BluetoothNoDevicesBody".localise())
+                    .font(Typography.small)
+                    .foregroundColor(Color("BatterySubtitle"))
+                    .lineLimit(2)
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color("BatteryButton"))
+        )
+        .accessibilityElement(children: .combine)
+    }
 }

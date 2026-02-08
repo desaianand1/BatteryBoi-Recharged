@@ -111,3 +111,8 @@
 "SettingsThemeLabel" = "Theme";
 "SettingsDevicesLabel" = "Devices";
 "SettingsSettingsLabel" = "Settings";
+
+// Empty states
+"BluetoothNoDevicesTitle" = "No Devices Connected";
+"BluetoothNoDevicesBody" = "Connect Bluetooth devices to monitor their battery.";
+"BatteryUnavailableLabel" = "N/A";
