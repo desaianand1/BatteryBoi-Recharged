@@ -1,3 +1,17 @@
+## [12.52.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.13...v12.52.0) (2026-02-08)
+
+### Features
+
+* **ui:** improve Bluetooth UX and add empty state ([3491ace](https://github.com/desaianand1/BatteryBoi-Recharged/commit/3491ace012f0415c083e9bade04c86bad7e5cb7f))
+
+### Bug Fixes
+
+* **config:** escape // in Sentry DSN xcconfig ([e6c32a3](https://github.com/desaianand1/BatteryBoi-Recharged/commit/e6c32a35214e27577d8aabd9279f0f141b46ad11))
+* **ui:** ensure menu bar icon visibility on launch ([c4a650a](https://github.com/desaianand1/BatteryBoi-Recharged/commit/c4a650a5b6c18c06c215a0bbacd5dfc242a69e87))
+* **ui:** initialize HUD title/subtitle on startup ([7d67be8](https://github.com/desaianand1/BatteryBoi-Recharged/commit/7d67be856a07e7eb9f7ae6f8227cbc56f9ebb9a3))
+* **ui:** replace fixed frames with flexible sizing ([f600de3](https://github.com/desaianand1/BatteryBoi-Recharged/commit/f600de331cf40461325d8aabc9fa29b4afee0c4c))
+* **updates:** fix Sparkle appcast and error handling ([9289564](https://github.com/desaianand1/BatteryBoi-Recharged/commit/92895646dbb7381230a8a0318a66b3417b024b13))
+
 ## [12.51.13](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.12...v12.51.13) (2026-02-06)
 
 ### ⚠ BREAKING CHANGES
