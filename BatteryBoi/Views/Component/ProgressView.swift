@@ -238,7 +238,7 @@ struct RadialProgressContainer: View {
                     .blur(radius: percent == nil ? 5.0 : 0.0)
                     .opacity(percent == nil ? 0.0 : 1.0)
 
-                Text("N/A")
+                Text("AlertDeviceUnknownTitle".localise())
                     .foregroundColor(Color("BatteryTitle").opacity(0.4))
                     .font(Typography.heading)
                     .blur(radius: percent == nil ? 0.0 : 5.0)

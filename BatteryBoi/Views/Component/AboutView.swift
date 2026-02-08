@@ -43,7 +43,8 @@ struct AboutContainer: View {
             .frame(width: 340)
 
         }
-        .frame(width: 380, height: 278, alignment: .center)
+        .frame(minWidth: 340, idealWidth: 380, maxWidth: 420)
+        .frame(minHeight: 240, idealHeight: 278, maxHeight: 320)
         .padding(10)
 
     }

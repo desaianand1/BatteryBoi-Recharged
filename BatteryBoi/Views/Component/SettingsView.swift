@@ -69,19 +69,23 @@ struct SettingsItem: View {
                         Text(item.title)
                             .font(Typography.headingLarge)
                             .foregroundColor(Color("BatteryTitle"))
+                            .lineLimit(1)
+                            .truncationMode(.tail)
                             .padding(0)
 
                         if hover == true, subtitle != nil {
                             Text(subtitle ?? "")
                                 .font(Typography.small)
                                 .foregroundColor(Color("BatterySubtitle"))
+                                .lineLimit(1)
+                                .truncationMode(.tail)
 
                         }
 
                     }
 
                 }
-                .frame(height: 60)
+                .frame(minHeight: 60)
                 .padding(.leading, 18)
                 .padding(.trailing, 26)
                 .background(

@@ -341,7 +341,8 @@ struct HUDView: View {
             }
 
         }
-        .frame(width: 440, height: 240)
+        .frame(minWidth: 380, idealWidth: 440, maxWidth: 500)
+        .frame(minHeight: 200, idealHeight: 240, maxHeight: 280)
         .background(
             Color("BatteryBackground").opacity(window.opacity)
 
