@@ -13,4 +13,5 @@ enum BLogger: Sendable {
     nonisolated(unsafe) static let app = Logger(label: "com.nirnshard.batteryboirecharged.app")
     nonisolated(unsafe) static let window = Logger(label: "com.nirnshard.batteryboirecharged.window")
     nonisolated(unsafe) static let settings = Logger(label: "com.nirnshard.batteryboirecharged.settings")
+    nonisolated(unsafe) static let updates = Logger(label: "com.nirnshard.batteryboirecharged.updates")
 }

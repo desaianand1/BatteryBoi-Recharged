@@ -117,9 +117,19 @@ final class UpdateManager: NSObject, SPUUpdaterDelegate, UpdateManagerProtocol {
         updater?.automaticallyDownloadsUpdates = true
         updater?.updateCheckInterval = 60.0 * 60.0 * 12
 
+        // Verify feed URL is accessible before starting
+        guard let feedURL = Bundle.main.infoDictionary?["SUFeedURL"] as? String,
+              !feedURL.isEmpty,
+              URL(string: feedURL) != nil
+        else {
+            BLogger.updates.warning("Sparkle feed URL not configured - auto-updates disabled")
+            return
+        }
+
         do {
             try updater?.start()
         } catch {
+            BLogger.updates.error("Failed to start Sparkle updater: \(error)")
             #if canImport(Sentry)
                 SentrySDK.capture(error: error)
             #endif
@@ -209,9 +219,22 @@ final class UpdateManager: NSObject, SPUUpdaterDelegate, UpdateManagerProtocol {
     nonisolated func updater(_: SPUUpdater, didAbortWithError error: Error) {
         Task { @MainActor [weak self] in
             guard let self else { return }
-            if let error = error as NSError?, error.code == 4005 {
-                state = .completed
+            if let nsError = error as NSError? {
+                // 4005 = user cancelled, 4006 = already on latest
+                // 1000 = appcast parsing errors (often benign)
+                switch nsError.code {
+                case 4005:
+                    state = .completed
+                    return
+                case 4006, 1000:
+                    state = .idle
+                    return
+                default:
+                    break
+                }
             }
+            BLogger.updates.warning("Update aborted: \(error)")
+            state = .failed
         }
     }
 

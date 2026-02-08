@@ -108,8 +108,7 @@ jobs:
                 <pubDate>${PUB_DATE}</pubDate>
                 <enclosure
                   url="${DMG_URL}"
-                  sparkle:edSignature="${SPARKLE_SIGNATURE}"
-                  length="${DMG_SIZE}"
+                  ${SPARKLE_SIGNATURE}
                   type="application/octet-stream"/>
                 <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
               </item>
