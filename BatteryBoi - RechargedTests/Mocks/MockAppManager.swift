@@ -66,7 +66,7 @@ import Foundation
                 Task { [weak self] in
                     var current = 0
                     while !Task.isCancelled {
-                        guard let self else {
+                        guard self != nil else {
                             continuation.finish()
                             return
                         }
