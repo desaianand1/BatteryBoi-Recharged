@@ -133,6 +133,16 @@ actor StatsService {
     // MARK: - Observation Setup
 
     private func startObservations() {
+        // Initialize display values immediately on main actor
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.display = self.statsDisplay
+            self.overlay = self.statsOverlay
+            self.title = self.statsTitle
+            self.subtitle = self.statsSubtitle
+            BLogger.stats.debug("Initialized stats - title: \(self.title), subtitle: \(self.subtitle)")
+        }
+
         // Observe UserDefaults changes
         userDefaultsTask = Task { @MainActor [weak self] in
             for await key in UserDefaults.changedAsync() {
