@@ -364,9 +364,9 @@ actor StatsService {
             switch appState.currentAlert {
             case .chargingComplete: return "AlertChargedSummary".localise()
             case .chargingBegan: return "AlertStartedChargeSummary"
-                .localise([full?.time ?? "AlertDeviceUnknownTitle".localise()])
+                .localise([full?.time ?? "AlertDeviceCalculatingTitle".localise()])
             case .chargingStopped: return "AlertEstimateSummary"
-                .localise([remaining?.formatted ?? "AlertDeviceUnknownTitle".localise()])
+                .localise([remaining?.formatted ?? "AlertDeviceCalculatingTitle".localise()])
             case .percentFive: return "AlertPercentSummary".localise()
             case .percentTen: return "AlertPercentSummary".localise()
             case .percentTwentyFive: return "AlertPercentSummary".localise()
@@ -380,11 +380,11 @@ actor StatsService {
                 switch percent {
                 case 100: return "AlertChargedSummary".localise()
                 default: return "AlertStartedChargeSummary"
-                    .localise([full?.time ?? "AlertDeviceUnknownTitle".localise()])
+                    .localise([full?.time ?? "AlertDeviceCalculatingTitle".localise()])
                 }
             }
 
-            return "AlertEstimateSummary".localise([remaining?.formatted ?? "AlertDeviceUnknownTitle".localise()])
+            return "AlertEstimateSummary".localise([remaining?.formatted ?? "AlertDeviceCalculatingTitle".localise()])
         }
     }
 

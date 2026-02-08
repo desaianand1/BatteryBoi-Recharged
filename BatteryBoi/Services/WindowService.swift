@@ -98,6 +98,10 @@ final class WindowService: WindowServiceProtocol {
     private var lastMouseEventTime: Date = .distantPast
     private let mouseEventDebounceInterval: TimeInterval = 0.1
 
+    // State change debouncing
+    private var lastStateChangeTime: Date = .distantPast
+    private let stateChangeDebounceInterval: TimeInterval = 0.15
+
     private var screen: CGSize {
         if let activeScreen = NSScreen.screens.first(where: {
             NSMouseInRect(NSEvent.mouseLocation, $0.frame, false)
@@ -226,6 +230,10 @@ final class WindowService: WindowServiceProtocol {
     }
 
     func windowSetState(_ state: HUDState, animated _: Bool = true) {
+        let now = Date()
+        guard now.timeIntervalSince(lastStateChangeTime) > stateChangeDebounceInterval else { return }
+        lastStateChangeTime = now
+
         if self.state != state {
             withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.7, blendDuration: 1.0)) {
                 self.state = state

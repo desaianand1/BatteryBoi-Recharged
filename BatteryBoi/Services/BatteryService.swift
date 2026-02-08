@@ -164,12 +164,20 @@ final class BatteryService: BatteryServiceProtocol {
 
     private func powerStatus(_ force: Bool = false) {
         if force {
-            percentage = powerPercentage
-
-            if powerCharging != charging.state {
-                charging = .init(powerCharging)
+            Task {
+                let (newCharging, newPercentage) = await fetchPowerInfo()
+                self.percentage = newPercentage
+                if newCharging != self.charging.state {
+                    self.charging = .init(newCharging)
+                }
             }
         }
+    }
+
+    private func fetchPowerInfo() async -> (charging: BatteryChargingState, percentage: Double) {
+        let info = await IOKitBatteryService.shared.getBatteryInfo()
+        let charging: BatteryChargingState = info.isACPowered ? .charging : .battery
+        return (charging, Double(info.percentage))
     }
 
     private var powerCharging: BatteryChargingState {
