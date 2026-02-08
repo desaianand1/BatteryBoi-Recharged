@@ -1,3 +1,16 @@
+## [12.53.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.52.0...v12.53.0) (2026-02-08)
+
+### Features
+
+* **bluetooth:** add permission tracking and state views ([2f8a448](https://github.com/desaianand1/BatteryBoi-Recharged/commit/2f8a448498390a695cb1f30b5f0a774e286a76ee))
+* **onboarding:** add first-run onboarding experience ([96b15a5](https://github.com/desaianand1/BatteryBoi-Recharged/commit/96b15a5d2d194881dc7c62b37d9098b9d2262f23))
+* **ui:** add corner radius constants and settings button overlay ([507ae84](https://github.com/desaianand1/BatteryBoi-Recharged/commit/507ae84b4ca070ade1be21c39b6a34bf81461001))
+
+### Bug Fixes
+
+* **tests:** resolve unused self warning in MockAppManager ([65ac05c](https://github.com/desaianand1/BatteryBoi-Recharged/commit/65ac05c0d7571afe6b33b541cc12ea40f175bbf8))
+* **ui:** improve fallback text and add state debouncing ([e9567ee](https://github.com/desaianand1/BatteryBoi-Recharged/commit/e9567ee5e1ddf3e75bd935ec75e41a98967d8588))
+
 ## [12.52.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.51.13...v12.52.0) (2026-02-08)
 
 ### Features
