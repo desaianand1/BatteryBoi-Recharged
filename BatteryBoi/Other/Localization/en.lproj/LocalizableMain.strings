@@ -90,12 +90,12 @@
 "BluetoothBatteryLeftLabel" = "L: %d%%";
 "BluetoothBatteryRightLabel" = "R: %d%%";
 
-"OnboardingNotificationsTitle" = "";
-"OnboardingNotificationsBody" = "";
-"OnboardingInsightsTitle" = "";
-"OnboardingInsightsBody" = "";
-"OnboardingBluetoothTitle" = "";
-"OnboardingBluetoothBody" = "";
+"OnboardingNotificationsTitle" = "Notifications";
+"OnboardingNotificationsBody" = "Get alerts for low battery and charging status";
+"OnboardingInsightsTitle" = "Battery Insights";
+"OnboardingInsightsBody" = "Track your battery health over time";
+"OnboardingBluetoothTitle" = "Bluetooth Access";
+"OnboardingBluetoothBody" = "Required to monitor Bluetooth device batteries";
 
 // Accessibility strings
 "AccessibilityPercentLabel" = "%d percent";
@@ -116,3 +116,39 @@
 "BluetoothNoDevicesTitle" = "No Devices Connected";
 "BluetoothNoDevicesBody" = "Connect Bluetooth devices to monitor their battery.";
 "BatteryUnavailableLabel" = "N/A";
+
+// Bluetooth Permission States
+"BluetoothPermissionDeniedTitle" = "Bluetooth Access Required";
+"BluetoothPermissionDeniedBody" = "BatteryBoi needs Bluetooth access to monitor your wireless devices. Enable it in System Settings.";
+"BluetoothOpenSettingsButton" = "Open Settings";
+"BluetoothRestrictedError" = "Connection blocked. Check Bluetooth permissions in System Settings.";
+"BluetoothConnectionFailedError" = "Unable to connect. Make sure the device is in range and powered on.";
+"BluetoothUnavailableError" = "Device not available. It may be connected to another Mac.";
+"BluetoothGenericError" = "Something went wrong. Please try again.";
+"BluetoothRetryButton" = "Try Again";
+"BluetoothConnectingLabel" = "Connecting...";
+
+// Onboarding - Welcome
+"OnboardingWelcomeTitle" = "Welcome to BatteryBoi";
+"OnboardingWelcomeSubtitle" = "Monitor your Mac and Bluetooth device batteries";
+"OnboardingWelcomeFeature1" = "Real-time battery monitoring for Mac & Bluetooth";
+"OnboardingWelcomeFeature2" = "Smart alerts when battery is low";
+"OnboardingWelcomeFeature3" = "Track charging time and battery health";
+"OnboardingWelcomeButton" = "Get Started";
+
+// Onboarding - Permissions
+"OnboardingPermissionsTitle" = "Enable Features";
+"OnboardingPermissionsSkip" = "Skip for now";
+"OnboardingPermissionsContinue" = "Continue";
+
+// Onboarding - Preferences
+"OnboardingPreferencesTitle" = "Customize Your Experience";
+"OnboardingDisplayModeLabel" = "Menu Bar Display";
+"OnboardingSoundEffectsLabel" = "Sound Effects";
+"OnboardingLaunchAtLoginLabel" = "Launch at Login";
+"OnboardingPreferencesButton" = "Finish Setup";
+
+// Onboarding - Complete
+"OnboardingCompleteTitle" = "You're All Set!";
+"OnboardingCompleteSubtitle" = "BatteryBoi is now running in your menu bar";
+"OnboardingCompleteButton" = "Open BatteryBoi";

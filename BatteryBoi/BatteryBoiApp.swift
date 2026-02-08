@@ -144,6 +144,7 @@ enum SystemDefaultsKeys: String {
 
     case profileChecked = "sd_profiles_checked"
     case profilePayload = "sd_profiles_payload"
+    case onboardingCompleted = "sd_onboarding_completed"
 
     var name: String {
         switch self {
@@ -169,6 +170,7 @@ enum SystemDefaultsKeys: String {
         case .usageTimestamp: "sd_usage_timestamp"
         case .profileChecked: "Profile Validated"
         case .profilePayload: "Profile Payload"
+        case .onboardingCompleted: "Onboarding Completed"
         }
 
     }
@@ -280,7 +282,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
             UpdateManager.shared.updateCheck()
 
-            WindowService.shared.open(.userLaunched, device: nil)
+            // Show onboarding on first launch, otherwise open HUD
+            if OnboardingService.shared.shouldShowOnboarding {
+                openOnboardingWindow()
+            } else {
+                WindowService.shared.open(.userLaunched, device: nil)
+            }
 
             // Set initial display state
             switch SettingsService.shared.display {
@@ -389,6 +396,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
     @objc
     func applicationHandleURLEvent(event _: NSAppleEventDescriptor, reply _: NSAppleEventDescriptor) {}
+
+    private func openOnboardingWindow() {
+        let onboardingView = OnboardingView().withAppEnvironment()
+        let hostingController = NSHostingController(rootView: onboardingView)
+
+        let window = NSWindow(contentViewController: hostingController)
+        window.title = "onboarding"
+        window.styleMask = NSWindow.StyleMask([.titled, .closable, .fullSizeContentView])
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = NSWindow.TitleVisibility.hidden
+        window.isMovableByWindowBackground = true
+        window.backgroundColor = NSColor(named: "BatteryBackground")
+        window.center()
+        window.makeKeyAndOrderFront(Any?.none)
+
+        // Ensure window is retained
+        NSApp.activate(ignoringOtherApps: true)
+    }
 
     func applicationFocusDidMove(window: NSWindow) {
         if window.title == "modalwindow" {

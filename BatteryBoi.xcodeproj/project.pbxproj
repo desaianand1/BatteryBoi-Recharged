@@ -10,7 +10,22 @@
 		1743B5712F2FCA6E00496B29 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 1743B5702F2FCA6E00496B29 /* Sentry */; };
 		1743B5742F2FCAA700496B29 /* InMemoryLogging in Frameworks */ = {isa = PBXBuildFile; productRef = 1743B5732F2FCAA700496B29 /* InMemoryLogging */; };
 		1743B5762F2FCAA700496B29 /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 1743B5752F2FCAA700496B29 /* Logging */; };
+		6308E5DDA13940EC6327C8CD /* OnboardingPreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCB5E8335CB3CE7E7F3B5994 /* OnboardingPreferencesView.swift */; };
+		6AF538A854C1B4BF06E57E00 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D540748087DD0FBD17E51AC2 /* OnboardingView.swift */; };
+		84756AD6FBDBDCC4F1958A8A /* OnboardingWelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BA23429F303D6EB77F4B904 /* OnboardingWelcomeView.swift */; };
+		BC45C9ABBFA2916F7EC0DECF /* OnboardingCompleteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC6941A1612DAE39BCA0CD4C /* OnboardingCompleteView.swift */; };
+		BCD9E15438772DE754E0529C /* OnboardingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE6A8B85D561453365F8C45F /* OnboardingService.swift */; };
 		C1A0B0C02C01000000000003 /* ProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C01000000000002 /* ProcessRunner.swift */; };
+		C1A0B0C02C02000000000011 /* BatteryServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000001 /* BatteryServiceProtocol.swift */; };
+		C1A0B0C02C02000000000012 /* BluetoothServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000002 /* BluetoothServiceProtocol.swift */; };
+		C1A0B0C02C02000000000013 /* SettingsServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000003 /* SettingsServiceProtocol.swift */; };
+		C1A0B0C02C02000000000014 /* WindowServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000004 /* WindowServiceProtocol.swift */; };
+		C1A0B0C02C02000000000015 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000005 /* AppEnvironment.swift */; };
+		C1A0B0C02C03000000000002 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000001 /* Logger.swift */; };
+		C1A0B0C02C03000000000004 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000003 /* Constants.swift */; };
+		C1A0B0C02C03000000000006 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000005 /* DesignTokens.swift */; };
+		C1A0B0C02C03000000000008 /* IOKitBatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000007 /* IOKitBatteryService.swift */; };
+		C1A0B0C02C03000000000010 /* IOKitBluetoothService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000009 /* IOKitBluetoothService.swift */; };
 		C1A0B0C02C04000000000001 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C04000000000002 /* AppState.swift */; };
 		C1A0B0C02C04000000000003 /* ServiceContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C04000000000004 /* ServiceContainer.swift */; };
 		C1A0B0C02C04000000000005 /* ServiceCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C04000000000006 /* ServiceCoordinator.swift */; };
@@ -25,22 +40,12 @@
 		C1A0B0C02C05000000000003 /* BluetoothModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C05000000000004 /* BluetoothModels.swift */; };
 		C1A0B0C02C05000000000005 /* HUDModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C05000000000006 /* HUDModels.swift */; };
 		C1A0B0C02C05000000000007 /* SettingsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C05000000000008 /* SettingsModels.swift */; };
-		C1A0B0C02C0500000000000D /* StatsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C0500000000000A /* StatsModels.swift */; };
 		C1A0B0C02C0500000000000B /* EventModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C0500000000000C /* EventModels.swift */; };
-		C1A0B0C02C02000000000011 /* BatteryServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000001 /* BatteryServiceProtocol.swift */; };
-		C1A0B0C02C02000000000012 /* BluetoothServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000002 /* BluetoothServiceProtocol.swift */; };
-		C1A0B0C02C02000000000013 /* SettingsServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000003 /* SettingsServiceProtocol.swift */; };
-		C1A0B0C02C02000000000014 /* WindowServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000004 /* WindowServiceProtocol.swift */; };
-		C1A0B0C02C02000000000015 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000005 /* AppEnvironment.swift */; };
+		C1A0B0C02C0500000000000D /* StatsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C0500000000000A /* StatsModels.swift */; };
 		C1A0B0C02C06000000000001 /* StatsServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C06000000000002 /* StatsServiceProtocol.swift */; };
 		C1A0B0C02C06000000000003 /* EventServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C06000000000004 /* EventServiceProtocol.swift */; };
 		C1A0B0C02C06000000000005 /* AppManagerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C06000000000006 /* AppManagerProtocol.swift */; };
 		C1A0B0C02C06000000000007 /* UpdateManagerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C06000000000008 /* UpdateManagerProtocol.swift */; };
-		C1A0B0C02C03000000000002 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000001 /* Logger.swift */; };
-		C1A0B0C02C03000000000004 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000003 /* Constants.swift */; };
-		C1A0B0C02C03000000000006 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000005 /* DesignTokens.swift */; };
-		C1A0B0C02C03000000000008 /* IOKitBatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000007 /* IOKitBatteryService.swift */; };
-		C1A0B0C02C03000000000010 /* IOKitBluetoothService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000009 /* IOKitBluetoothService.swift */; };
 		D83CD7452AA8F693004223D7 /* BluetoothView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83CD7442AA8F693004223D7 /* BluetoothView.swift */; };
 		D83DD3F52A9908E600FCC534 /* UpdateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83DD3F42A9908E600FCC534 /* UpdateManager.swift */; };
 		D84F4E182A85A66900668582 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = D84F4E172A85A66900668582 /* Sparkle */; };
@@ -64,6 +69,7 @@
 		D8D9E5CB2A8403D300E295FA /* AppManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8D9E5CA2A8403D300E295FA /* AppManager.swift */; };
 		D8DFD5822A8BD7E800732635 /* ProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8DFD5812A8BD7E800732635 /* ProgressView.swift */; };
 		D8DFD5842A8C26F300732635 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8DFD5832A8C26F300732635 /* SettingsView.swift */; };
+		E8B810E9A6D038AF988886EF /* OnboardingPermissionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B434599867D1109FB7DBBA7D /* OnboardingPermissionsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -92,16 +98,15 @@
 /* Begin PBXFileReference section */
 		1762F5BE2F30CDC9005DB7BF /* BatteryBoi - RechargedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "BatteryBoi - RechargedTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1762F5C72F30CE1C005DB7BF /* BatteryBoi - Recharged.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = "BatteryBoi - Recharged.xctestplan"; sourceTree = "<group>"; };
+		8BA23429F303D6EB77F4B904 /* OnboardingWelcomeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingWelcomeView.swift; sourceTree = "<group>"; };
+		AC6941A1612DAE39BCA0CD4C /* OnboardingCompleteView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingCompleteView.swift; sourceTree = "<group>"; };
+		B434599867D1109FB7DBBA7D /* OnboardingPermissionsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingPermissionsView.swift; sourceTree = "<group>"; };
 		C1A0B0C02C01000000000002 /* ProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessRunner.swift; sourceTree = "<group>"; };
 		C1A0B0C02C02000000000001 /* BatteryServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryServiceProtocol.swift; sourceTree = "<group>"; };
 		C1A0B0C02C02000000000002 /* BluetoothServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothServiceProtocol.swift; sourceTree = "<group>"; };
 		C1A0B0C02C02000000000003 /* SettingsServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsServiceProtocol.swift; sourceTree = "<group>"; };
 		C1A0B0C02C02000000000004 /* WindowServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowServiceProtocol.swift; sourceTree = "<group>"; };
 		C1A0B0C02C02000000000005 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
-		C1A0B0C02C06000000000002 /* StatsServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsServiceProtocol.swift; sourceTree = "<group>"; };
-		C1A0B0C02C06000000000004 /* EventServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventServiceProtocol.swift; sourceTree = "<group>"; };
-		C1A0B0C02C06000000000006 /* AppManagerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppManagerProtocol.swift; sourceTree = "<group>"; };
-		C1A0B0C02C06000000000008 /* UpdateManagerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateManagerProtocol.swift; sourceTree = "<group>"; };
 		C1A0B0C02C03000000000001 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		C1A0B0C02C03000000000003 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		C1A0B0C02C03000000000005 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
@@ -123,6 +128,11 @@
 		C1A0B0C02C05000000000008 /* SettingsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModels.swift; sourceTree = "<group>"; };
 		C1A0B0C02C0500000000000A /* StatsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsModels.swift; sourceTree = "<group>"; };
 		C1A0B0C02C0500000000000C /* EventModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventModels.swift; sourceTree = "<group>"; };
+		C1A0B0C02C06000000000002 /* StatsServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsServiceProtocol.swift; sourceTree = "<group>"; };
+		C1A0B0C02C06000000000004 /* EventServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventServiceProtocol.swift; sourceTree = "<group>"; };
+		C1A0B0C02C06000000000006 /* AppManagerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppManagerProtocol.swift; sourceTree = "<group>"; };
+		C1A0B0C02C06000000000008 /* UpdateManagerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateManagerProtocol.swift; sourceTree = "<group>"; };
+		D540748087DD0FBD17E51AC2 /* OnboardingView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		D83CD7442AA8F693004223D7 /* BluetoothView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothView.swift; sourceTree = "<group>"; };
 		D83DD3F42A9908E600FCC534 /* UpdateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateManager.swift; sourceTree = "<group>"; };
 		D83DD3FD2A9FA9F600FCC534 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/LocalizableMain.strings; sourceTree = "<group>"; };
@@ -162,10 +172,22 @@
 		D8DFD5812A8BD7E800732635 /* ProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressView.swift; sourceTree = "<group>"; };
 		D8DFD5832A8C26F300732635 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		D8DFD5852A8D510200732635 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
+		DE6A8B85D561453365F8C45F /* OnboardingService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingService.swift; sourceTree = "<group>"; };
+		FCB5E8335CB3CE7E7F3B5994 /* OnboardingPreferencesView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingPreferencesView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		1762F5BF2F30CDC9005DB7BF /* BatteryBoi - RechargedTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "BatteryBoi - RechargedTests"; sourceTree = "<group>"; };
+		1762F5BF2F30CDC9005DB7BF /* BatteryBoi - RechargedTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = "BatteryBoi - RechargedTests";
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -235,6 +257,7 @@
 				C1A0B0C02C04000000000010 /* SettingsService.swift */,
 				C1A0B0C02C04000000000014 /* StatsService.swift */,
 				C1A0B0C02C04000000000020 /* WindowService.swift */,
+				DE6A8B85D561453365F8C45F /* OnboardingService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -373,6 +396,11 @@
 				D89CCFED2A9FF97900D9531A /* AboutView.swift */,
 				D851F8012AB152B7003FCA79 /* UpdateView.swift */,
 				D851F8092ABA299F003FCA79 /* NavigationView.swift */,
+				D540748087DD0FBD17E51AC2 /* OnboardingView.swift */,
+				8BA23429F303D6EB77F4B904 /* OnboardingWelcomeView.swift */,
+				B434599867D1109FB7DBBA7D /* OnboardingPermissionsView.swift */,
+				FCB5E8335CB3CE7E7F3B5994 /* OnboardingPreferencesView.swift */,
+				AC6941A1612DAE39BCA0CD4C /* OnboardingCompleteView.swift */,
 			);
 			path = Component;
 			sourceTree = "<group>";
@@ -405,8 +433,6 @@
 				1762F5BF2F30CDC9005DB7BF /* BatteryBoi - RechargedTests */,
 			);
 			name = "BatteryBoi - RechargedTests";
-			packageProductDependencies = (
-			);
 			productName = "BatteryBoi - RechargedTests";
 			productReference = 1762F5BE2F30CDC9005DB7BF /* BatteryBoi - RechargedTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -578,6 +604,12 @@
 				D8D9E5A02A7DE7AB00E295FA /* BatteryBoiApp.swift in Sources */,
 				D83CD7452AA8F693004223D7 /* BluetoothView.swift in Sources */,
 				D8D9E5B92A80646E00E295FA /* Extensions.swift in Sources */,
+				BCD9E15438772DE754E0529C /* OnboardingService.swift in Sources */,
+				6AF538A854C1B4BF06E57E00 /* OnboardingView.swift in Sources */,
+				84756AD6FBDBDCC4F1958A8A /* OnboardingWelcomeView.swift in Sources */,
+				E8B810E9A6D038AF988886EF /* OnboardingPermissionsView.swift in Sources */,
+				6308E5DDA13940EC6327C8CD /* OnboardingPreferencesView.swift in Sources */,
+				BC45C9ABBFA2916F7EC0DECF /* OnboardingCompleteView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
