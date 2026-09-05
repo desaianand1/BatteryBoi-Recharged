@@ -58,6 +58,7 @@ coverage/
 *.gcov
 *.gcda
 *.gcno
+*.profraw
 
 # Project-specific
 BatteryBoi DMG.dmgcanvas/
