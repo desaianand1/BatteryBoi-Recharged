@@ -14,6 +14,7 @@ import Foundation
     /// Mock window service for unit testing.
     @MainActor
     final class MockWindowService: WindowServiceProtocol {
+
         // MARK: - Observable Properties
 
         var hover: Bool

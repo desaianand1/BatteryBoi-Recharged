@@ -14,6 +14,7 @@ import SwiftUI
 @Observable
 @MainActor
 final class ServiceContainer {
+
     // MARK: - Shared Instance
 
     /// Shared container instance for production use

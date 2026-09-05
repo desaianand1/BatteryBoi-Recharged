@@ -11,6 +11,7 @@ import Foundation
 /// Enables dependency injection and testability for update functionality.
 @MainActor
 protocol UpdateManagerProtocol: AnyObject {
+
     // MARK: - Observable Properties
 
     /// Current update state

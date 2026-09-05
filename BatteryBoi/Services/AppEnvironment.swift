@@ -18,6 +18,7 @@ import SwiftUI
 @MainActor
 @Observable
 final class AppEnvironment {
+
     // MARK: - Shared Instance
 
     /// Shared environment instance for production use.

@@ -13,6 +13,7 @@ import Foundation
 @Observable
 @MainActor
 final class AppState {
+
     // MARK: - Battery State
 
     /// Current battery percentage (0-100)

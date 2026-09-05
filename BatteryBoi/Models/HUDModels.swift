@@ -10,7 +10,7 @@ import SwiftUI
 
 // MARK: - HUD State
 
-enum HUDState: Equatable, Sendable {
+enum HUDState: Equatable {
     case hidden
     case progress
     case revealed
@@ -87,7 +87,7 @@ enum HUDState: Equatable, Sendable {
 
 // MARK: - HUD Alert Types
 
-enum HUDAlertTypes: Equatable, Sendable {
+enum HUDAlertTypes: Equatable {
     case userLaunched
     case userInitiated
     case chargingBegan
@@ -138,7 +138,7 @@ enum HUDAlertTypes: Equatable, Sendable {
 
 // MARK: - Window Position
 
-enum WindowPosition: String, Sendable {
+enum WindowPosition: String {
     case center
     case topLeft
     case topMiddle
@@ -160,21 +160,21 @@ enum WindowPosition: String, Sendable {
 
 // MARK: - HUD Progress Layout
 
-enum HUDProgressLayout: Sendable {
+enum HUDProgressLayout {
     case center
     case trailing
 }
 
 // MARK: - Stats Display Object
 
-struct StatsDisplayObject: Sendable {
+struct StatsDisplayObject {
     var standard: String?
     var overlay: String?
 }
 
 // MARK: - Stats Icon
 
-struct StatsIcon: Sendable {
+struct StatsIcon {
     var name: String
     var system: Bool
 }

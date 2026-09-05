@@ -12,6 +12,7 @@ import Foundation
 /// Enables dependency injection and testability for HUD window management.
 @MainActor
 protocol WindowServiceProtocol: AnyObject {
+
     // MARK: - Observable Properties
 
     /// Whether the window is being hovered

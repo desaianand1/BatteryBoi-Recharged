@@ -14,6 +14,7 @@ import Logging
 @Observable
 @MainActor
 final class EventService: EventServiceProtocol {
+
     // MARK: - Static Instance
 
     static let shared = EventService()

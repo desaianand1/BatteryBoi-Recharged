@@ -11,6 +11,7 @@ import Foundation
 /// Enables dependency injection and testability for Bluetooth-related functionality.
 @MainActor
 protocol BluetoothServiceProtocol: AnyObject {
+
     // MARK: - Observable Properties
 
     /// All discovered Bluetooth devices

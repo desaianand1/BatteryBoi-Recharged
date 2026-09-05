@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - Sound Effects
 
-enum SettingsSoundEffects: String, Sendable {
+enum SettingsSoundEffects: String {
     case enabled
     case disabled
 
@@ -30,7 +30,7 @@ enum SettingsSoundEffects: String, Sendable {
 
 // MARK: - Pinned Mode
 
-enum SettingsPinned: String, Sendable {
+enum SettingsPinned: String {
     case enabled
     case disabled
 
@@ -51,7 +51,7 @@ enum SettingsPinned: String, Sendable {
 
 // MARK: - Charge Notification
 
-enum SettingsCharged: String, Sendable {
+enum SettingsCharged: String {
     case enabled
     case disabled
 
@@ -72,7 +72,7 @@ enum SettingsCharged: String, Sendable {
 
 // MARK: - Beta Mode
 
-enum SettingsBeta: String, Sendable {
+enum SettingsBeta: String {
     case enabled
     case disabled
 
@@ -93,7 +93,7 @@ enum SettingsBeta: String, Sendable {
 
 // MARK: - Display Type
 
-enum SettingsDisplayType: String, Sendable {
+enum SettingsDisplayType: String {
     case countdown
     case empty
     case percent
@@ -123,7 +123,7 @@ enum SettingsDisplayType: String, Sendable {
 
 // MARK: - Action Object
 
-struct SettingsActionObject: Hashable, Sendable {
+struct SettingsActionObject: Hashable {
     var type: SettingsActionType
     var title: String
 
@@ -152,7 +152,7 @@ struct SettingsActionObject: Hashable, Sendable {
 
 // MARK: - Action Type
 
-enum SettingsActionType: Sendable {
+enum SettingsActionType {
     case appWebsite
     case appQuit
     case appDevices
@@ -192,7 +192,7 @@ enum SettingsActionType: Sendable {
 
 // MARK: - Theme
 
-enum SettingsTheme: Int, Sendable {
+enum SettingsTheme: Int {
     case system
     case light
     case dark
@@ -208,7 +208,7 @@ enum SettingsTheme: Int, Sendable {
 
 // MARK: - State Value
 
-enum SettingsStateValue: String, Sendable {
+enum SettingsStateValue: String {
     case enabled
     case disabled
     case undetermined

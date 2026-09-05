@@ -17,6 +17,7 @@ import Logging
 /// Service for managing statistics and CoreData operations.
 /// Uses actor isolation for thread-safe CoreData access.
 actor StatsService {
+
     // MARK: - Static Instance
 
     static let shared = StatsService()

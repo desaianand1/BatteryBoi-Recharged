@@ -5,7 +5,7 @@ import Logging
 /// Logger is thread-safe and can be accessed from any isolation context.
 /// Note: nonisolated(unsafe) is justified here because Logger is thread-safe
 /// and we need these to be accessible from nonisolated contexts (like IOKit callbacks).
-enum BLogger: Sendable {
+enum BLogger {
     nonisolated(unsafe) static let battery = Logger(label: "com.nirnshard.batteryboirecharged.battery")
     nonisolated(unsafe) static let bluetooth = Logger(label: "com.nirnshard.batteryboirecharged.bluetooth")
     nonisolated(unsafe) static let stats = Logger(label: "com.nirnshard.batteryboirecharged.stats")

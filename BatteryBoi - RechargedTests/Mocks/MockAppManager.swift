@@ -13,6 +13,7 @@ import Foundation
     /// Mock app manager for unit testing.
     @MainActor
     final class MockAppManager: AppManagerProtocol {
+
         // MARK: - Observable Properties
 
         var counter: Int

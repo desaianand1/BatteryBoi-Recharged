@@ -18,6 +18,7 @@ import IOKit.pwr_mgt
 @Observable
 @MainActor
 final class BatteryService: BatteryServiceProtocol {
+
     // MARK: - Static Instance
 
     static let shared = BatteryService()

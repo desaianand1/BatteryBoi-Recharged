@@ -12,6 +12,7 @@ import Foundation
 /// Handles alert threshold logic that was previously in WindowManager.
 @MainActor
 final class ServiceCoordinator {
+
     // MARK: - Properties
 
     /// Reference to the service container (set during start)

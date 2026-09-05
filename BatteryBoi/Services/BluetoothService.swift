@@ -20,6 +20,7 @@ import IOKit.ps
 @Observable
 @MainActor
 final class BluetoothService: BluetoothServiceProtocol {
+
     // MARK: - Static Instance
 
     static let shared = BluetoothService()

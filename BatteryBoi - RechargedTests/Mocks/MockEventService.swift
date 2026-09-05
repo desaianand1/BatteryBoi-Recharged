@@ -13,6 +13,7 @@ import Foundation
     /// Mock event service for unit testing.
     @MainActor
     final class MockEventService: EventServiceProtocol {
+
         // MARK: - Observable Properties
 
         var events: [EventObject]

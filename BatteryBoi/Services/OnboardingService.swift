@@ -12,7 +12,7 @@ import SwiftUI
 final class OnboardingService {
     static let shared = OnboardingService()
 
-    enum Step: Int, CaseIterable, Sendable {
+    enum Step: Int, CaseIterable {
         case welcome = 0
         case permissions = 1
         case preferences = 2
