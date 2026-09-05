@@ -62,6 +62,7 @@ class WindowHostingView<Content: View>: NSHostingView<Content> {
 @Observable
 @MainActor
 final class WindowService: WindowServiceProtocol {
+
     // MARK: - Static Instance
 
     static let shared = WindowService()
@@ -97,6 +98,9 @@ final class WindowService: WindowServiceProtocol {
     // Mouse event debouncing
     private var lastMouseEventTime: Date = .distantPast
     private let mouseEventDebounceInterval: TimeInterval = 0.1
+
+    /// Grace period tracking: ignore clicks shortly after opening
+    private var lastOpenedTime: Date = .distantPast
 
     // State change debouncing
     private var lastStateChangeTime: Date = .distantPast
@@ -154,12 +158,24 @@ final class WindowService: WindowServiceProtocol {
             Task { [weak self] in
                 guard let self else { return }
 
-                // Debounce mouse events
+                // Grace period: ignore clicks within 0.5s of the window opening
+                // (prevents the same click that opens the window from immediately closing it)
                 let now = Date()
+                guard now.timeIntervalSince(self.lastOpenedTime) > 0.5 else { return }
+
+                // Debounce mouse events
                 guard now.timeIntervalSince(self.lastMouseEventTime) > self.mouseEventDebounceInterval else { return }
                 self.lastMouseEventTime = now
 
-                if NSRunningApplication.current == NSWorkspace.shared.frontmostApplication {
+                // Check whether the click landed inside the HUD window.
+                // For a menu-bar/.accessory app, NSRunningApplication.current is never
+                // the system frontmost application, so we use a frame hit-test instead.
+                let mouseLocation = NSEvent.mouseLocation
+                let clickedInsideHUD = NSApplication.shared.windows
+                    .first(where: { $0.title == Constants.Window.modalWindowTitle })
+                    .map { NSMouseInRect(mouseLocation, $0.frame, false) } ?? false
+
+                if clickedInsideHUD {
                     if self.state == .revealed || self.state == .progress {
                         self.windowSetState(.detailed)
                     }
@@ -241,13 +257,8 @@ final class WindowService: WindowServiceProtocol {
         }
     }
 
-    func windowIsVisible(_ type: HUDAlertTypes) -> Bool {
-        if let window = windowExists(type) {
-            if CGFloat(window.alphaValue) > 0.5 {
-                return true
-            }
-        }
-        return false
+    func windowIsVisible(_: HUDAlertTypes) -> Bool {
+        state.visible
     }
 
     func windowOpen(_ type: HUDAlertTypes, device: BluetoothObject?) {
@@ -284,6 +295,7 @@ final class WindowService: WindowServiceProtocol {
         ServiceContainer.shared.state.selectedDevice = device
         ServiceContainer.shared.state.currentAlert = type
 
+        lastOpenedTime = Date()
         windowSetState(.progress)
     }
 
