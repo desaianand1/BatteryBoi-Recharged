@@ -81,6 +81,15 @@ tasks:
       - task: lint
       - task: format:check
 
+  dev:
+    desc: Build and run in debug mode (ad-hoc signing, no cert required)
+    cmds:
+      - pkill -f "BatteryBoi - Recharged" || true
+      - xcodebuild -project "{{.PROJECT}}" -scheme "{{.SCHEME}}" -configuration Debug -derivedDataPath DerivedData CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ONLY_ACTIVE_ARCH=YES build
+      - |
+        APP=$(find DerivedData/Build/Products/Debug -name "*.app" -maxdepth 1 | head -1)
+        open "$APP"
+
   ci:
     desc: Run CI checks
     cmds:
