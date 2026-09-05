@@ -266,9 +266,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         // Show icon immediately after status item creation
         applicationMenuBarIcon(true)
 
-        if let window = NSApplication.shared.windows.first {
+        // Close any leftover SwiftUI Settings windows, but NOT the status bar window.
+        // Before this fix, windows.first was the NSStatusBarWindow (created when the
+        // status item was set up above), and closing it silently removed the menu bar icon.
+        let statusBarWindow = status?.button?.window
+        for window in NSApplication.shared.windows where window !== statusBarWindow {
             window.close()
-
         }
 
         Task { @MainActor [weak self] in
@@ -352,7 +355,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         if visible == true {
             if let button = status?.button {
                 button.title = ""
-                button.addSubview(hosting)
+                if hosting.superview == nil {
+                    button.addSubview(hosting)
+                }
                 button.action = #selector(applicationStatusBarButtonClicked(sender:))
                 button.target = self
 
@@ -450,6 +455,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
     @objc
     private func applicationDidSleepNotification(_: Notification) {}
+
+    func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool {
+        false
+    }
 
     func applicationWillTerminate(_: Notification) {
         // Remove global mouse monitor
