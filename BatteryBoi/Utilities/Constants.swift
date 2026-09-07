@@ -97,6 +97,9 @@ enum Constants {
 
         /// RSSI threshold for "near" distance (same room).
         static let rssiNearThreshold: Double = -70
+
+        /// Time interval before pruning disconnected devices from the list.
+        static let staleDeviceTimeout: TimeInterval = 300
     }
 
     /// Corner radius constants for UI elements.

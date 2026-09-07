@@ -332,6 +332,10 @@ actor StatsService {
             default: break
             }
 
+            if state == .charging, percent >= 100 {
+                return "AlertChargingCompleteTitle".localise()
+            }
+
             if state == .battery {
                 return "AlertSomePercentTitle".localise([percent])
             }
