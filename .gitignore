@@ -38,6 +38,7 @@ yarn-error.log*
 # Secrets & Signing
 .env
 .env.*
+!.env.example
 *.p12
 *.mobileprovision
 *.provisionprofile

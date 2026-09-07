@@ -107,12 +107,15 @@ jobs:
         with:
           bundler-cache: true
 
+      - name: Fetch Doppler Secrets
+        uses: dopplerhq/secrets-fetch-action@v1.3.0
+        with:
+          doppler-token: ${{ secrets.DOPPLER_CI_TOKEN }}
+          doppler-project: batteryboi-recharged
+          doppler-config: ci
+          inject-env-vars: true
+
       - name: Build
-        env:
-          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
-          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: bundle exec fastlane build
 
   semantic-release:
@@ -156,12 +159,21 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Fetch Doppler Secrets
+        uses: dopplerhq/secrets-fetch-action@v1.3.0
+        id: doppler
+        with:
+          doppler-token: ${{ secrets.DOPPLER_CI_TOKEN }}
+          doppler-project: batteryboi-recharged
+          doppler-config: ci
+          inject-env-vars: true
+
       - name: Create Sentry release
         uses: getsentry/action-release@v1
         env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+          SENTRY_AUTH_TOKEN: ${{ steps.doppler.outputs.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ steps.doppler.outputs.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ steps.doppler.outputs.SENTRY_PROJECT }}
         with:
           environment: staging
           finalize: true

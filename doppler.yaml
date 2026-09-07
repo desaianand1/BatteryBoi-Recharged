@@ -1,0 +1,14 @@
+# Doppler project configuration for BatteryBoi-Recharged.
+#
+# Config topology:
+#   dev — local development (default for `doppler run --`)
+#   ci  — GitHub Actions CI/CD (DOPPLER_CI_TOKEN secret)
+#   prd — production releases (DOPPLER_PRD_TOKEN secret)
+#
+# Usage:
+#   Local dev:  doppler setup (picks dev config via this file)
+#   CI build:   dopplerhq/secrets-fetch-action with doppler-config: ci
+#   Release:    dopplerhq/secrets-fetch-action with doppler-config: prd
+setup:
+  project: batteryboi-recharged
+  config: dev

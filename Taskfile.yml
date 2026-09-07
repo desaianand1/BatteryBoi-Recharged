@@ -1,21 +1,20 @@
 version: '3'
 
-dotenv:
-  - .env.local
-
 vars:
   SCHEME: BatteryBoi - Recharged
   PROJECT: BatteryBoi.xcodeproj
 
 tasks:
   setup:
-    desc: One-time setup
+    desc: One-time project setup
     cmds:
-      - brew install swiftlint swiftformat pre-commit go-task
-      - bundle install  # Install Fastlane via Bundler
+      - brew install swiftlint swiftformat pre-commit go-task dopplerhq/cli/doppler
+      - bundle install
       - npm install
       - pre-commit install
       - pre-commit install --hook-type commit-msg
+      - doppler login
+      - doppler setup
 
   lint:
     desc: Run SwiftLint
@@ -23,7 +22,7 @@ tasks:
       - swiftlint lint BatteryBoi/ "BatteryBoi - RechargedTests/"
 
   lint:strict:
-    desc: Run SwiftLint in strict mode
+    desc: Run SwiftLint in strict mode (matches CI)
     cmds:
       - swiftlint lint --strict BatteryBoi/ "BatteryBoi - RechargedTests/"
 
@@ -38,36 +37,35 @@ tasks:
       - swiftformat BatteryBoi/ "BatteryBoi - RechargedTests/"
 
   format:check:
-    desc: Check SwiftFormat
+    desc: Check SwiftFormat (matches CI)
     cmds:
       - swiftformat --lint BatteryBoi/ "BatteryBoi - RechargedTests/"
 
   fix:
-    desc: Run SwiftFormat & SwiftLint
+    desc: Run SwiftFormat & SwiftLint autofix
     cmds:
       - task: format
       - task: lint:fix
 
-  # Simplified build/test with Fastlane
   test:
-    desc: Run tests
+    desc: Run tests (no secrets required)
     cmds:
       - bundle exec fastlane test
 
   build:
-    desc: Build with signing
+    desc: Build with signing (requires Doppler secrets)
     cmds:
-      - bundle exec fastlane build
+      - doppler run -- bundle exec fastlane build
 
   release:
-    desc: Build, sign, notarize, create DMG
+    desc: Build, sign, notarize, create DMG (requires Doppler secrets)
     cmds:
-      - bundle exec fastlane release
+      - doppler run -- bundle exec fastlane release
 
   certs:sync:
-    desc: Sync certificates from Match
+    desc: Sync certificates from Match (requires Doppler secrets)
     cmds:
-      - bundle exec fastlane sync_certs
+      - doppler run -- bundle exec fastlane sync_certs
 
   clean:
     desc: Clean build artifacts
@@ -76,13 +74,13 @@ tasks:
       - xcodebuild clean -project {{.PROJECT}} -scheme '{{.SCHEME}}' || true
 
   check:
-    desc: Run all checks
+    desc: Run all checks (lint strict + format, matches CI)
     cmds:
-      - task: lint
+      - task: lint:strict
       - task: format:check
 
   dev:
-    desc: Build and run in debug mode (ad-hoc signing, no cert required)
+    desc: Build and run in debug mode (ad-hoc signing, no secrets required)
     cmds:
       - pkill -f "BatteryBoi - Recharged" || true
       - xcodebuild -project "{{.PROJECT}}" -scheme "{{.SCHEME}}" -configuration Debug -derivedDataPath DerivedData CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ONLY_ACTIVE_ARCH=YES build
@@ -91,7 +89,7 @@ tasks:
         open "$APP"
 
   ci:
-    desc: Run CI checks
+    desc: Run full CI pipeline locally (lint strict + format + test, no secrets required)
     cmds:
       - task: lint:strict
       - task: format:check

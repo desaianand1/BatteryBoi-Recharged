@@ -21,14 +21,23 @@
 
 - When any Github Actions, workflows, developer setup, Fastlane or other config changes are made, please update the `docs/CI-CD-SETUP.md` document and update relevant sections and any stale references or dead references.
 
+## Secrets
+
+- All secrets are managed via [Doppler](https://doppler.com) — see `doppler.yaml` and `.env.example`
+- Environments: `dev` (local), `ci` (GitHub Actions), `prd` (production releases)
+- `task dev`, `task test`, `task check`, `task ci` need NO Doppler setup
+- `task build`, `task release`, `task certs:sync` require Doppler (`doppler run --`)
+
 ## Taskfile
 
 - This app uses a Taskfile.yml for all developer setup, scripting and automation
 - `task fix` — format + lint autofix (run before committing)
-- `task check` — lint + format check (local CI equivalent)
+- `task check` — lint strict + format check (matches CI, no secrets needed)
+- `task ci` — full CI pipeline locally: lint strict + format + test (no secrets needed)
 - `task dev` — ad-hoc debug build, no signing certs required
-- `task test` — run tests via Fastlane
-- `task release` — build, sign, notarize, create DMG
+- `task test` — run tests via Fastlane (no secrets required)
+- `task build` — build with signing (requires Doppler)
+- `task release` — build, sign, notarize, create DMG (requires Doppler)
 - `task clean` — remove build artifacts and DerivedData
 
 ## Build
