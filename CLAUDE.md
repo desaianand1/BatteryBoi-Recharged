@@ -44,7 +44,7 @@
 
 ## Architecture
 
-- Full details: `docs/architecture-decisions.md` | Roadmap: `docs/improvements-prd.md`
+- Full details: `docs/architecture-decisions.md` | Roadmap: `docs/improvements-prd.md` (index) → `docs/prd/` (sub-PRDs)
 - Services are `@Observable @MainActor`, accessed via protocol interfaces, DI via `ServiceContainer`
 - IOKit on background actors (`IOKitBatteryService`, `IOKitBluetoothService`)
 - IOBluetooth `@objc` callbacks use `BluetoothBridge` — never put on actors directly
