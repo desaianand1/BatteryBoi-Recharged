@@ -13,6 +13,7 @@ import Foundation
     /// Mock battery service for unit testing.
     @MainActor
     final class MockBatteryService: BatteryServiceProtocol {
+
         // MARK: - Observable Properties
 
         var charging: BatteryCharging

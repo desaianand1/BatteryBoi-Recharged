@@ -13,6 +13,7 @@ import Foundation
     /// Mock settings service for unit testing.
     @MainActor
     final class MockSettingsService: SettingsServiceProtocol {
+
         // MARK: - Observable Properties
 
         var menu: [SettingsActionObject]

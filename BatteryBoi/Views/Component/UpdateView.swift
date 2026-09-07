@@ -39,9 +39,6 @@ struct UpdatePromptView: View {
 
             }
 
-        } else {
-            EmptyView()
-
         }
 
     }

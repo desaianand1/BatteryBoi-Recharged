@@ -13,6 +13,7 @@ import Foundation
     /// Mock update manager for unit testing.
     @MainActor
     final class MockUpdateManager: UpdateManagerProtocol {
+
         // MARK: - Observable Properties
 
         var state: UpdateStateType

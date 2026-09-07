@@ -13,6 +13,7 @@ import Foundation
     /// Mock stats service for unit testing.
     @MainActor
     final class MockStatsService: StatsServiceProtocol {
+
         // MARK: - Observable Properties
 
         var display: String?

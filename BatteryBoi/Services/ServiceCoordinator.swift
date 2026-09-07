@@ -12,6 +12,7 @@ import Foundation
 /// Handles alert threshold logic that was previously in WindowManager.
 @MainActor
 final class ServiceCoordinator {
+
     // MARK: - Properties
 
     /// Reference to the service container (set during start)
@@ -25,6 +26,9 @@ final class ServiceCoordinator {
 
     /// Notified Bluetooth device thresholds
     private var notifiedBluetoothThresholds: [String: Set<Int>] = [:]
+
+    /// Notified event identifiers to avoid duplicate event alerts
+    private var notifiedEventIdentifiers: Set<String> = []
 
     /// Last known charging state for debouncing
     private var lastChargingState: BatteryChargingState?
@@ -60,11 +64,26 @@ final class ServiceCoordinator {
         observeSettings()
     }
 
+    func handleSleep() {
+        stopObserving()
+    }
+
+    func handleWake() async {
+        stopObserving()
+        notifiedBatteryThresholds.removeAll()
+        notifiedBluetoothThresholds.removeAll()
+        notifiedEventIdentifiers.removeAll()
+        lastChargingState = nil
+        chargingDebounceTask?.cancel()
+        await startObserving()
+    }
+
     /// Stop all observation tasks
     func stopObserving() {
         observationTasks.forEach { $0.cancel() }
         observationTasks.removeAll()
         chargingDebounceTask?.cancel()
+        notifiedEventIdentifiers.removeAll()
     }
 
     // MARK: - Battery Observations
@@ -292,20 +311,17 @@ final class ServiceCoordinator {
             notifiedBatteryThresholds.removeAll()
         }
 
-        // Debounce charging state change notification (2 seconds)
         chargingDebounceTask?.cancel()
-        let newState = current.state
         chargingDebounceTask = Task { [weak self] in
             do {
-                try await Task.sleep(for: .seconds(2))
+                try await Task.sleep(for: .seconds(Constants.Timers.chargingDebounce))
                 guard let self, !Task.isCancelled else { return }
-                switch newState {
+                let currentState = BatteryService.shared.charging.state
+                switch currentState {
                 case .battery: triggerAlert(.chargingStopped, device: nil)
                 case .charging: triggerAlert(.chargingBegan, device: nil)
                 }
-            } catch {
-                // Task cancelled
-            }
+            } catch {}
         }
     }
 
@@ -325,6 +341,9 @@ final class ServiceCoordinator {
                 triggerAlert(.deviceRemoved, device: device)
             }
         }
+
+        let currentAddresses = Set(current.map(\.address))
+        notifiedBluetoothThresholds = notifiedBluetoothThresholds.filter { currentAddresses.contains($0.key) }
     }
 
     private func checkBluetoothBatteryLevels() {
@@ -363,14 +382,16 @@ final class ServiceCoordinator {
     }
 
     private func checkUpcomingEvents() {
-        if BatteryService.shared.charging.state == .battery {
-            if let event = EventService.shared.events.max(by: { $0.start < $1.start }) {
-                if let minutes = Calendar.current.dateComponents([.minute], from: Date(), to: event.start).minute {
-                    if minutes == 2 {
-                        triggerAlert(.userEvent, device: nil)
-                    }
-                }
-            }
+        guard BatteryService.shared.charging.state == .battery else { return }
+        let now = Date()
+        guard let event = EventService.shared.events
+            .filter({ $0.start > now })
+            .min(by: { $0.start < $1.start }) else { return }
+
+        let minutes = event.start.timeIntervalSince(now) / 60.0
+        if minutes >= 1, minutes <= 3, !notifiedEventIdentifiers.contains(event.id) {
+            notifiedEventIdentifiers.insert(event.id)
+            triggerAlert(.userEvent, device: nil)
         }
     }
 

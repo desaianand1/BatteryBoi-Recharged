@@ -14,6 +14,7 @@ import IOBluetooth
 /// MainActor isolated for Swift 6.2 strict concurrency compliance.
 @MainActor
 final class BluetoothBridge: NSObject {
+
     // MARK: - Callbacks
 
     /// Called when a device connects

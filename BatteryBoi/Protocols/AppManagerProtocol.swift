@@ -12,6 +12,7 @@ import Foundation
 /// Note: device/alert state has moved to AppState. Menu remains here for view compatibility.
 @MainActor
 protocol AppManagerProtocol: AnyObject {
+
     // MARK: - Observable Properties
 
     /// Uptime counter in seconds since app launch

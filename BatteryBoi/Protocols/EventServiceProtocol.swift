@@ -11,6 +11,7 @@ import Foundation
 /// Enables dependency injection and testability for event monitoring.
 @MainActor
 protocol EventServiceProtocol: AnyObject {
+
     // MARK: - Observable Properties
 
     /// Current calendar events containing URLs (video calls, etc.)

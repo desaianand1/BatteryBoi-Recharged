@@ -11,7 +11,7 @@ import Foundation
 @preconcurrency import IOKit.ps
 
 /// Battery information from IOPowerSources (high-level API)
-struct IOKitBatteryInfo: Sendable {
+struct IOKitBatteryInfo {
     let percentage: Int
     let isCharging: Bool
     let timeRemaining: Int? // minutes, nil if calculating
@@ -19,7 +19,7 @@ struct IOKitBatteryInfo: Sendable {
 }
 
 /// Detailed battery metrics from IORegistry (AppleSmartBattery)
-struct IOKitBatteryMetrics: Sendable {
+struct IOKitBatteryMetrics {
     let cycleCount: Int
     let condition: String // "Normal", "Replace Soon", "Service Battery"
     let maxCapacity: Int

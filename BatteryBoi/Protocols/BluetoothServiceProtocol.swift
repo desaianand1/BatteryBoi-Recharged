@@ -11,6 +11,7 @@ import Foundation
 /// Enables dependency injection and testability for Bluetooth-related functionality.
 @MainActor
 protocol BluetoothServiceProtocol: AnyObject {
+
     // MARK: - Observable Properties
 
     /// All discovered Bluetooth devices
@@ -36,4 +37,7 @@ protocol BluetoothServiceProtocol: AnyObject {
 
     /// Refresh the Bluetooth device list
     func refreshDeviceList() async
+
+    /// Force an immediate refresh of all Bluetooth state
+    func forceRefresh()
 }

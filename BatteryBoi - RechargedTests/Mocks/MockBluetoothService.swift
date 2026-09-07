@@ -13,6 +13,7 @@ import Foundation
     /// Mock Bluetooth service for unit testing.
     @MainActor
     final class MockBluetoothService: BluetoothServiceProtocol {
+
         // MARK: - Observable Properties
 
         var list: [BluetoothObject]

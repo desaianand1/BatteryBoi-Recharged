@@ -13,6 +13,7 @@ import Foundation
 /// for MainActor-isolated views and mocks.
 @MainActor
 protocol StatsServiceProtocol: AnyObject {
+
     // MARK: - Observable Properties
 
     /// Display text for menu bar

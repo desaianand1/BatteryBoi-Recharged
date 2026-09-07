@@ -9,7 +9,7 @@ import EventKit
 import Foundation
 
 /// Calendar event object for UI display
-struct EventObject: Equatable, Sendable {
+struct EventObject: Equatable {
     var id: String
     var name: String
     var start: Date

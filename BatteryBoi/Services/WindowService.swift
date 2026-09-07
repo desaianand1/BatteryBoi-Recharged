@@ -94,6 +94,7 @@ final class WindowService: WindowServiceProtocol {
     nonisolated(unsafe) private var globalMouseMonitor: Any?
     nonisolated(unsafe) private var dismissalTask: Task<Void, Never>?
     nonisolated(unsafe) private var stateTransitionTask: Task<Void, Never>?
+    nonisolated(unsafe) private var debounceDeferralTask: Task<Void, Never>?
 
     // Mouse event debouncing
     private var lastMouseEventTime: Date = .distantPast
@@ -133,6 +134,26 @@ final class WindowService: WindowServiceProtocol {
         windowHandleFrame(moved: moved)
     }
 
+    func handleSleep() {
+        dismissalTask?.cancel()
+        stateTransitionTask?.cancel()
+        debounceDeferralTask?.cancel()
+    }
+
+    func handleWake() {
+        if state.visible {
+            state = .hidden
+            if let window = NSApplication.shared.windows.first(where: {
+                $0.title == Constants.Window.modalWindowTitle
+            }) {
+                window.alphaValue = 0.0
+            }
+        }
+        currentAlert = nil
+        currentDevice = nil
+        triggered = 0
+    }
+
     // MARK: - Initialization
 
     init() {
@@ -146,6 +167,7 @@ final class WindowService: WindowServiceProtocol {
         }
         dismissalTask?.cancel()
         stateTransitionTask?.cancel()
+        debounceDeferralTask?.cancel()
     }
 
     // MARK: - Private Methods
@@ -213,17 +235,11 @@ final class WindowService: WindowServiceProtocol {
                 windowSetState(.revealed)
             }
         } else if state == .revealed {
-            // Transition to detailed view for non-timeout alerts after 1 second
-            let shouldTransitionToDetailed = currentAlert?.timeout == false
-            if shouldTransitionToDetailed {
-                stateTransitionTask = Task { [weak self] in
-                    try? await Task.sleep(for: .seconds(1))
-                    guard let self, !Task.isCancelled else { return }
-                    windowSetState(.detailed)
-                }
+            stateTransitionTask = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(1))
+                guard let self, !Task.isCancelled else { return }
+                windowSetState(.detailed)
             }
-
-            // Schedule auto-dismissal
             scheduleDismissal()
         }
     }
@@ -231,29 +247,42 @@ final class WindowService: WindowServiceProtocol {
     private func scheduleDismissal() {
         dismissalTask?.cancel()
 
-        let targetState: HUDState = .revealed
+        guard SettingsService.shared.pinned != .enabled else { return }
+
         let timeout: Duration = currentAlert?.timeout == true ? .seconds(5) : .seconds(10)
 
         dismissalTask = Task { [weak self] in
             do {
                 try await Task.sleep(for: timeout)
-                guard let self, !Task.isCancelled, state == targetState else { return }
+                guard let self, !Task.isCancelled, state.visible else { return }
                 windowSetState(.dismissed)
-            } catch {
-                // Task was cancelled
+            } catch {}
+        }
+    }
+
+    func windowSetState(_ state: HUDState, animated: Bool = true) {
+        let now = Date()
+        if now.timeIntervalSince(lastStateChangeTime) > stateChangeDebounceInterval {
+            applyStateChange(state, animated: animated)
+        } else {
+            debounceDeferralTask?.cancel()
+            debounceDeferralTask = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(self?.stateChangeDebounceInterval ?? 0.15))
+                guard let self, !Task.isCancelled else { return }
+                self.applyStateChange(state, animated: animated)
             }
         }
     }
 
-    func windowSetState(_ state: HUDState, animated _: Bool = true) {
-        let now = Date()
-        guard now.timeIntervalSince(lastStateChangeTime) > stateChangeDebounceInterval else { return }
-        lastStateChangeTime = now
-
-        if self.state != state {
+    private func applyStateChange(_ state: HUDState, animated: Bool) {
+        lastStateChangeTime = Date()
+        guard self.state != state else { return }
+        if animated {
             withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.7, blendDuration: 1.0)) {
                 self.state = state
             }
+        } else {
+            self.state = state
         }
     }
 
@@ -275,8 +304,7 @@ final class WindowService: WindowServiceProtocol {
         window.makeKeyAndOrderFront(nil)
         window.alphaValue = 1.0
 
-        // Play sound only on new alerts
-        if currentAlert == nil {
+        if currentAlert == nil || currentAlert != type {
             if let sfx = type.sfx {
                 sfx.play()
             }

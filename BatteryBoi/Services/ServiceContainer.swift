@@ -14,6 +14,7 @@ import SwiftUI
 @Observable
 @MainActor
 final class ServiceContainer {
+
     // MARK: - Shared Instance
 
     /// Shared container instance for production use
@@ -87,14 +88,9 @@ final class ServiceContainer {
 
     /// Start all services and begin observation
     func start() async {
-        // Initialize coordinator with container reference
         coordinator.container = self
-
-        // Start observing service changes
-        await coordinator.startObserving()
-
-        // Sync initial state
         syncState()
+        await coordinator.startObserving()
     }
 
     /// Sync current service state to AppState

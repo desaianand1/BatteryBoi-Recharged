@@ -17,6 +17,7 @@ import Logging
 /// Service for managing statistics and CoreData operations.
 /// Uses actor isolation for thread-safe CoreData access.
 actor StatsService {
+
     // MARK: - Static Instance
 
     static let shared = StatsService()
@@ -329,6 +330,10 @@ actor StatsService {
             case .deviceOverheating: return "AlertOverheatingTitle".localise()
             case .userEvent: return "AlertLimitedTitle".localise()
             default: break
+            }
+
+            if state == .charging, percent >= 100 {
+                return "AlertChargingCompleteTitle".localise()
             }
 
             if state == .battery {

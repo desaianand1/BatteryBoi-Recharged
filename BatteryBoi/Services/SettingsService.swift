@@ -15,6 +15,7 @@ import SwiftUI
 @Observable
 @MainActor
 final class SettingsService: SettingsServiceProtocol {
+
     // MARK: - Static Instance
 
     static let shared = SettingsService()

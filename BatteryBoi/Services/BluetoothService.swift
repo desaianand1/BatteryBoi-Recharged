@@ -20,6 +20,7 @@ import IOKit.ps
 @Observable
 @MainActor
 final class BluetoothService: BluetoothServiceProtocol {
+
     // MARK: - Static Instance
 
     static let shared = BluetoothService()
@@ -53,6 +54,13 @@ final class BluetoothService: BluetoothServiceProtocol {
 
     func refreshDeviceList() async {
         await bluetoothListNative()
+    }
+
+    func forceRefresh() {
+        Task {
+            await bluetoothListNative()
+            checkBluetoothPermission()
+        }
     }
 
     // MARK: - Initialization
@@ -208,7 +216,7 @@ final class BluetoothService: BluetoothServiceProtocol {
                 updated.connected = deviceInfo.isConnected ? .connected : .disconnected
 
                 // Update battery if we have new data
-                if let percent = deviceInfo.batteryPercent, updated.battery.general == nil {
+                if let percent = deviceInfo.batteryPercent {
                     updated.battery = BluetoothBatteryObject(percent: percent)
                 }
 
@@ -229,6 +237,14 @@ final class BluetoothService: BluetoothServiceProtocol {
                 // Register for disconnect notifications
                 bridge.registerForDisconnect(address: normalizedAddress)
             }
+        }
+
+        let activeAddresses = Set(devices.map(\.address.normalizedBluetoothAddress))
+        let staleThreshold = Date().addingTimeInterval(-Constants.Bluetooth.staleDeviceTimeout)
+        list.removeAll { device in
+            !activeAddresses.contains(device.address)
+                && device.connected == .disconnected
+                && device.updated < staleThreshold
         }
 
         if initialize {

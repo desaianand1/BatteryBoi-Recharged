@@ -8,7 +8,7 @@
 import Foundation
 
 /// Stats state type for activity recording
-enum StatsStateType: String, Sendable {
+enum StatsStateType: String {
     case charging
     case depleted
     case connected
@@ -16,7 +16,7 @@ enum StatsStateType: String, Sendable {
 }
 
 /// CoreData container object
-struct StatsContainerObject: Sendable {
+struct StatsContainerObject {
     var directory: URL?
     var parent: URL?
 }

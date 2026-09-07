@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - Connection State
 
-enum BluetoothConnectionState: Sendable {
+enum BluetoothConnectionState {
     case connected
     case disconnected
     case failed
@@ -19,7 +19,7 @@ enum BluetoothConnectionState: Sendable {
 
 // MARK: - Permission Status
 
-enum BluetoothPermissionStatus: Sendable {
+enum BluetoothPermissionStatus {
     case authorized
     case denied
     case notDetermined
@@ -28,7 +28,7 @@ enum BluetoothPermissionStatus: Sendable {
 
 // MARK: - Vendor Identification
 
-enum BluetoothVendor: String, Sendable {
+enum BluetoothVendor: String {
     case apple = "0x004C"
     case samsung = "0x0050"
     case microsoft = "0x0052"
@@ -57,7 +57,7 @@ enum BluetoothVendor: String, Sendable {
 
 // MARK: - Distance Type
 
-enum BluetoothDistanceType: Int, Sendable {
+enum BluetoothDistanceType: Int {
     case proximate
     case near
     case far
@@ -66,7 +66,7 @@ enum BluetoothDistanceType: Int, Sendable {
 
 // MARK: - Device Object
 
-struct BluetoothDeviceObject: Sendable {
+struct BluetoothDeviceObject {
     var type: BluetoothDeviceType
     var subtype: BluetoothDeviceSubtype?
     var vendor: BluetoothVendor?
@@ -87,7 +87,7 @@ struct BluetoothDeviceObject: Sendable {
 
 // MARK: - Device Subtype
 
-enum BluetoothDeviceSubtype: String, Sendable {
+enum BluetoothDeviceSubtype: String {
     case airpodsMax = "0x200A"
     case airpodsProVersionOne = "0x200E"
     case airpodsVersionTwo = "0x200F"
@@ -105,7 +105,7 @@ enum BluetoothDeviceSubtype: String, Sendable {
 
 // MARK: - Device Type
 
-enum BluetoothDeviceType: String, Decodable, Sendable {
+enum BluetoothDeviceType: String, Decodable {
     case mouse
     case headphones
     case gamepad
@@ -138,7 +138,7 @@ enum BluetoothDeviceType: String, Decodable, Sendable {
 
 // MARK: - Battery Object
 
-struct BluetoothBatteryObject: Decodable, Equatable, Sendable {
+struct BluetoothBatteryObject: Decodable, Equatable {
     var general: Double?
     var left: Double?
     var right: Double?
@@ -192,7 +192,7 @@ struct BluetoothBatteryObject: Decodable, Equatable, Sendable {
 
 // MARK: - Bluetooth Object
 
-struct BluetoothObject: Decodable, Equatable, Sendable {
+struct BluetoothObject: Decodable, Equatable {
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.address == rhs.address && lhs.connected == rhs.connected && lhs.distance == rhs.distance
     }
@@ -278,7 +278,7 @@ typealias BluetoothObjectContainer = [String: BluetoothObject]
 
 // MARK: - Bluetooth State
 
-enum BluetoothState: Int, Sendable {
+enum BluetoothState: Int {
     case connected = 1
     case disconnected = 0
 

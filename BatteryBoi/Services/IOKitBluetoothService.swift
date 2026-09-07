@@ -11,7 +11,7 @@ import Foundation
 @preconcurrency import IOKit
 
 /// Bluetooth device information from IOKit/IOBluetooth
-struct IOKitBluetoothDeviceInfo: Sendable {
+struct IOKitBluetoothDeviceInfo {
     let address: String // Normalized to lowercase with dashes (xx-xx-xx-xx-xx-xx)
     let name: String?
     let isConnected: Bool

@@ -9,14 +9,14 @@ import Foundation
 
 // MARK: - Thermal State
 
-enum BatteryThermalState: Sendable {
+enum BatteryThermalState {
     case optimal
     case suboptimal
 }
 
 // MARK: - Battery Condition
 
-enum BatteryCondition: String, Sendable {
+enum BatteryCondition: String {
     case optimal = "Normal"
     case suboptimal = "Replace Soon"
     case malfunctioning = "Service Battery"
@@ -25,7 +25,7 @@ enum BatteryCondition: String, Sendable {
 
 // MARK: - Cycle Count
 
-struct BatteryCycleObject: Sendable {
+struct BatteryCycleObject {
     var numerical: Int
     var formatted: String
 
@@ -45,7 +45,7 @@ struct BatteryCycleObject: Sendable {
 
 // MARK: - Battery Metrics
 
-struct BatteryMetricsObject: Sendable {
+struct BatteryMetricsObject {
     var cycles: BatteryCycleObject
     var health: BatteryCondition
 
@@ -62,7 +62,7 @@ struct BatteryMetricsObject: Sendable {
 
 // MARK: - Power Save Mode
 
-enum BatteryModeType: Sendable {
+enum BatteryModeType {
     case normal
     case efficient
     case unavailable
@@ -78,7 +78,7 @@ enum BatteryModeType: Sendable {
 
 // MARK: - Charging State
 
-enum BatteryChargingState: Sendable {
+enum BatteryChargingState {
     case charging
     case battery
 
@@ -111,7 +111,7 @@ enum BatteryChargingState: Sendable {
 
 // MARK: - Battery Charging
 
-struct BatteryCharging: Equatable, Sendable {
+struct BatteryCharging: Equatable {
     var state: BatteryChargingState
     var started: Date?
     var ended: Date?
@@ -128,7 +128,7 @@ struct BatteryCharging: Equatable, Sendable {
 
 // MARK: - Battery Remaining Time
 
-struct BatteryRemaining: Equatable, Sendable {
+struct BatteryRemaining: Equatable {
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.date == rhs.date
     }
@@ -169,7 +169,7 @@ struct BatteryRemaining: Equatable, Sendable {
 
 // MARK: - Battery Estimate
 
-struct BatteryEstimateObject: Sendable {
+struct BatteryEstimateObject {
     var timestamp: Date
     var percent: Double
 
@@ -181,7 +181,7 @@ struct BatteryEstimateObject: Sendable {
 
 // MARK: - Battery Style
 
-enum BatteryStyle: String, Sendable {
+enum BatteryStyle: String {
     case chunky
     case basic
 
@@ -241,7 +241,7 @@ enum BatteryStyle: String, Sendable {
     }
 
     /// Condition enum for test compatibility with old API
-    enum BatteryMetricsCondition: Sendable {
+    enum BatteryMetricsCondition {
         case good
         case fair
         case service

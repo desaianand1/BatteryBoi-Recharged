@@ -11,6 +11,7 @@ import Foundation
 /// Enables dependency injection and testability for user preferences.
 @MainActor
 protocol SettingsServiceProtocol: AnyObject {
+
     // MARK: - Observable Properties
 
     /// Available menu actions

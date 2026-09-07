@@ -11,6 +11,7 @@ import Foundation
 /// Enables dependency injection and testability for battery-related functionality.
 @MainActor
 protocol BatteryServiceProtocol: AnyObject {
+
     // MARK: - Observable Properties
 
     /// Current charging state

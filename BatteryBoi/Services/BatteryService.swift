@@ -18,6 +18,7 @@ import IOKit.pwr_mgt
 @Observable
 @MainActor
 final class BatteryService: BatteryServiceProtocol {
+
     // MARK: - Static Instance
 
     static let shared = BatteryService()
@@ -43,6 +44,7 @@ final class BatteryService: BatteryServiceProtocol {
     nonisolated(unsafe) private var remainingTask: Task<Void, Never>?
     nonisolated(unsafe) private var metricsTask: Task<Void, Never>?
     nonisolated(unsafe) private var thermalTask: Task<Void, Never>?
+    nonisolated(unsafe) private var forceRefreshTask: Task<Void, Never>?
 
     // MARK: - BatteryServiceProtocol Methods
 
@@ -74,7 +76,8 @@ final class BatteryService: BatteryServiceProtocol {
         }
 
         startMonitoring()
-        powerStatus(true)
+        // Covers the initial read before statusTask's first tick fires
+        powerStatus()
     }
 
     deinit {
@@ -84,6 +87,7 @@ final class BatteryService: BatteryServiceProtocol {
         remainingTask?.cancel()
         metricsTask?.cancel()
         thermalTask?.cancel()
+        forceRefreshTask?.cancel()
     }
 
     // MARK: - Private Methods
@@ -97,7 +101,7 @@ final class BatteryService: BatteryServiceProtocol {
                 guard let self, !Task.isCancelled else { break }
                 tickCount += 1
                 if tickCount > 1 {
-                    powerStatus(true)
+                    powerStatus()
                 }
             }
         }
@@ -132,11 +136,14 @@ final class BatteryService: BatteryServiceProtocol {
     }
 
     func powerForceRefresh() {
-        Task {
+        forceRefreshTask?.cancel()
+        forceRefreshTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(1))
-            powerStatus(true)
+            guard let self, !Task.isCancelled else { return }
+            powerStatus()
 
             try? await Task.sleep(for: .seconds(4))
+            guard !Task.isCancelled else { return }
             saver = await fetchPowerSaveModeStatus()
             metrics = await fetchPowerProfilerDetails()
         }
@@ -151,8 +158,8 @@ final class BatteryService: BatteryServiceProtocol {
                 guard let self, !Task.isCancelled else { return }
 
                 tickCount += 1
-                if tickCount.isMultiple(of: 1) {
-                    powerStatus(true)
+                if tickCount.isMultiple(of: 5) {
+                    powerStatus()
                 }
 
                 if tickCount.isMultiple(of: 6) {
@@ -162,14 +169,12 @@ final class BatteryService: BatteryServiceProtocol {
         }
     }
 
-    private func powerStatus(_ force: Bool = false) {
-        if force {
-            Task {
-                let (newCharging, newPercentage) = await fetchPowerInfo()
-                self.percentage = newPercentage
-                if newCharging != self.charging.state {
-                    self.charging = .init(newCharging)
-                }
+    private func powerStatus() {
+        Task {
+            let (newCharging, newPercentage) = await fetchPowerInfo()
+            self.percentage = newPercentage
+            if newCharging != self.charging.state {
+                self.charging = .init(newCharging)
             }
         }
     }
@@ -178,38 +183,6 @@ final class BatteryService: BatteryServiceProtocol {
         let info = await IOKitBatteryService.shared.getBatteryInfo()
         let charging: BatteryChargingState = info.isACPowered ? .charging : .battery
         return (charging, Double(info.percentage))
-    }
-
-    private var powerCharging: BatteryChargingState {
-        guard let snapshotRef = IOPSCopyPowerSourcesInfo() else { return .battery }
-        let snapshot = snapshotRef.takeRetainedValue()
-
-        guard let sourceRef = IOPSGetProvidingPowerSourceType(snapshot) else { return .battery }
-        let source = sourceRef.takeRetainedValue()
-
-        switch source as String == kIOPSACPowerValue {
-        case true: return .charging
-        case false: return .battery
-        }
-    }
-
-    private var powerPercentage: Double {
-        guard let snapshotRef = IOPSCopyPowerSourcesInfo() else { return 100.0 }
-        let snapshot = snapshotRef.takeRetainedValue()
-
-        guard let sourcesRef = IOPSCopyPowerSourcesList(snapshot) else { return 100.0 }
-        let sources = sourcesRef.takeRetainedValue() as Array
-
-        for source in sources {
-            if let description = IOPSGetPowerSourceDescription(snapshot, source)?
-                .takeUnretainedValue() as? [String: Any],
-                description["Type"] as? String == kIOPSInternalBatteryType
-            {
-                return description[kIOPSCurrentCapacityKey] as? Double ?? 0.0
-            }
-        }
-
-        return 100.0
     }
 
     private func fetchPowerRemaining() async -> BatteryRemaining? {

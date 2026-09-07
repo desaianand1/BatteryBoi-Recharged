@@ -1,5 +1,35 @@
 {
   "enabledPlugins": {
-    "sentry@claude-plugins-official": false
+    "sentry@claude-plugins-official": false,
+    "swiftui-expert@swiftui-expert-skill": true,
+    "swift-concurrency@swift-concurrency-agent-skill": true,
+    "swift-testing-expert@swift-testing-agent-skill": true,
+    "xcode-build-skills@xcode-build-skills": true
+  },
+  "extraKnownMarketplaces": {
+    "swiftui-expert-skill": {
+      "source": {
+        "source": "github",
+        "repo": "AvdLee/SwiftUI-Agent-Skill"
+      }
+    },
+    "swift-concurrency-agent-skill": {
+      "source": {
+        "source": "github",
+        "repo": "AvdLee/Swift-Concurrency-Agent-Skill"
+      }
+    },
+    "swift-testing-agent-skill": {
+      "source": {
+        "source": "github",
+        "repo": "AvdLee/Swift-Testing-Agent-Skill"
+      }
+    },
+    "xcode-build-skills": {
+      "source": {
+        "source": "github",
+        "repo": "AvdLee/Xcode-Build-Optimization-Agent-Skill"
+      }
+    }
   }
 }
