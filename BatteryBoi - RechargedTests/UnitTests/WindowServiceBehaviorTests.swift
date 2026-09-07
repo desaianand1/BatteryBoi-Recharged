@@ -201,4 +201,56 @@ final class WindowServiceBehaviorTests: XCTestCase {
         XCTAssertEqual(frame.origin.x, 200)
         XCTAssertEqual(frame.origin.y, 300)
     }
+
+    // MARK: - Sleep/Wake Lifecycle Tests
+
+    @MainActor
+    func testHandleSleep() {
+        mockWindowService.handleSleep()
+
+        XCTAssertEqual(mockWindowService.handleSleepCallCount, 1)
+    }
+
+    @MainActor
+    func testHandleWake() {
+        mockWindowService.handleWake()
+
+        XCTAssertEqual(mockWindowService.handleWakeCallCount, 1)
+        XCTAssertEqual(mockWindowService.state, .hidden)
+        XCTAssertNil(mockWindowService.currentAlert)
+    }
+
+    @MainActor
+    func testHandleWakeWhileVisible() {
+        mockWindowService.state = .revealed
+
+        mockWindowService.handleWake()
+
+        XCTAssertEqual(mockWindowService.state, .hidden)
+    }
+
+    // MARK: - Alert Sound Routing Tests
+
+    @MainActor
+    func testOpenCalledForDifferentAlertTypes() {
+        mockWindowService.open(.chargingBegan, device: nil)
+        mockWindowService.open(.percentFive, device: nil)
+
+        XCTAssertEqual(mockWindowService.openCallCount, 2)
+        XCTAssertEqual(mockWindowService.lastOpenType, .percentFive)
+    }
+
+    // MARK: - Timeout Flag Tests
+
+    @MainActor
+    func testTimeoutAlertTypesHaveTimeout() {
+        XCTAssertTrue(HUDAlertTypes.chargingBegan.timeout)
+        XCTAssertTrue(HUDAlertTypes.deviceConnected.timeout)
+        XCTAssertTrue(HUDAlertTypes.chargingStopped.timeout)
+    }
+
+    @MainActor
+    func testUserInitiatedHasNoTimeout() {
+        XCTAssertFalse(HUDAlertTypes.userInitiated.timeout)
+    }
 }

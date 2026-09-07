@@ -212,4 +212,43 @@ final class ServiceCoordinatorTests: XCTestCase {
         // Then the events list should be empty
         XCTAssertTrue(state.events.isEmpty)
     }
+
+    // MARK: - Sleep/Wake Lifecycle Tests
+
+    @MainActor
+    func testCoordinatorHandleSleep() {
+        coordinator.handleSleep()
+
+        XCTAssertNotNil(coordinator)
+    }
+
+    @MainActor
+    func testCoordinatorHandleWake() async {
+        await coordinator.handleWake()
+
+        XCTAssertNotNil(coordinator.container)
+        XCTAssertTrue(coordinator.container === container)
+    }
+
+    @MainActor
+    func testStopObservingIdempotent() {
+        coordinator.stopObserving()
+        coordinator.stopObserving()
+
+        XCTAssertNotNil(coordinator)
+    }
+
+    // MARK: - Init Order Tests
+
+    @MainActor
+    func testStartSyncsStateBeforeObserving() async {
+        let freshState = AppState()
+        let freshCoordinator = ServiceCoordinator()
+        let freshContainer = ServiceContainer(state: freshState, coordinator: freshCoordinator)
+
+        await freshContainer.start()
+
+        XCTAssertGreaterThanOrEqual(freshState.batteryPercentage, 0)
+        freshCoordinator.stopObserving()
+    }
 }

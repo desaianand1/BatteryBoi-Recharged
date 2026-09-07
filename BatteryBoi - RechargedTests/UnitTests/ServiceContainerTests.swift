@@ -177,4 +177,14 @@ final class ServiceContainerTests: XCTestCase {
         // Then it should return a valid service
         XCTAssertNotNil(update)
     }
+
+    // MARK: - Init Order Tests
+
+    @MainActor
+    func testStartSyncsStateBeforeObserving() async {
+        await container.start()
+
+        XCTAssertGreaterThanOrEqual(state.batteryPercentage, 0)
+        XCTAssertNotNil(state.batteryThermal)
+    }
 }
