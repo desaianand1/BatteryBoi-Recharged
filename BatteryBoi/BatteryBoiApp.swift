@@ -340,8 +340,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             object: nil,
             queue: .main
         ) { [weak self] notification in
-            // Extract window before crossing actor boundary to avoid Sendable issues
-            guard let window = notification.object as? NSWindow else { return }
+            guard let window = notification.object as? NSWindow,
+                  window.title == Constants.Window.modalWindowTitle else { return }
             Task { @MainActor [weak self] in
                 self?.applicationFocusDidMove(window: window)
             }
@@ -421,7 +421,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     }
 
     func applicationFocusDidMove(window: NSWindow) {
-        if window.title == "modalwindow" {
+        if window.title == Constants.Window.modalWindowTitle {
             // Only add monitor if not already added
             if globalMouseMonitor == nil {
                 globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseUp]) { [weak self] _ in
@@ -443,24 +443,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
     @objc
     private func applicationDidWakeNotification(_: Notification) {
-        // Cancel any pending wake refresh task
         wakeRefreshTask?.cancel()
         wakeRefreshTask = Task { @MainActor [weak self] in
-            // Short delay to let system stabilize after wake
-            try? await Task.sleep(for: .seconds(0.5))
+            try? await Task.sleep(for: .seconds(1))
             guard self != nil, !Task.isCancelled else { return }
+            WindowService.shared.handleWake()
             BatteryService.shared.forceRefresh()
+            BluetoothService.shared.forceRefresh()
+            await ServiceContainer.shared.coordinator.handleWake()
         }
     }
 
     @objc
-    private func applicationDidSleepNotification(_: Notification) {}
+    private func applicationDidSleepNotification(_: Notification) {
+        WindowService.shared.handleSleep()
+        ServiceContainer.shared.coordinator.handleSleep()
+    }
 
     func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool {
         false
     }
 
     func applicationWillTerminate(_: Notification) {
+        ServiceContainer.shared.coordinator.stopObserving()
+
         // Remove global mouse monitor
         if let monitor = globalMouseMonitor {
             NSEvent.removeMonitor(monitor)

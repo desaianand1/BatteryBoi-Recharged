@@ -50,4 +50,10 @@ protocol WindowServiceProtocol: AnyObject {
     /// - Parameter moved: Optional new position from user drag
     /// - Returns: The calculated frame
     func calculateFrame(moved: NSRect?) -> NSRect
+
+    /// Handle system sleep — cancel pending timers and transitions
+    func handleSleep()
+
+    /// Handle system wake — reset window state for clean restart
+    func handleWake()
 }

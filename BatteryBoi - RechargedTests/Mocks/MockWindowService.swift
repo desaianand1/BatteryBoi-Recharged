@@ -28,6 +28,8 @@ import Foundation
         var isVisibleCallCount = 0
         var openCallCount = 0
         var calculateFrameCallCount = 0
+        var handleSleepCallCount = 0
+        var handleWakeCallCount = 0
 
         var lastSetState: HUDState?
         var lastSetStateAnimated: Bool?
@@ -78,6 +80,20 @@ import Foundation
             }
             return NSRect(x: 100, y: 100, width: 420, height: 220)
         }
+
+        func handleSleep() {
+            handleSleepCallCount += 1
+        }
+
+        func handleWake() {
+            handleWakeCallCount += 1
+            state = .hidden
+            currentAlert = nil
+        }
+
+        // MARK: - Alert Tracking
+
+        var currentAlert: HUDAlertTypes?
 
         // MARK: - Test Simulation
 

@@ -37,4 +37,7 @@ protocol BluetoothServiceProtocol: AnyObject {
 
     /// Refresh the Bluetooth device list
     func refreshDeviceList() async
+
+    /// Force an immediate refresh of all Bluetooth state
+    func forceRefresh()
 }
