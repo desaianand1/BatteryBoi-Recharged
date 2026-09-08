@@ -117,7 +117,7 @@ struct RadialProgressBar: View {
 }
 
 struct RadialProgressMiniContainer: View {
-    @Environment(\.appEnvironment) private var env
+    @Environment(AppEnvironment.self) private var env
 
     private var manager: AppManager {
         env.app
@@ -194,8 +194,7 @@ struct RadialProgressMiniContainer: View {
 }
 
 struct RadialProgressContainer: View {
-    @Environment(\.appEnvironment) private var env
-    @Environment(\.serviceContainer) private var container
+    @Environment(AppEnvironment.self) private var env
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var manager: AppManager {
@@ -262,7 +261,7 @@ struct RadialProgressContainer: View {
 
         }
         .onChange(of: battery.percentage) { _, newPercentage in
-            if let devicePercent = container.state.selectedDevice?.battery.percent {
+            if let devicePercent = env.window.currentDevice?.battery.percent {
                 progress = devicePercent / 100
                 percent = Int(devicePercent)
 
@@ -273,7 +272,7 @@ struct RadialProgressContainer: View {
             }
 
         }
-        .onChange(of: container.state.selectedDevice) { _, newDevice in
+        .onChange(of: env.window.currentDevice) { _, newDevice in
             if let animation = deviceChangeAnimation {
                 withAnimation(animation) {
                     updateProgressForDevice(newDevice)
@@ -290,7 +289,7 @@ struct RadialProgressContainer: View {
     }
 
     private func updateProgress() {
-        if let device = container.state.selectedDevice {
+        if let device = env.window.currentDevice {
             if let percent = device.battery.percent {
                 progress = percent / 100
                 self.percent = Int(percent)

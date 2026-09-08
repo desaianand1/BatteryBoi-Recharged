@@ -68,3 +68,10 @@ protocol SettingsServiceProtocol: AnyObject {
     /// - Parameter action: The action to perform
     func performAction(_ action: SettingsActionObject)
 }
+
+extension SettingsServiceProtocol {
+    @discardableResult
+    func enabledDisplay() -> SettingsDisplayType {
+        enabledDisplay(false)
+    }
+}

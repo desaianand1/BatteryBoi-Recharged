@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct BluetoothIcon: View {
-    @Environment(\.appEnvironment) private var env
+    @Environment(AppEnvironment.self) private var env
 
     @State private var item: BluetoothObject?
     @State private var icon: String
@@ -61,8 +61,7 @@ struct BluetoothIcon: View {
 }
 
 struct BluetoothItem: View {
-    @Environment(\.appEnvironment) private var env
-    @Environment(\.serviceContainer) private var container
+    @Environment(AppEnvironment.self) private var env
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var manager: AppManager {
@@ -121,10 +120,10 @@ struct BluetoothItem: View {
 
                 if let animation = easeOutAnimation {
                     withAnimation(animation) {
-                        container.state.selectedDevice = item
+                        env.window.currentDevice = item
                     }
                 } else {
-                    container.state.selectedDevice = item
+                    env.window.currentDevice = item
                 }
 
                 // Handle connection for disconnected devices
@@ -219,7 +218,7 @@ struct BluetoothItem: View {
             }
 
         }
-        .onChange(of: container.state.selectedDevice) { _, newValue in
+        .onChange(of: env.window.currentDevice) { _, newValue in
             if let animation = easeOutAnimation {
                 withAnimation(animation) {
                     style = newValue == item ? .light : .dark
@@ -230,7 +229,7 @@ struct BluetoothItem: View {
 
         }
         .onAppear {
-            if container.state.selectedDevice == item {
+            if env.window.currentDevice == item {
                 style = .light
 
             } else {
@@ -242,7 +241,7 @@ struct BluetoothItem: View {
         .accessibilityLabel(deviceName)
         .accessibilityValue(batteryInfo)
         .accessibilityHint("AccessibilityDoubleTapSelect".localise())
-        .accessibilityAddTraits(container.state.selectedDevice == item ? .isSelected : [])
+        .accessibilityAddTraits(env.window.currentDevice == item ? .isSelected : [])
 
     }
 

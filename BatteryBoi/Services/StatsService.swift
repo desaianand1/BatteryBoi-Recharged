@@ -2,8 +2,8 @@
 //  StatsService.swift
 //  BatteryBoi
 //
-//  Statistics service with Swift 6.2 strict concurrency.
-//  Uses actor for CoreData background operations.
+//  Statistics service with @Observable @MainActor for reactive UI updates.
+//  CoreData operations run off-MainActor via context.perform {}.
 //
 
 import CoreData
@@ -14,39 +14,42 @@ import Logging
     import Sentry
 #endif
 
-/// Service for managing statistics and CoreData operations.
-/// Uses actor isolation for thread-safe CoreData access.
-actor StatsService {
+@Observable
+@MainActor
+final class StatsService: StatsServiceProtocol {
 
     // MARK: - Static Instance
 
     static let shared = StatsService()
 
-    // MARK: - Properties
+    // MARK: - Dependencies
 
-    /// CoreData container
+    private let battery: any BatteryServiceProtocol
+    private let bluetooth: any BluetoothServiceProtocol
+    private let settings: any SettingsServiceProtocol
+    private let window: any WindowServiceProtocol
+    private let events: any EventServiceProtocol
+    private let app: any AppManagerProtocol
+
+    // MARK: - Observable Properties
+
+    var display: String?
+    var overlay: String?
+
+    var title: String {
+        statsTitle
+    }
+
+    var subtitle: String {
+        statsSubtitle
+    }
+
+    // MARK: - CoreData
+
     private let container: NSPersistentCloudKitContainer
-
-    /// Container info
     private let containerInfo: StatsContainerObject
 
-    // MARK: - MainActor Observable State
-
-    /// Display text for menu bar
-    @MainActor var display: String?
-
-    /// Overlay text for menu bar
-    @MainActor var overlay: String?
-
-    /// HUD title
-    @MainActor var title: String = ""
-
-    /// HUD subtitle
-    @MainActor var subtitle: String = ""
-
     // MARK: - Observation Tasks
-
-    // Note: nonisolated(unsafe) is justified for task properties accessed in deinit per SE-0371
 
     nonisolated(unsafe) private var userDefaultsTask: Task<Void, Never>?
     nonisolated(unsafe) private var batteryObserverTask: Task<Void, Never>?
@@ -55,7 +58,21 @@ actor StatsService {
 
     // MARK: - Initialization
 
-    init() {
+    init(
+        battery: any BatteryServiceProtocol = BatteryService.shared,
+        bluetooth: any BluetoothServiceProtocol = BluetoothService.shared,
+        settings: any SettingsServiceProtocol = SettingsService.shared,
+        window: any WindowServiceProtocol = WindowService.shared,
+        events: any EventServiceProtocol = EventService.shared,
+        app: any AppManagerProtocol = AppManager.shared
+    ) {
+        self.battery = battery
+        self.bluetooth = bluetooth
+        self.settings = settings
+        self.window = window
+        self.events = events
+        self.app = app
+
         let objectName = "DataObject"
         let persistentContainer = NSPersistentCloudKitContainer(name: objectName)
 
@@ -98,7 +115,6 @@ actor StatsService {
             #endif
         }
 
-        // Load stores synchronously during init
         persistentContainer.loadPersistentStores { storeDescription, error in
             if let error {
                 BLogger.stats.error("Error loading persistent stores: \(error)")
@@ -118,10 +134,7 @@ actor StatsService {
         container = persistentContainer
         containerInfo = StatsContainerObject(directory: directory, parent: subdirectory)
 
-        // Start observations after init
-        Task { [weak self] in
-            await self?.startObservations()
-        }
+        startObservations()
     }
 
     deinit {
@@ -134,18 +147,11 @@ actor StatsService {
     // MARK: - Observation Setup
 
     private func startObservations() {
-        // Initialize display values immediately on main actor
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            self.display = self.statsDisplay
-            self.overlay = self.statsOverlay
-            self.title = self.statsTitle
-            self.subtitle = self.statsSubtitle
-            BLogger.stats.debug("Initialized stats - title: \(self.title), subtitle: \(self.subtitle)")
-        }
+        self.display = self.statsDisplay
+        self.overlay = self.statsOverlay
+        BLogger.stats.debug("Initialized stats - title: \(self.title), subtitle: \(self.subtitle)")
 
-        // Observe UserDefaults changes
-        userDefaultsTask = Task { @MainActor [weak self] in
+        userDefaultsTask = Task { [weak self] in
             for await key in UserDefaults.changedAsync() {
                 guard let self, !Task.isCancelled else { break }
                 if key == .enabledDisplay {
@@ -155,81 +161,61 @@ actor StatsService {
             }
         }
 
-        // Observe battery-related state changes
         batteryObserverTask = Task { [weak self] in
-            var prevChargingState: Bool = await MainActor.run { BatteryService.shared.charging.state.charging }
-            var prevPercentage: Double = await MainActor.run { BatteryService.shared.percentage }
+            guard let self else { return }
+            var prevChargingState = self.battery.charging.state.charging
+            var prevPercentage = self.battery.percentage
 
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(200))
-                guard let self, !Task.isCancelled else { break }
-
-                let (currentChargingState, currentPercentage, currentState) = await MainActor.run {
-                    (
-                        BatteryService.shared.charging.state.charging,
-                        BatteryService.shared.percentage,
-                        BatteryService.shared.charging.state
-                    )
-                }
+            for await (currentCharging, currentPercentage) in ObservationStream.changes({
+                (self.battery.charging.state.charging, self.battery.percentage)
+            }) {
+                guard !Task.isCancelled else { break }
 
                 var needsUpdate = false
 
-                if currentChargingState != prevChargingState {
+                if currentCharging != prevChargingState {
                     needsUpdate = true
 
-                    // Store activity
-                    switch currentState {
-                    case .battery: await recordActivity(.disconnected, device: nil)
-                    case .charging: await recordActivity(.connected, device: nil)
+                    let state = self.battery.charging.state
+                    switch state {
+                    case .battery: await self.recordActivity(.disconnected, device: nil)
+                    case .charging: await self.recordActivity(.connected, device: nil)
                     }
 
-                    prevChargingState = currentChargingState
+                    prevChargingState = currentCharging
                 }
 
                 if currentPercentage != prevPercentage {
                     needsUpdate = true
 
-                    // Store activity
-                    switch currentState {
-                    case .battery: await recordActivity(.depleted, device: nil)
-                    case .charging: await recordActivity(.charging, device: nil)
+                    let state = self.battery.charging.state
+                    switch state {
+                    case .battery: await self.recordActivity(.depleted, device: nil)
+                    case .charging: await self.recordActivity(.charging, device: nil)
                     }
 
                     prevPercentage = currentPercentage
                 }
 
                 if needsUpdate {
-                    await MainActor.run {
-                        self.display = self.statsDisplay
-                        self.overlay = self.statsOverlay
-                        self.title = self.statsTitle
-                        self.subtitle = self.statsSubtitle
-                    }
+                    self.display = self.statsDisplay
+                    self.overlay = self.statsOverlay
                 }
             }
         }
 
-        // Observe Bluetooth connection changes
         bluetoothObserverTask = Task { [weak self] in
-            var prevConnected = await MainActor.run { BluetoothService.shared.connected }
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(500))
-                guard let self, !Task.isCancelled else { break }
+            guard let self else { return }
+            var prevConnected = self.bluetooth.connected
 
-                let currentConnected = await MainActor.run { BluetoothService.shared.connected }
+            for await currentConnected in ObservationStream.changes({ self.bluetooth.connected }) {
+                guard !Task.isCancelled else { break }
+
                 if currentConnected != prevConnected {
-                    await MainActor.run {
-                        self.overlay = self.statsOverlay
-                        self.title = self.statsTitle
-                        self.subtitle = self.statsSubtitle
-                    }
+                    self.overlay = self.statsOverlay
 
-                    // Check for recently updated device on MainActor
-                    let recentDevice = await MainActor.run {
-                        currentConnected.first(where: { $0.updated.now == true })
-                    }
-                    if let device = recentDevice {
-                        await recordActivity(.depleted, device: device)
+                    if let device = currentConnected.first(where: { $0.updated.now == true }) {
+                        await self.recordActivity(.depleted, device: device)
                     }
 
                     prevConnected = currentConnected
@@ -237,22 +223,20 @@ actor StatsService {
             }
         }
 
-        // Store wattage every hour
         wattageTimerTask = Task { [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(3600))
+                try? await Task.sleep(for: .seconds(Constants.Timers.wattageRecord))
                 guard let self, !Task.isCancelled else { break }
-                await recordWattage()
+                await self.recordWattage()
             }
         }
     }
 
-    // MARK: - Computed Properties (MainActor)
+    // MARK: - Computed Properties
 
-    @MainActor
     private var statsDisplay: String? {
-        let displayType = SettingsService.shared.enabledDisplay(false)
-        let state = BatteryService.shared.charging.state
+        let displayType = self.settings.enabledDisplay(false)
+        let state = self.battery.charging.state
 
         if state == .charging {
             if displayType == .empty {
@@ -261,38 +245,36 @@ actor StatsService {
         } else {
             if displayType == .empty {
                 return nil
-            } else if SettingsService.shared.enabledDisplay() == .countdown {
+            } else if self.settings.enabledDisplay() == .countdown {
                 return statsCountdown
-            } else if SettingsService.shared.enabledDisplay() == .cycle {
-                if let cycle = BatteryService.shared.metrics?.cycles.formatted {
+            } else if self.settings.enabledDisplay() == .cycle {
+                if let cycle = self.battery.metrics?.cycles.formatted {
                     return cycle
                 }
             }
         }
 
-        return "\(Int(BatteryService.shared.percentage))"
+        return "\(Int(self.battery.percentage))"
     }
 
-    @MainActor
     private var statsOverlay: String? {
-        let state = BatteryService.shared.charging.state
+        let state = self.battery.charging.state
 
         if state == .charging {
             return nil
         } else {
-            if SettingsService.shared.enabledDisplay() == .countdown {
-                return "\(Int(BatteryService.shared.percentage))"
-            } else if SettingsService.shared.enabledDisplay() == .empty {
-                return "\(Int(BatteryService.shared.percentage))"
+            if self.settings.enabledDisplay() == .countdown {
+                return "\(Int(self.battery.percentage))"
+            } else if self.settings.enabledDisplay() == .empty {
+                return "\(Int(self.battery.percentage))"
             } else {
                 return statsCountdown
             }
         }
     }
 
-    @MainActor
     private var statsCountdown: String? {
-        if let remaining = BatteryService.shared.remaining, let hour = remaining.hours, let minute = remaining.minutes {
+        if let remaining = self.battery.remaining, let hour = remaining.hours, let minute = remaining.minutes {
             if hour > 0, minute > 0 {
                 return "+\(hour)\("TimestampHourAbbriviatedLabel".localise())"
             } else if hour > 0, minute == 0 {
@@ -304,20 +286,18 @@ actor StatsService {
         return nil
     }
 
-    @MainActor
     private var statsTitle: String {
-        let appState = ServiceContainer.shared.state
-        if let device = appState.selectedDevice {
-            switch appState.currentAlert {
+        if let device = self.window.currentDevice {
+            switch self.window.currentAlert {
             case .deviceConnected: return "AlertDeviceConnectedTitle".localise()
             case .deviceRemoved: return "AlertDeviceDisconnectedTitle".localise()
             default: return device.device ?? device.type.type.name
             }
         } else {
-            let percent = Int(BatteryService.shared.percentage)
-            let state = BatteryService.shared.charging.state
+            let percent = Int(self.battery.percentage)
+            let state = self.battery.charging.state
 
-            switch appState.currentAlert {
+            switch self.window.currentAlert {
             case .chargingComplete: return "AlertChargingCompleteTitle".localise()
             case .chargingBegan: return "AlertChargingTitle".localise()
             case .chargingStopped: return "AlertChargingStoppedTitle".localise()
@@ -344,11 +324,9 @@ actor StatsService {
         }
     }
 
-    @MainActor
     private var statsSubtitle: String {
-        let appState = ServiceContainer.shared.state
-        if let device = appState.selectedDevice {
-            switch appState.currentAlert {
+        if let device = self.window.currentDevice {
+            switch self.window.currentAlert {
             case .deviceConnected: return device.device ?? device.type.type.name
             case .deviceRemoved: return device.device ?? device.type.type.name
             default: break
@@ -360,13 +338,13 @@ actor StatsService {
 
             return "BluetoothInvalidLabel".localise()
         } else {
-            let state = BatteryService.shared.charging.state
-            let percent = Int(BatteryService.shared.percentage)
-            let remaining = BatteryService.shared.remaining
-            let full = BatteryService.shared.powerUntilFull
-            let event = EventService.shared.events.max(by: { $0.start < $1.start })
+            let state = self.battery.charging.state
+            let percent = Int(self.battery.percentage)
+            let remaining = self.battery.remaining
+            let full = self.battery.untilFull
+            let event = self.events.events.max(by: { $0.start < $1.start })
 
-            switch appState.currentAlert {
+            switch self.window.currentAlert {
             case .chargingComplete: return "AlertChargedSummary".localise()
             case .chargingBegan: return "AlertStartedChargeSummary"
                 .localise([full?.time ?? "AlertDeviceCalculatingTitle".localise()])
@@ -393,16 +371,14 @@ actor StatsService {
         }
     }
 
-    @MainActor
     var statsIcon: StatsIcon {
-        let appState = ServiceContainer.shared.state
-        if let device = appState.selectedDevice {
-            return StatsIcon(name: device.type.icon, system: true)
+        if let device = self.window.currentDevice {
+            StatsIcon(name: device.type.icon, system: true)
         } else {
-            switch appState.currentAlert {
-            case .deviceOverheating: return StatsIcon(name: "OverheatIcon", system: false)
-            case .userEvent: return StatsIcon(name: "EventIcon", system: false)
-            default: return StatsIcon(name: "ChargingIcon", system: false)
+            switch self.window.currentAlert {
+            case .deviceOverheating: StatsIcon(name: "OverheatIcon", system: false)
+            case .userEvent: StatsIcon(name: "EventIcon", system: false)
+            default: StatsIcon(name: "ChargingIcon", system: false)
             }
         }
     }
@@ -410,25 +386,20 @@ actor StatsService {
     // MARK: - CoreData Operations
 
     func recordActivity(_ state: StatsStateType, device: BluetoothObject?) async {
-        // Capture values immediately
         let stateRaw = state.rawValue
-        let charge = await MainActor.run {
-            if let percent = device {
-                Int64(percent.battery.percent ?? 100)
-            } else {
-                Int64(BatteryService.shared.percentage)
-            }
+        let charge = if let device {
+            Int64(device.battery.percent ?? 100)
+        } else {
+            Int64(self.battery.percentage)
         }
         let deviceAddress = device?.address ?? ""
 
-        // Perform CoreData work
         let context = container.newBackgroundContext()
         context.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
 
         await context.perform {
             let expiry = Date().addingTimeInterval(-2 * 60)
 
-            // Use NSFetchRequest directly to avoid MainActor-isolated fetchRequest() method
             let fetch = NSFetchRequest<Activity>(entityName: "Activity")
             fetch.includesPendingChanges = true
             fetch.predicate = NSPredicate(
@@ -459,11 +430,9 @@ actor StatsService {
     }
 
     private func recordWattage() async {
-        // Capture values
-        let wattage = await BatteryService.shared.fetchPowerHourWattage() ?? 0.0
-        let deviceName = await MainActor.run { AppManager.shared.appDeviceType.name }
+        let wattage = await self.battery.fetchHourWattage() ?? 0.0
+        let deviceName = self.app.appDeviceType.name
 
-        // Perform CoreData work
         let context = container.newBackgroundContext()
         context.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
 
@@ -473,7 +442,6 @@ actor StatsService {
 
             guard let hour = calendar.date(from: components) else { return }
 
-            // Use NSFetchRequest directly to avoid MainActor-isolated fetchRequest() method
             let fetch = NSFetchRequest<Wattage>(entityName: "Wattage")
             fetch.includesPendingChanges = true
             fetch.predicate = NSPredicate(format: "timestamp == %@", hour as CVarArg)

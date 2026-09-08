@@ -3,9 +3,9 @@ import SwiftUI
 // Types (HUDState, HUDAlertTypes, HUDProgressLayout) are now defined in BatteryBoi/Models/HUDModels.swift
 
 struct HUDIcon: View {
-    @Environment(\.appEnvironment) private var env
+    @Environment(AppEnvironment.self) private var env
 
-    private var stats: StatsService {
+    private var stats: any StatsServiceProtocol {
         env.stats
     }
 
@@ -43,10 +43,10 @@ struct HUDIcon: View {
 }
 
 struct HUDSummary: View {
-    @Environment(\.appEnvironment) private var env
+    @Environment(AppEnvironment.self) private var env
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private var stats: StatsService {
+    private var stats: any StatsServiceProtocol {
         env.stats
     }
 
@@ -118,7 +118,7 @@ struct HUDSummary: View {
 }
 
 struct HUDContainer: View {
-    @Environment(\.appEnvironment) private var env
+    @Environment(AppEnvironment.self) private var env
 
     private var battery: any BatteryServiceProtocol {
         env.battery
@@ -206,7 +206,7 @@ struct HUDContainer: View {
 }
 
 struct HUDMaskView: View {
-    @Environment(\.appEnvironment) private var env
+    @Environment(AppEnvironment.self) private var env
 
     private var window: any WindowServiceProtocol {
         env.window
@@ -249,7 +249,7 @@ struct HUDMaskView: View {
 }
 
 struct HUDGlow: View {
-    @Environment(\.appEnvironment) private var env
+    @Environment(AppEnvironment.self) private var env
 
     private var window: any WindowServiceProtocol {
         env.window
@@ -288,7 +288,7 @@ struct HUDGlow: View {
 }
 
 struct HUDProgress: View {
-    @Environment(\.appEnvironment) private var env
+    @Environment(AppEnvironment.self) private var env
 
     private var window: any WindowServiceProtocol {
         env.window
@@ -325,7 +325,7 @@ struct HUDProgress: View {
 }
 
 struct HUDView: View {
-    @Environment(\.appEnvironment) private var env
+    @Environment(AppEnvironment.self) private var env
 
     private var window: any WindowServiceProtocol {
         env.window

@@ -26,8 +26,7 @@
 		C1A0B0C02C03000000000006 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000005 /* DesignTokens.swift */; };
 		C1A0B0C02C03000000000008 /* IOKitBatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000007 /* IOKitBatteryService.swift */; };
 		C1A0B0C02C03000000000010 /* IOKitBluetoothService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000009 /* IOKitBluetoothService.swift */; };
-		C1A0B0C02C04000000000001 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C04000000000002 /* AppState.swift */; };
-		C1A0B0C02C04000000000003 /* ServiceContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C04000000000004 /* ServiceContainer.swift */; };
+		C1A0B0C02C07000000000001 /* ObservationStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C07000000000002 /* ObservationStream.swift */; };
 		C1A0B0C02C04000000000005 /* ServiceCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C04000000000006 /* ServiceCoordinator.swift */; };
 		C1A0B0C02C04000000000007 /* EventService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C04000000000008 /* EventService.swift */; };
 		C1A0B0C02C04000000000009 /* SettingsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C04000000000010 /* SettingsService.swift */; };
@@ -112,8 +111,7 @@
 		C1A0B0C02C03000000000005 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		C1A0B0C02C03000000000007 /* IOKitBatteryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOKitBatteryService.swift; sourceTree = "<group>"; };
 		C1A0B0C02C03000000000009 /* IOKitBluetoothService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOKitBluetoothService.swift; sourceTree = "<group>"; };
-		C1A0B0C02C04000000000002 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
-		C1A0B0C02C04000000000004 /* ServiceContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceContainer.swift; sourceTree = "<group>"; };
+		C1A0B0C02C07000000000002 /* ObservationStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservationStream.swift; sourceTree = "<group>"; };
 		C1A0B0C02C04000000000006 /* ServiceCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceCoordinator.swift; sourceTree = "<group>"; };
 		C1A0B0C02C04000000000008 /* EventService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventService.swift; sourceTree = "<group>"; };
 		C1A0B0C02C04000000000010 /* SettingsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsService.swift; sourceTree = "<group>"; };
@@ -221,6 +219,7 @@
 				C1A0B0C02C03000000000003 /* Constants.swift */,
 				C1A0B0C02C03000000000005 /* DesignTokens.swift */,
 				C1A0B0C02C03000000000001 /* Logger.swift */,
+				C1A0B0C02C07000000000002 /* ObservationStream.swift */,
 				C1A0B0C02C01000000000002 /* ProcessRunner.swift */,
 			);
 			path = Utilities;
@@ -245,14 +244,12 @@
 			isa = PBXGroup;
 			children = (
 				C1A0B0C02C02000000000005 /* AppEnvironment.swift */,
-				C1A0B0C02C04000000000002 /* AppState.swift */,
 				C1A0B0C02C04000000000012 /* BatteryService.swift */,
 				C1A0B0C02C04000000000016 /* BluetoothBridge.swift */,
 				C1A0B0C02C04000000000018 /* BluetoothService.swift */,
 				C1A0B0C02C04000000000008 /* EventService.swift */,
 				C1A0B0C02C03000000000007 /* IOKitBatteryService.swift */,
 				C1A0B0C02C03000000000009 /* IOKitBluetoothService.swift */,
-				C1A0B0C02C04000000000004 /* ServiceContainer.swift */,
 				C1A0B0C02C04000000000006 /* ServiceCoordinator.swift */,
 				C1A0B0C02C04000000000010 /* SettingsService.swift */,
 				C1A0B0C02C04000000000014 /* StatsService.swift */,
@@ -572,9 +569,8 @@
 				C1A0B0C02C04000000000015 /* BluetoothBridge.swift in Sources */,
 				C1A0B0C02C04000000000017 /* BluetoothService.swift in Sources */,
 				C1A0B0C02C04000000000019 /* WindowService.swift in Sources */,
-				C1A0B0C02C04000000000003 /* ServiceContainer.swift in Sources */,
 				C1A0B0C02C04000000000005 /* ServiceCoordinator.swift in Sources */,
-				C1A0B0C02C04000000000001 /* AppState.swift in Sources */,
+				C1A0B0C02C07000000000001 /* ObservationStream.swift in Sources */,
 				C1A0B0C02C02000000000011 /* BatteryServiceProtocol.swift in Sources */,
 				C1A0B0C02C02000000000012 /* BluetoothServiceProtocol.swift in Sources */,
 				C1A0B0C02C02000000000013 /* SettingsServiceProtocol.swift in Sources */,

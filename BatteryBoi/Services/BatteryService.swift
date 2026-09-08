@@ -38,13 +38,12 @@ final class BatteryService: BatteryServiceProtocol {
     // Note: nonisolated(unsafe) is justified for task properties that are only
     // accessed in deinit (which is always nonisolated) per SE-0371.
 
-    nonisolated(unsafe) private var fallbackTimerTask: Task<Void, Never>?
-    nonisolated(unsafe) private var initialDelayTask: Task<Void, Never>?
     nonisolated(unsafe) private var statusTask: Task<Void, Never>?
     nonisolated(unsafe) private var remainingTask: Task<Void, Never>?
     nonisolated(unsafe) private var metricsTask: Task<Void, Never>?
     nonisolated(unsafe) private var thermalTask: Task<Void, Never>?
     nonisolated(unsafe) private var forceRefreshTask: Task<Void, Never>?
+    nonisolated(unsafe) private var saveModeFetchTask: Task<Void, Never>?
 
     // MARK: - BatteryServiceProtocol Methods
 
@@ -61,73 +60,60 @@ final class BatteryService: BatteryServiceProtocol {
     }
 
     func hourWattage() -> Double? {
-        // Sync version returns nil - use fetchPowerHourWattage() for async access
         nil
+    }
+
+    func fetchHourWattage() async -> Double? {
+        await fetchPowerHourWattage()
     }
 
     // MARK: - Initialization
 
     init() {
-        // Start initial delay timer
-        initialDelayTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(10))
-            guard let self, !Task.isCancelled else { return }
-            powerUpdaterFallback()
-        }
-
         startMonitoring()
-        // Covers the initial read before statusTask's first tick fires
-        powerStatus()
     }
 
     deinit {
-        initialDelayTask?.cancel()
-        fallbackTimerTask?.cancel()
         statusTask?.cancel()
         remainingTask?.cancel()
         metricsTask?.cancel()
         thermalTask?.cancel()
         forceRefreshTask?.cancel()
+        saveModeFetchTask?.cancel()
     }
 
     // MARK: - Private Methods
 
     private func startMonitoring() {
-        // Battery status check every 5 seconds
+        // Initial read + 30s safety-net poll (IOKit callback is primary)
         statusTask = Task { [weak self] in
-            var tickCount = 0
+            await self?.powerStatus()
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(5))
+                try? await Task.sleep(for: .seconds(Constants.Timers.safetyNetPoll))
                 guard let self, !Task.isCancelled else { break }
-                tickCount += 1
-                if tickCount > 1 {
-                    powerStatus()
-                }
+                await self.powerStatus()
             }
         }
 
-        // Remaining time check every 30 seconds
         remainingTask = Task { [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(30))
+                try? await Task.sleep(for: .seconds(Constants.Timers.batteryRemaining))
                 guard let self, !Task.isCancelled else { break }
                 remaining = await fetchPowerRemaining()
             }
         }
 
-        // Thermal check every 90 seconds
         thermalTask = Task { [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(90))
+                try? await Task.sleep(for: .seconds(Constants.Timers.thermalCheck))
                 guard let self, !Task.isCancelled else { break }
                 await powerThermalCheck()
             }
         }
 
-        // Metrics check every 300 seconds
         metricsTask = Task { [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(300))
+                try? await Task.sleep(for: .seconds(Constants.Timers.metricsCheck))
                 guard let self, !Task.isCancelled else { break }
                 saver = await fetchPowerSaveModeStatus()
                 metrics = await fetchPowerProfilerDetails()
@@ -138,44 +124,22 @@ final class BatteryService: BatteryServiceProtocol {
     func powerForceRefresh() {
         forceRefreshTask?.cancel()
         forceRefreshTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(1))
+            try? await Task.sleep(for: .seconds(Constants.Timers.forceRefreshDelay))
             guard let self, !Task.isCancelled else { return }
-            powerStatus()
+            await self.powerStatus()
 
-            try? await Task.sleep(for: .seconds(4))
+            try? await Task.sleep(for: .seconds(Constants.Timers.forceRefreshSecondary))
             guard !Task.isCancelled else { return }
-            saver = await fetchPowerSaveModeStatus()
-            metrics = await fetchPowerProfilerDetails()
+            self.saver = await self.fetchPowerSaveModeStatus()
+            self.metrics = await self.fetchPowerProfilerDetails()
         }
     }
 
-    private func powerUpdaterFallback() {
-        fallbackTimerTask?.cancel()
-        fallbackTimerTask = Task { [weak self] in
-            var tickCount = 0
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(1))
-                guard let self, !Task.isCancelled else { return }
-
-                tickCount += 1
-                if tickCount.isMultiple(of: 5) {
-                    powerStatus()
-                }
-
-                if tickCount.isMultiple(of: 6) {
-                    remaining = await fetchPowerRemaining()
-                }
-            }
-        }
-    }
-
-    private func powerStatus() {
-        Task {
-            let (newCharging, newPercentage) = await fetchPowerInfo()
-            self.percentage = newPercentage
-            if newCharging != self.charging.state {
-                self.charging = .init(newCharging)
-            }
+    private func powerStatus() async {
+        let (newCharging, newPercentage) = await fetchPowerInfo()
+        self.percentage = newPercentage
+        if newCharging != self.charging.state {
+            self.charging = .init(newCharging)
         }
     }
 
@@ -254,7 +218,7 @@ final class BatteryService: BatteryServiceProtocol {
                 guard depletionRate.isFinite, depletionRate > 0.0 else { return }
 
                 if averages.contains(depletionRate) == false, charging.state == .battery {
-                    var list = Array(averages.suffix(15))
+                    var list = Array(averages.suffix(Constants.Battery.depletionRateHistorySize))
                     list.append(depletionRate)
                     UserDefaults.save(.batteryDepletionRate, value: list)
                 }
@@ -288,8 +252,9 @@ final class BatteryService: BatteryServiceProtocol {
                     #endif
                 }
 
-                Task {
-                    saver = await fetchPowerSaveModeStatus()
+                saveModeFetchTask = Task { [weak self] in
+                    guard let self else { return }
+                    self.saver = await self.fetchPowerSaveModeStatus()
                 }
             }
         }

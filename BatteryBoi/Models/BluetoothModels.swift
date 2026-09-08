@@ -144,6 +144,15 @@ struct BluetoothBatteryObject: Decodable, Equatable {
     var right: Double?
     var percent: Double?
 
+    private static let numericRegex: NSRegularExpression = // swiftlint:disable:next force_try
+        try! NSRegularExpression(pattern: "[^0-9]")
+
+    private static func extractNumericValue(_ string: String) -> Double? {
+        let range = NSRange(string.startIndex..., in: string)
+        let stripped = numericRegex.stringByReplacingMatches(in: string, range: range, withTemplate: "")
+        return Double(stripped)
+    }
+
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
 
@@ -152,19 +161,16 @@ struct BluetoothBatteryObject: Decodable, Equatable {
         right = nil
         percent = nil
 
-        if let percent = try? values.decode(String.self, forKey: .general) {
-            let stripped = percent.replacingOccurrences(of: "[^0-9]", with: "", options: .regularExpression)
-            general = Double(stripped)
+        if let value = try? values.decode(String.self, forKey: .general) {
+            general = Self.extractNumericValue(value)
         }
 
-        if let percent = try? values.decode(String.self, forKey: .right) {
-            let stripped = percent.replacingOccurrences(of: "[^0-9]", with: "", options: .regularExpression)
-            right = Double(stripped)
+        if let value = try? values.decode(String.self, forKey: .right) {
+            right = Self.extractNumericValue(value)
         }
 
-        if let percent = try? values.decode(String.self, forKey: .left) {
-            let stripped = percent.replacingOccurrences(of: "[^0-9]", with: "", options: .regularExpression)
-            left = Double(stripped)
+        if let value = try? values.decode(String.self, forKey: .left) {
+            left = Self.extractNumericValue(value)
         }
 
         if left == nil, right == nil, general == nil {
@@ -195,6 +201,7 @@ struct BluetoothBatteryObject: Decodable, Equatable {
 struct BluetoothObject: Decodable, Equatable {
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.address == rhs.address && lhs.connected == rhs.connected && lhs.distance == rhs.distance
+            && lhs.battery == rhs.battery
     }
 
     let address: String
@@ -222,9 +229,13 @@ struct BluetoothObject: Decodable, Equatable {
 
         if let distance = try? values.decode(String.self, forKey: .rssi) {
             if let value = Double(distance) {
-                if value >= -50, value <= -20 {
+                if value >= Constants.Bluetooth.rssiProximateThreshold,
+                   value <= Constants.Bluetooth.rssiMinimumThreshold
+                {
                     self.distance = .proximate
-                } else if value >= -70, value < -50 {
+                } else if value >= Constants.Bluetooth.rssiNearThreshold,
+                          value < Constants.Bluetooth.rssiProximateThreshold
+                {
                     self.distance = .near
                 } else {
                     self.distance = .far

@@ -2,27 +2,36 @@
 //  WindowService.swift
 //  BatteryBoi
 //
-//  Window service with proper task lifecycle management.
-//  Alert threshold logic has been moved to ServiceCoordinator.
-//
 
 import Cocoa
 import CoreGraphics
 import Foundation
 import SwiftUI
 
-/// Custom NSWindow that allows borderless windows to become key.
-class KeyableWindow: NSWindow {
+class HUDPanel: NSPanel {
     override var canBecomeKey: Bool {
         true
     }
 
     override var canBecomeMain: Bool {
-        true
+        false
+    }
+
+    init(contentRect: NSRect) {
+        super.init(
+            contentRect: contentRect,
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+        self.hidesOnDeactivate = false
+        self.isFloatingPanel = true
+        self.level = .floating
+        self.becomesKeyOnlyIfNeeded = true
+        self.animationBehavior = .utilityWindow
     }
 }
 
-/// NSVisualEffectView wrapper for SwiftUI
 struct WindowViewBlur: NSViewRepresentable {
     func makeNSView(context _: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
@@ -37,28 +46,15 @@ struct WindowViewBlur: NSViewRepresentable {
     func updateNSView(_: NSVisualEffectView, context _: Context) {}
 }
 
-/// NSHostingView with scroll wheel handling for opacity
 class WindowHostingView<Content: View>: NSHostingView<Content> {
+    var scrollHandler: ((NSEvent) -> Void)?
+
     override func scrollWheel(with event: NSEvent) {
         super.scrollWheel(with: event)
-
-        if SettingsService.shared.enabledPinned == .enabled {
-            withAnimation(Animation.easeOut) {
-                if WindowService.shared.state == .revealed {
-                    if event.deltaY < 0, WindowService.shared.opacity > 0.4 {
-                        WindowService.shared.opacity += (event.deltaY / 100)
-                    } else if event.deltaY > 0, WindowService.shared.opacity < 1.0 {
-                        WindowService.shared.opacity += (event.deltaY / 100)
-                    }
-                }
-            }
-        }
+        scrollHandler?(event)
     }
 }
 
-/// Service for managing HUD windows.
-/// MainActor isolated for Swift 6.2 strict concurrency compliance.
-/// Alert threshold logic has been moved to ServiceCoordinator.
 @Observable
 @MainActor
 final class WindowService: WindowServiceProtocol {
@@ -79,33 +75,28 @@ final class WindowService: WindowServiceProtocol {
     var position: WindowPosition = .topMiddle
     var opacity: CGFloat = 1.0
 
-    // MARK: - Alert State (local tracking to avoid AppManager dependency)
+    // MARK: - Alert State
 
-    /// Current alert type being displayed
     private(set) var currentAlert: HUDAlertTypes?
+    var currentDevice: BluetoothObject?
 
-    /// Current device for Bluetooth alerts
-    private(set) var currentDevice: BluetoothObject?
+    // MARK: - Dependencies
+
+    private let settings: any SettingsServiceProtocol
+    private let environmentProvider: @MainActor () -> AppEnvironment
 
     // MARK: - Private Properties
 
     private var triggered: Int = 0
-    // Note: nonisolated(unsafe) is justified for properties accessed in deinit per SE-0371
     nonisolated(unsafe) private var globalMouseMonitor: Any?
     nonisolated(unsafe) private var dismissalTask: Task<Void, Never>?
     nonisolated(unsafe) private var stateTransitionTask: Task<Void, Never>?
     nonisolated(unsafe) private var debounceDeferralTask: Task<Void, Never>?
+    nonisolated(unsafe) private var mouseEventTask: Task<Void, Never>?
 
-    // Mouse event debouncing
     private var lastMouseEventTime: Date = .distantPast
-    private let mouseEventDebounceInterval: TimeInterval = 0.1
-
-    /// Grace period tracking: ignore clicks shortly after opening
     private var lastOpenedTime: Date = .distantPast
-
-    // State change debouncing
     private var lastStateChangeTime: Date = .distantPast
-    private let stateChangeDebounceInterval: TimeInterval = 0.15
 
     private var screen: CGSize {
         if let activeScreen = NSScreen.screens.first(where: {
@@ -138,6 +129,7 @@ final class WindowService: WindowServiceProtocol {
         dismissalTask?.cancel()
         stateTransitionTask?.cancel()
         debounceDeferralTask?.cancel()
+        mouseEventTask?.cancel()
     }
 
     func handleWake() {
@@ -156,7 +148,12 @@ final class WindowService: WindowServiceProtocol {
 
     // MARK: - Initialization
 
-    init() {
+    init(
+        settings: any SettingsServiceProtocol = SettingsService.shared,
+        environment: @MainActor @escaping () -> AppEnvironment = { AppEnvironment.shared }
+    ) {
+        self.settings = settings
+        self.environmentProvider = environment
         setupMouseMonitor()
         position = windowLastPosition
     }
@@ -168,6 +165,7 @@ final class WindowService: WindowServiceProtocol {
         dismissalTask?.cancel()
         stateTransitionTask?.cancel()
         debounceDeferralTask?.cancel()
+        mouseEventTask?.cancel()
     }
 
     // MARK: - Private Methods
@@ -177,21 +175,17 @@ final class WindowService: WindowServiceProtocol {
             .leftMouseUp,
             .rightMouseUp,
         ]) { [weak self] _ in
-            Task { [weak self] in
+            self?.mouseEventTask?.cancel()
+            self?.mouseEventTask = Task { [weak self] in
                 guard let self else { return }
 
-                // Grace period: ignore clicks within 0.5s of the window opening
-                // (prevents the same click that opens the window from immediately closing it)
                 let now = Date()
-                guard now.timeIntervalSince(self.lastOpenedTime) > 0.5 else { return }
+                guard now.timeIntervalSince(self.lastOpenedTime) > Constants.Timers.clickGracePeriod else { return }
 
-                // Debounce mouse events
-                guard now.timeIntervalSince(self.lastMouseEventTime) > self.mouseEventDebounceInterval else { return }
+                guard now.timeIntervalSince(self.lastMouseEventTime) > Constants.Timers.mouseEventDebounce
+                else { return }
                 self.lastMouseEventTime = now
 
-                // Check whether the click landed inside the HUD window.
-                // For a menu-bar/.accessory app, NSRunningApplication.current is never
-                // the system frontmost application, so we use a frame hit-test instead.
                 let mouseLocation = NSEvent.mouseLocation
                 let clickedInsideHUD = NSApplication.shared.windows
                     .first(where: { $0.title == Constants.Window.modalWindowTitle })
@@ -202,7 +196,7 @@ final class WindowService: WindowServiceProtocol {
                         self.windowSetState(.detailed)
                     }
                 } else {
-                    if SettingsService.shared.enabledPinned == .disabled {
+                    if self.settings.pinned == .disabled {
                         if self.state.visible == true {
                             self.windowSetState(.dismissed)
                         }
@@ -215,28 +209,26 @@ final class WindowService: WindowServiceProtocol {
     }
 
     private func handleStateChange(_ state: HUDState) {
-        // Cancel any pending state transition tasks
         stateTransitionTask?.cancel()
 
         if state == .dismissed {
-            // Cancel any pending dismissal when manually dismissed
             dismissalTask?.cancel()
             dismissalTask = nil
 
             stateTransitionTask = Task {
-                try? await Task.sleep(for: .seconds(0.8))
+                try? await Task.sleep(for: .seconds(Constants.Timers.hudDismissDelay))
                 guard !Task.isCancelled else { return }
                 windowClose()
             }
         } else if state == .progress {
             stateTransitionTask = Task { [weak self] in
-                try? await Task.sleep(for: .seconds(0.2))
+                try? await Task.sleep(for: .seconds(Constants.Timers.hudProgressDelay))
                 guard let self, !Task.isCancelled else { return }
                 windowSetState(.revealed)
             }
         } else if state == .revealed {
             stateTransitionTask = Task { [weak self] in
-                try? await Task.sleep(for: .seconds(1))
+                try? await Task.sleep(for: .seconds(Constants.Timers.hudRevealDelay))
                 guard let self, !Task.isCancelled else { return }
                 windowSetState(.detailed)
             }
@@ -247,9 +239,11 @@ final class WindowService: WindowServiceProtocol {
     private func scheduleDismissal() {
         dismissalTask?.cancel()
 
-        guard SettingsService.shared.pinned != .enabled else { return }
+        guard self.settings.pinned != .enabled else { return }
 
-        let timeout: Duration = currentAlert?.timeout == true ? .seconds(5) : .seconds(10)
+        let timeout: Duration = currentAlert?.timeout == true
+            ? .seconds(Constants.Timers.hudTimeoutShort)
+            : .seconds(Constants.Timers.hudTimeoutLong)
 
         dismissalTask = Task { [weak self] in
             do {
@@ -262,12 +256,12 @@ final class WindowService: WindowServiceProtocol {
 
     func windowSetState(_ state: HUDState, animated: Bool = true) {
         let now = Date()
-        if now.timeIntervalSince(lastStateChangeTime) > stateChangeDebounceInterval {
+        if now.timeIntervalSince(lastStateChangeTime) > Constants.Timers.stateChangeDebounce {
             applyStateChange(state, animated: animated)
         } else {
             debounceDeferralTask?.cancel()
             debounceDeferralTask = Task { [weak self] in
-                try? await Task.sleep(for: .seconds(self?.stateChangeDebounceInterval ?? 0.15))
+                try? await Task.sleep(for: .seconds(Constants.Timers.stateChangeDebounce))
                 guard let self, !Task.isCancelled else { return }
                 self.applyStateChange(state, animated: animated)
             }
@@ -291,7 +285,6 @@ final class WindowService: WindowServiceProtocol {
     }
 
     func windowOpen(_ type: HUDAlertTypes, device: BluetoothObject?) {
-        // Cancel any pending dismissal from a previous alert
         dismissalTask?.cancel()
         dismissalTask = nil
 
@@ -300,7 +293,21 @@ final class WindowService: WindowServiceProtocol {
             return
         }
 
-        window.contentView = WindowHostingView(rootView: HUDParent(type, device: device))
+        let rootView = HUDParent(type, device: device).environment(self.environmentProvider())
+        let hostingView = WindowHostingView(rootView: rootView)
+        hostingView.scrollHandler = { [weak self] event in
+            guard let self, self.settings.pinned == .enabled else { return }
+            withAnimation(Animation.easeOut) {
+                if self.state == .revealed {
+                    if event.deltaY < 0, self.opacity > Constants.Timers.scrollOpacityMin {
+                        self.opacity += (event.deltaY / Constants.Timers.scrollOpacityDivisor)
+                    } else if event.deltaY > 0, self.opacity < Constants.Timers.scrollOpacityMax {
+                        self.opacity += (event.deltaY / Constants.Timers.scrollOpacityDivisor)
+                    }
+                }
+            }
+        }
+        window.contentView = hostingView
         window.makeKeyAndOrderFront(nil)
         window.alphaValue = 1.0
 
@@ -310,18 +317,8 @@ final class WindowService: WindowServiceProtocol {
             }
         }
 
-        // Update menu to devices if Bluetooth devices are connected
-        if !BluetoothService.shared.connected.isEmpty {
-            ServiceContainer.shared.state.currentMenu = .devices
-        }
-
-        // Update local state
         currentDevice = device
         currentAlert = type
-
-        // Update AppState for views
-        ServiceContainer.shared.state.selectedDevice = device
-        ServiceContainer.shared.state.currentAlert = type
 
         lastOpenedTime = Date()
         windowSetState(.progress)
@@ -330,13 +327,8 @@ final class WindowService: WindowServiceProtocol {
     private func windowClose() {
         if let window = NSApplication.shared.windows.first(where: { $0.title == Constants.Window.modalWindowTitle }) {
             if currentAlert != nil {
-                // Clear local state
                 currentAlert = nil
                 currentDevice = nil
-
-                // Clear AppState
-                ServiceContainer.shared.state.currentAlert = nil
-                ServiceContainer.shared.state.selectedDevice = nil
 
                 state = .hidden
 
@@ -346,24 +338,19 @@ final class WindowService: WindowServiceProtocol {
     }
 
     private func windowDefault(_: HUDAlertTypes) -> NSWindow? {
-        var window: NSWindow?
-        window = KeyableWindow()
-        window?.styleMask = [.borderless, .miniaturizable]
-        window?.level = .statusBar
-        window?.contentView?.translatesAutoresizingMaskIntoConstraints = false
-        window?.center()
-        window?.title = Constants.Window.modalWindowTitle
-        window?.isMovableByWindowBackground = true
-        window?.backgroundColor = .clear
-        window?.setFrame(windowHandleFrame(), display: true)
-        window?.titlebarAppearsTransparent = true
-        window?.titleVisibility = .hidden
-        window?.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        window?.toolbarStyle = .unifiedCompact
-        window?.isReleasedWhenClosed = false
-        window?.alphaValue = 0.0
-
-        return window
+        let frame = windowHandleFrame()
+        let panel = HUDPanel(contentRect: frame)
+        panel.contentView?.translatesAutoresizingMaskIntoConstraints = false
+        panel.title = Constants.Window.modalWindowTitle
+        panel.isMovableByWindowBackground = true
+        panel.backgroundColor = .clear
+        panel.setFrame(frame, display: true)
+        panel.titlebarAppearsTransparent = true
+        panel.titleVisibility = .hidden
+        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        panel.isReleasedWhenClosed = false
+        panel.alphaValue = 0.0
+        return panel
     }
 
     private func windowExists(_ type: HUDAlertTypes) -> NSWindow? {

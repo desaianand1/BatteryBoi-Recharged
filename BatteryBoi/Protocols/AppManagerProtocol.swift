@@ -9,7 +9,7 @@ import Foundation
 
 /// Protocol defining the app manager interface.
 /// Enables dependency injection and testability for app lifecycle management.
-/// Note: device/alert state has moved to AppState. Menu remains here for view compatibility.
+/// Note: device/alert state lives on WindowService. Menu remains here for view compatibility.
 @MainActor
 protocol AppManagerProtocol: AnyObject {
 

@@ -11,12 +11,7 @@ final class AppManager: AppManagerProtocol {
     /// App counter for tracking uptime (seconds since app launch)
     var counter = 0
 
-    /// Current menu view state (synced with AppState for view compatibility)
-    var menu: SystemMenuView = .settings {
-        didSet {
-            ServiceContainer.shared.state.currentMenu = menu
-        }
-    }
+    var menu: SystemMenuView = .settings
 
     /// Task for the uptime counter (nonisolated for deinit access per SE-0371)
     nonisolated(unsafe) private var counterTask: Task<Void, Never>?

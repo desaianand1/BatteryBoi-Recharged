@@ -7,88 +7,61 @@
 
 import Foundation
 
-// MARK: - Sound Effects
+// MARK: - Settings Toggle Protocol
 
-enum SettingsSoundEffects: String {
-    case enabled
-    case disabled
+protocol SettingsToggle: RawRepresentable where RawValue == String {
+    static var enabledIcon: String { get }
+    static var disabledIcon: String { get }
+}
 
+extension SettingsToggle {
     var subtitle: String {
-        switch self {
-        case .enabled: "SettingsEnabledLabel".localise()
-        default: "SettingsDisabledLabel".localise()
-        }
+        rawValue == "enabled" ? "SettingsEnabledLabel".localise() : "SettingsDisabledLabel".localise()
     }
 
     var icon: String {
-        switch self {
-        case .enabled: "AudioIcon"
-        default: "MuteIcon"
-        }
+        rawValue == "enabled" ? Self.enabledIcon : Self.disabledIcon
     }
+}
+
+// MARK: - Sound Effects
+
+enum SettingsSoundEffects: String, SettingsToggle {
+    case enabled
+    case disabled
+
+    static let enabledIcon = "AudioIcon"
+    static let disabledIcon = "MuteIcon"
 }
 
 // MARK: - Pinned Mode
 
-enum SettingsPinned: String {
+enum SettingsPinned: String, SettingsToggle {
     case enabled
     case disabled
 
-    var subtitle: String {
-        switch self {
-        case .enabled: "SettingsEnabledLabel".localise()
-        default: "SettingsDisabledLabel".localise()
-        }
-    }
-
-    var icon: String {
-        switch self {
-        case .enabled: "AudioIcon"
-        default: "MuteIcon"
-        }
-    }
+    static let enabledIcon = "AudioIcon"
+    static let disabledIcon = "MuteIcon"
 }
 
 // MARK: - Charge Notification
 
-enum SettingsCharged: String {
+enum SettingsCharged: String, SettingsToggle {
     case enabled
     case disabled
 
-    var subtitle: String {
-        switch self {
-        case .enabled: "SettingsEnabledLabel".localise()
-        default: "SettingsDisabledLabel".localise()
-        }
-    }
-
-    var icon: String {
-        switch self {
-        case .enabled: "AudioIcon"
-        default: "MuteIcon"
-        }
-    }
+    static let enabledIcon = "AudioIcon"
+    static let disabledIcon = "MuteIcon"
 }
 
 // MARK: - Beta Mode
 
-enum SettingsBeta: String {
+enum SettingsBeta: String, SettingsToggle {
     case enabled
     case disabled
 
-    var subtitle: String {
-        switch self {
-        case .enabled: "SettingsEnabledLabel".localise()
-        default: "SettingsDisabledLabel".localise()
-        }
-    }
-
-    var icon: String {
-        switch self {
-        case .enabled: "AudioIcon"
-        default: "MuteIcon"
-        }
-    }
+    static let enabledIcon = "AudioIcon"
+    static let disabledIcon = "MuteIcon"
 }
 
 // MARK: - Display Type
@@ -141,7 +114,7 @@ struct SettingsActionObject: Hashable {
         case .appPinned: title = "SettingsPinnedLabel".localise()
         case .customiseTheme: title = "SettingsThemeLabel".localise()
         case .customiseDisplay: title = "SettingsDisplayLabel".localise()
-        case .customiseNotifications: title = "SettingsDisplayPercentLabel".localise()
+        case .customiseNotifications: title = "SettingsNotificationsLabel".localise()
         case .customiseSoundEffects: title = "SettingsSoundEffectsLabel".localise()
         case .customiseCharge: title = "SettingsEightyLabel".localise()
         }

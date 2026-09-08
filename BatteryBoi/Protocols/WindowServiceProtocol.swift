@@ -27,6 +27,12 @@ protocol WindowServiceProtocol: AnyObject {
     /// Current window opacity
     var opacity: CGFloat { get set }
 
+    /// Current alert type being displayed
+    var currentAlert: HUDAlertTypes? { get }
+
+    /// Current device for Bluetooth alerts
+    var currentDevice: BluetoothObject? { get set }
+
     // MARK: - Methods
 
     /// Set the HUD state with optional animation

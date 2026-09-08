@@ -11,6 +11,7 @@ import Foundation
 #if DEBUG
 
     /// Mock battery service for unit testing.
+    @Observable
     @MainActor
     final class MockBatteryService: BatteryServiceProtocol {
 
@@ -65,6 +66,10 @@ import Foundation
         }
 
         func hourWattage() -> Double? {
+            nil
+        }
+
+        func fetchHourWattage() async -> Double? {
             nil
         }
 

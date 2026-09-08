@@ -9,7 +9,7 @@ enum BatteryAnimationType {
 }
 
 public struct BatteryPulsatingIcon: View {
-    @Environment(\.appEnvironment) private var env
+    @Environment(AppEnvironment.self) private var env
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var manager: any BatteryServiceProtocol {
@@ -102,13 +102,13 @@ public struct BatteryMask: Shape {
 }
 
 private struct BatteryStatus: View {
-    @Environment(\.appEnvironment) private var env
+    @Environment(AppEnvironment.self) private var env
 
     private var manager: any BatteryServiceProtocol {
         env.battery
     }
 
-    private var stats: StatsService {
+    private var stats: any StatsServiceProtocol {
         env.stats
     }
 
@@ -211,7 +211,7 @@ private struct BatteryStub: View {
 }
 
 struct BatteryIcon: View {
-    @Environment(\.appEnvironment) private var env
+    @Environment(AppEnvironment.self) private var env
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var manager: any BatteryServiceProtocol {
@@ -307,7 +307,7 @@ struct BatteryIcon: View {
 }
 
 struct BatteryContainer: View {
-    @Environment(\.appEnvironment) private var env
+    @Environment(AppEnvironment.self) private var env
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var manager: any BatteryServiceProtocol {
@@ -318,7 +318,7 @@ struct BatteryContainer: View {
         env.update
     }
 
-    private var stats: StatsService {
+    private var stats: any StatsServiceProtocol {
         env.stats
     }
 

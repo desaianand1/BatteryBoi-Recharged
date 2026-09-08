@@ -9,8 +9,7 @@ import Foundation
 
 /// Protocol defining the statistics service interface.
 /// Enables dependency injection and testability for stats functionality.
-/// Note: The actual StatsService is an actor, but this protocol is used
-/// for MainActor-isolated views and mocks.
+/// MainActor-isolated for reactive UI updates.
 @MainActor
 protocol StatsServiceProtocol: AnyObject {
 

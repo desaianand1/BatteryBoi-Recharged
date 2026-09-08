@@ -28,8 +28,9 @@ final class EventService: EventServiceProtocol {
     /// Thread-safe per Apple documentation, marked nonisolated for Swift 6.1 compatibility
     nonisolated(unsafe) private let eventStore = EKEventStore()
 
-    /// Timer task for periodic authorization checks (nonisolated(unsafe) for deinit access per SE-0371)
     nonisolated(unsafe) private var timerTask: Task<Void, Never>?
+    nonisolated(unsafe) private var initialCheckTask: Task<Void, Never>?
+    nonisolated(unsafe) private var authorizationTask: Task<Void, Never>?
 
     // MARK: - Initialization
 
@@ -39,6 +40,8 @@ final class EventService: EventServiceProtocol {
 
     deinit {
         timerTask?.cancel()
+        initialCheckTask?.cancel()
+        authorizationTask?.cancel()
     }
 
     // MARK: - Public Methods
@@ -51,16 +54,15 @@ final class EventService: EventServiceProtocol {
     // MARK: - Private Methods
 
     private func startMonitoring() {
-        // Initial check after delay
-        Task { [weak self] in
-            try? await Task.sleep(for: .seconds(10.0))
-            self?.eventAuthorizeStatus()
+        initialCheckTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(Constants.Timers.eventInitialDelay))
+            guard let self, !Task.isCancelled else { return }
+            self.eventAuthorizeStatus()
         }
 
-        // Periodic check every 30 minutes (1800 seconds)
         timerTask = Task { [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(1800))
+                try? await Task.sleep(for: .seconds(Constants.Timers.eventRefresh))
                 guard let self, !Task.isCancelled else { break }
                 eventAuthorizeStatus()
             }
@@ -72,8 +74,7 @@ final class EventService: EventServiceProtocol {
 
         switch status {
         case .notDetermined:
-            // Use async API to avoid callback isolation violations
-            Task { @MainActor [weak self] in
+            authorizationTask = Task { @MainActor [weak self] in
                 guard let self else { return }
 
                 let granted: Bool = if #available(macOS 14.0, *) {

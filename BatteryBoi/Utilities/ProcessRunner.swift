@@ -42,39 +42,43 @@ actor ProcessRunner {
     }
 
     private func executeProcess(executable: String, arguments: [String]) async throws -> String {
-        try await withCheckedThrowingContinuation { continuation in
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: executable)
-            process.arguments = arguments
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: executable)
+        process.arguments = arguments
 
-            let pipe = Pipe()
-            process.standardOutput = pipe
-            process.standardError = pipe
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
 
-            do {
-                try process.run()
-            } catch {
-                continuation.resume(throwing: ProcessRunnerError.executionFailed(error.localizedDescription))
-                return
-            }
-
-            process.terminationHandler = { terminatedProcess in
-                let data = pipe.fileHandleForReading.readDataToEndOfFile()
-                let exitCode = terminatedProcess.terminationStatus
-
-                guard let output = String(data: data, encoding: .utf8) else {
-                    continuation.resume(throwing: ProcessRunnerError.invalidOutput)
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                do {
+                    try process.run()
+                } catch {
+                    continuation.resume(throwing: ProcessRunnerError.executionFailed(error.localizedDescription))
                     return
                 }
 
-                let trimmedOutput = output.trimmingCharacters(in: .whitespacesAndNewlines)
+                process.terminationHandler = { terminatedProcess in
+                    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+                    let exitCode = terminatedProcess.terminationStatus
 
-                if exitCode != 0 {
-                    continuation.resume(throwing: ProcessRunnerError.nonZeroExitCode(exitCode, trimmedOutput))
-                } else {
-                    continuation.resume(returning: trimmedOutput)
+                    guard let output = String(data: data, encoding: .utf8) else {
+                        continuation.resume(throwing: ProcessRunnerError.invalidOutput)
+                        return
+                    }
+
+                    let trimmedOutput = output.trimmingCharacters(in: .whitespacesAndNewlines)
+
+                    if exitCode != 0 {
+                        continuation.resume(throwing: ProcessRunnerError.nonZeroExitCode(exitCode, trimmedOutput))
+                    } else {
+                        continuation.resume(returning: trimmedOutput)
+                    }
                 }
             }
+        } onCancel: {
+            process.terminate()
         }
     }
 

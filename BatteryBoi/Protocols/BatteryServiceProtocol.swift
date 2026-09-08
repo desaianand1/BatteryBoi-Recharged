@@ -46,6 +46,9 @@ protocol BatteryServiceProtocol: AnyObject {
     /// Get estimated date until battery is full
     var untilFull: Date? { get }
 
-    /// Get watt-hour capacity
+    /// Get watt-hour capacity (sync, returns nil for mocks)
     func hourWattage() -> Double?
+
+    /// Get watt-hour capacity (async, reads from IOKit)
+    func fetchHourWattage() async -> Double?
 }

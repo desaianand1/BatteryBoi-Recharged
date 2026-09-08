@@ -31,11 +31,18 @@ final class SettingsService: SettingsServiceProtocol {
 
     // MARK: - Private Properties
 
-    /// Cached distribution type to avoid async call in computed property
     private let isDirectDistribution: Bool
 
-    /// Settings observation task (nonisolated(unsafe) for deinit access per SE-0371)
+    private let windowServiceProvider: @MainActor () -> any WindowServiceProtocol
+    private var windowService: any WindowServiceProtocol {
+        windowServiceProvider()
+    }
+
+    private let batteryService: any BatteryServiceProtocol
+    private let updateManager: UpdateManager
+
     nonisolated(unsafe) private var settingsTask: Task<Void, Never>?
+    nonisolated(unsafe) private var quitTask: Task<Void, Never>?
 
     // MARK: - SettingsServiceProtocol Computed Properties
 
@@ -71,8 +78,15 @@ final class SettingsService: SettingsServiceProtocol {
 
     // MARK: - Initialization
 
-    init() {
-        // Cache distribution type synchronously at init
+    init(
+        window: @MainActor @escaping () -> any WindowServiceProtocol = { WindowService.shared },
+        battery: any BatteryServiceProtocol = BatteryService.shared,
+        update: UpdateManager = UpdateManager.shared
+    ) {
+        self.windowServiceProvider = window
+        self.batteryService = battery
+        self.updateManager = update
+
         isDirectDistribution = !Self.isAppStoreDistribution()
 
         menu = settingsMenu
@@ -87,6 +101,7 @@ final class SettingsService: SettingsServiceProtocol {
 
     deinit {
         settingsTask?.cancel()
+        quitTask?.cancel()
     }
 
     // MARK: - SettingsServiceProtocol Methods
@@ -360,20 +375,21 @@ final class SettingsService: SettingsServiceProtocol {
                 NSWorkspace.shared.open(url)
             }
         } else if action.type == .appQuit {
-            WindowService.shared.state = .dismissed
+            windowService.setState(.dismissed, animated: false)
 
-            Task {
+            quitTask = Task { [weak self] in
                 try? await Task.sleep(for: .seconds(0.8))
-                NSApp.terminate(self)
+                guard self != nil, !Task.isCancelled else { return }
+                NSApp.terminate(nil)
             }
         } else if action.type == .appInstallUpdate {
-            if UpdateManager.shared.available != nil {
-                UpdateManager.shared.updateCheck()
+            if updateManager.available != nil {
+                updateManager.updateCheck()
             }
         } else if action.type == .appUpdateCheck {
-            UpdateManager.shared.updateCheck()
+            updateManager.updateCheck()
         } else if action.type == .appEfficencyMode {
-            BatteryService.shared.powerSaveMode()
+            batteryService.togglePowerSaveMode()
         } else if action.type == .appBeta {} else if action.type == .appPinned {
             switch enabledPinned {
             case .enabled: enabledPinned = .disabled

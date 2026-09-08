@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct AboutContainer: View {
-    @Environment(\.appEnvironment) private var env
+    @Environment(AppEnvironment.self) private var env
 
     private var updates: UpdateManager {
         env.update

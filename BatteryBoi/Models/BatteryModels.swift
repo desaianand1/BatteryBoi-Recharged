@@ -25,27 +25,25 @@ enum BatteryCondition: String {
 
 // MARK: - Cycle Count
 
-struct BatteryCycleObject {
+struct BatteryCycleObject: Equatable {
     var numerical: Int
     var formatted: String
 
     init(_ count: Int) {
+        let count = max(0, count)
         numerical = count
 
         if count > 999 {
-            let divisor = pow(10.0, Double(1))
-            let string = ((Double(count) / 1000.0) * divisor).rounded() / divisor
-
-            formatted = "\(string)k"
+            formatted = String(format: "%.1fk", Double(count) / 1000.0)
         } else {
-            formatted = "\(Int(count))"
+            formatted = "\(count)"
         }
     }
 }
 
 // MARK: - Battery Metrics
 
-struct BatteryMetricsObject {
+struct BatteryMetricsObject: Equatable {
     var cycles: BatteryCycleObject
     var health: BatteryCondition
 
@@ -96,7 +94,7 @@ enum BatteryChargingState {
         let adjustedWidth = width - padding
 
         if self == .charging {
-            return min(100 * adjustedWidth, adjustedWidth)
+            return adjustedWidth
         } else {
             if percent > 0, percent < minDisplay {
                 return min(CGFloat(minDisplay / 100) * adjustedWidth, adjustedWidth)
@@ -139,37 +137,25 @@ struct BatteryRemaining: Equatable {
     var formatted: String?
 
     init(hour: Int, minute: Int) {
-        hours = hour
-        minutes = minute
-        date = Date(timeIntervalSinceNow: 60 * 2)
+        self.hours = hour
+        self.minutes = minute
+        self.date = Date(timeIntervalSinceNow: TimeInterval(hour * 3600 + minute * 60))
 
-        var components = DateComponents()
-        components.hour = hour
-        components.minute = minute
-
-        if let date = Calendar.current.date(byAdding: components, to: Date()) {
-            let units = Calendar.current.dateComponents([.minute, .hour], from: Date(), to: date)
-
-            if let hours = units.hour, let minutes = units.minute {
-                if hours == 0, minutes == 0 {
-                    formatted = "AlertDeviceCalculatingTitle".localise()
-                } else if hours != 0, minutes != 0 {
-                    formatted = "\("TimestampHourFullLabel".localise([hours]))  \("TimestampMinuteFullLabel".localise([minutes]))"
-                } else if hours == 0 {
-                    formatted = "TimestampMinuteFullLabel".localise([minutes])
-                } else if minute == 0 {
-                    formatted = "TimestampHourFullLabel".localise([hour])
-                }
-            }
-
-            self.date = date
+        if hour == 0, minute == 0 {
+            formatted = "AlertDeviceCalculatingTitle".localise()
+        } else if hour > 0, minute > 0 {
+            formatted = "\("TimestampHourFullLabel".localise([hour]))  \("TimestampMinuteFullLabel".localise([minute]))"
+        } else if hour == 0 {
+            formatted = "TimestampMinuteFullLabel".localise([minute])
+        } else {
+            formatted = "TimestampHourFullLabel".localise([hour])
         }
     }
 }
 
 // MARK: - Battery Estimate
 
-struct BatteryEstimateObject {
+struct BatteryEstimateObject: Equatable {
     var timestamp: Date
     var percent: Double
 

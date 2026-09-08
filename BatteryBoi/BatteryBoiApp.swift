@@ -199,13 +199,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     var hosting: NSHostingView<AnyView>!
 
     private func createHostingView() {
-        hosting = NSHostingView(rootView: AnyView(MenuContainer().withAppEnvironment()))
+        hosting = NSHostingView(rootView: AnyView(MenuContainer().environment(AppEnvironment.shared)))
     }
 
     private var globalMouseMonitor: Any?
     private var windowMoveObserver: NSObjectProtocol?
     private var displayObserverTask: Task<Void, Never>?
     private var wakeRefreshTask: Task<Void, Never>?
+    private var startTask: Task<Void, Never>?
+    private var delayedInitTask: Task<Void, Never>?
 
     func applicationDidFinishLaunching(_: Notification) {
         // Initialize Sentry FIRST for crash reporting
@@ -252,9 +254,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             }
         #endif
 
-        // Start ServiceContainer to begin state observation
-        Task { @MainActor in
-            await ServiceContainer.shared.start()
+        startTask = Task { @MainActor in
+            AppEnvironment.shared.start()
         }
 
         // Create hosting view with environment injected
@@ -274,7 +275,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             window.close()
         }
 
-        Task { @MainActor [weak self] in
+        delayedInitTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .milliseconds(800))
             guard let self else { return }
 
@@ -342,6 +343,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         ) { [weak self] notification in
             guard let window = notification.object as? NSWindow,
                   window.title == Constants.Window.modalWindowTitle else { return }
+            // Ephemeral MainActor hop for notification callback — completes synchronously
             Task { @MainActor [weak self] in
                 self?.applicationFocusDidMove(window: window)
             }
@@ -403,7 +405,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     func applicationHandleURLEvent(event _: NSAppleEventDescriptor, reply _: NSAppleEventDescriptor) {}
 
     private func openOnboardingWindow() {
-        let onboardingView = OnboardingView().withAppEnvironment()
+        let onboardingView = OnboardingView().environment(AppEnvironment.shared)
         let hostingController = NSHostingController(rootView: onboardingView)
 
         let window = NSWindow(contentViewController: hostingController)
@@ -450,14 +452,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             WindowService.shared.handleWake()
             BatteryService.shared.forceRefresh()
             BluetoothService.shared.forceRefresh()
-            await ServiceContainer.shared.coordinator.handleWake()
+            AppEnvironment.shared.coordinator.handleWake()
         }
     }
 
     @objc
     private func applicationDidSleepNotification(_: Notification) {
         WindowService.shared.handleSleep()
-        ServiceContainer.shared.coordinator.handleSleep()
+        AppEnvironment.shared.coordinator.handleSleep()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool {
@@ -465,7 +467,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     }
 
     func applicationWillTerminate(_: Notification) {
-        ServiceContainer.shared.coordinator.stopObserving()
+        AppEnvironment.shared.coordinator.stopObserving()
 
         // Remove global mouse monitor
         if let monitor = globalMouseMonitor {
@@ -479,6 +481,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             windowMoveObserver = nil
         }
 
+        startTask?.cancel()
+        delayedInitTask?.cancel()
         displayObserverTask?.cancel()
         wakeRefreshTask?.cancel()
         NSWorkspace.shared.notificationCenter.removeObserver(self)

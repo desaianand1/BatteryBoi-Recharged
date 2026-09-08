@@ -11,6 +11,7 @@ import Foundation
 #if DEBUG
 
     /// Mock event service for unit testing.
+    @Observable
     @MainActor
     final class MockEventService: EventServiceProtocol {
 
@@ -24,7 +25,7 @@ import Foundation
 
         // MARK: - Initialization
 
-        nonisolated init(events: [EventObject] = []) {
+        init(events: [EventObject] = []) {
             self.events = events
         }
 

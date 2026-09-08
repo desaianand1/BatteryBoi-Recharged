@@ -11,6 +11,7 @@ import Foundation
 #if DEBUG
 
     /// Mock Bluetooth service for unit testing.
+    @Observable
     @MainActor
     final class MockBluetoothService: BluetoothServiceProtocol {
 
@@ -30,7 +31,7 @@ import Foundation
 
         // MARK: - Initialization
 
-        nonisolated init(
+        init(
             list: [BluetoothObject] = [],
             connected: [BluetoothObject] = [],
             icons: [String] = [],

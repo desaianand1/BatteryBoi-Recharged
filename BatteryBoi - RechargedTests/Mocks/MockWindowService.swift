@@ -12,6 +12,7 @@ import Foundation
 #if DEBUG
 
     /// Mock window service for unit testing.
+    @Observable
     @MainActor
     final class MockWindowService: WindowServiceProtocol {
 
@@ -36,10 +37,11 @@ import Foundation
         var lastIsVisibleType: HUDAlertTypes?
         var lastOpenType: HUDAlertTypes?
         var lastOpenDevice: BluetoothObject?
+        var openHistory: [HUDAlertTypes] = []
 
         // MARK: - Initialization
 
-        nonisolated init(
+        init(
             hover: Bool = false,
             state: HUDState = .hidden,
             position: WindowPosition = .topMiddle,
@@ -68,8 +70,11 @@ import Foundation
 
         func open(_ type: HUDAlertTypes, device: BluetoothObject?) {
             openCallCount += 1
+            openHistory.append(type)
             lastOpenType = type
             lastOpenDevice = device
+            currentAlert = type
+            currentDevice = device
             state = .revealed
         }
 
@@ -89,11 +94,13 @@ import Foundation
             handleWakeCallCount += 1
             state = .hidden
             currentAlert = nil
+            openHistory.removeAll()
         }
 
         // MARK: - Alert Tracking
 
         var currentAlert: HUDAlertTypes?
+        var currentDevice: BluetoothObject?
 
         // MARK: - Test Simulation
 

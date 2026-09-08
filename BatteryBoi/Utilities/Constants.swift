@@ -5,26 +5,51 @@ import Foundation
 enum Constants {
     /// Timer intervals used throughout the app.
     enum Timers {
-        /// Bluetooth device scan interval in seconds.
+
+        // MARK: - Service Polling
+
         static let bluetoothScan: TimeInterval = 15
-
-        /// Battery status check interval in seconds.
-        static let batteryStatus: TimeInterval = 5
-
-        /// Battery remaining time check interval in seconds.
         static let batteryRemaining: TimeInterval = 30
-
-        /// Battery metrics check interval in seconds (cycle count, health).
         static let metricsCheck: TimeInterval = 300
-
-        /// Thermal state check interval in seconds.
         static let thermalCheck: TimeInterval = 90
-
-        /// HUD auto-dismissal interval in seconds.
-        static let hudDismissal: TimeInterval = 10
-
-        /// Charging state debounce interval in seconds.
         static let chargingDebounce: TimeInterval = 2
+
+        // MARK: - Safety-Net & Periodic Checks
+
+        static let safetyNetPoll: TimeInterval = 30
+        static let bluetoothBatteryCheck: TimeInterval = 60
+        static let eventCheck: TimeInterval = 30
+
+        // MARK: - StatsService
+
+        static let wattageRecord: TimeInterval = 3600
+
+        // MARK: - EventService
+
+        static let eventInitialDelay: TimeInterval = 10
+        static let eventRefresh: TimeInterval = 1800
+
+        // MARK: - BatteryService
+
+        static let forceRefreshDelay: TimeInterval = 1
+        static let forceRefreshSecondary: TimeInterval = 4
+
+        // MARK: - HUD Window State Transitions
+
+        static let hudDismissDelay: Double = 0.8
+        static let hudProgressDelay: Double = 0.2
+        static let hudRevealDelay: Double = 1.0
+        static let hudTimeoutShort: Double = 5
+        static let hudTimeoutLong: Double = 10
+        static let stateChangeDebounce: Double = 0.15
+        static let mouseEventDebounce: Double = 0.1
+        static let clickGracePeriod: Double = 0.5
+
+        // MARK: - Scroll Opacity
+
+        static let scrollOpacityMin: CGFloat = 0.4
+        static let scrollOpacityMax: CGFloat = 1.0
+        static let scrollOpacityDivisor: CGFloat = 100
     }
 
     /// Battery-related thresholds.
@@ -34,6 +59,14 @@ enum Constants {
 
         /// Default charge limit percentage for "charge to 80%" feature.
         static let chargeLimit: Int = 80
+
+        /// Bluetooth battery must rise above this level to re-arm alerts (10-point gap above highest alert).
+        static let bluetoothResetThreshold: Double = 35
+    }
+
+    /// Battery service constants.
+    enum Battery {
+        static let depletionRateHistorySize: Int = 15
     }
 
     /// Animation durations.
@@ -97,6 +130,9 @@ enum Constants {
 
         /// RSSI threshold for "near" distance (same room).
         static let rssiNearThreshold: Double = -70
+
+        /// RSSI floor — values above this are noise/invalid.
+        static let rssiMinimumThreshold: Double = -20
 
         /// Time interval before pruning disconnected devices from the list.
         static let staleDeviceTimeout: TimeInterval = 300

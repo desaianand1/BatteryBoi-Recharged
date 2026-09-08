@@ -11,6 +11,7 @@ import Foundation
 #if DEBUG
 
     /// Mock settings service for unit testing.
+    @Observable
     @MainActor
     final class MockSettingsService: SettingsServiceProtocol {
 
@@ -40,7 +41,7 @@ import Foundation
 
         // MARK: - Initialization
 
-        nonisolated init(
+        init(
             menu: [SettingsActionObject] = [],
             display: SettingsDisplayType = .percent,
             sfx: SettingsSoundEffects = .enabled,

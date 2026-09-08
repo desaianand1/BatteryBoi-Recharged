@@ -1,8 +1,7 @@
 import SwiftUI
 
 struct NavigationContainer: View {
-    @Environment(\.appEnvironment) private var env
-    @Environment(\.serviceContainer) private var container
+    @Environment(AppEnvironment.self) private var env
 
     private var manager: AppManager {
         env.app
@@ -48,7 +47,7 @@ struct NavigationContainer: View {
                             }
 
                             if self.manager.menu == .devices {
-                                if self.container.state.selectedDevice != nil {
+                                if self.env.window.currentDevice != nil {
                                     BluetoothItem(nil, hover: self.$hover)
 
                                 }

@@ -40,11 +40,9 @@ final class BluetoothService: BluetoothServiceProtocol {
     /// Scan timer task (nonisolated(unsafe) for deinit access per SE-0371)
     nonisolated(unsafe) private var scanTimerTask: Task<Void, Never>?
 
-    /// Device observer task (nonisolated(unsafe) for deinit access per SE-0371)
-    nonisolated(unsafe) private var deviceObserverTask: Task<Void, Never>?
-
-    /// Update debounce task (nonisolated(unsafe) for deinit access per SE-0371)
     nonisolated(unsafe) private var bluetoothUpdateDebounceTask: Task<Void, Never>?
+    nonisolated(unsafe) private var initialScanTask: Task<Void, Never>?
+    nonisolated(unsafe) private var forceRefreshTask: Task<Void, Never>?
 
     // MARK: - BluetoothServiceProtocol Methods
 
@@ -57,9 +55,10 @@ final class BluetoothService: BluetoothServiceProtocol {
     }
 
     func forceRefresh() {
-        Task {
-            await bluetoothListNative()
-            checkBluetoothPermission()
+        forceRefreshTask = Task { [weak self] in
+            guard let self else { return }
+            await self.bluetoothListNative()
+            self.checkBluetoothPermission()
         }
     }
 
@@ -70,15 +69,9 @@ final class BluetoothService: BluetoothServiceProtocol {
         startMonitoring()
         checkBluetoothPermission()
 
-        // Initial scan using native IOKit
-        Task {
-            await bluetoothListNative(initialize: true)
-
-            // Update menu state based on connected devices
-            switch list.filter({ $0.connected == .connected }).count {
-            case 0: ServiceContainer.shared.state.currentMenu = .settings
-            default: ServiceContainer.shared.state.currentMenu = .devices
-            }
+        initialScanTask = Task { [weak self] in
+            guard let self else { return }
+            await self.bluetoothListNative(initialize: true)
         }
     }
 
@@ -86,8 +79,9 @@ final class BluetoothService: BluetoothServiceProtocol {
         // Note: bridge cleanup is handled by BluetoothBridge's own deinit
         // since calling MainActor-isolated methods from deinit is not allowed
         scanTimerTask?.cancel()
-        deviceObserverTask?.cancel()
         bluetoothUpdateDebounceTask?.cancel()
+        initialScanTask?.cancel()
+        forceRefreshTask?.cancel()
     }
 
     // MARK: - Private Methods
@@ -103,32 +97,14 @@ final class BluetoothService: BluetoothServiceProtocol {
     }
 
     private func startMonitoring() {
-        // Scan for Bluetooth devices every 15 seconds using native IOKit
         scanTimerTask = Task { [weak self] in
             var skipFirst = true
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(15))
+                try? await Task.sleep(for: .seconds(Constants.Timers.bluetoothScan))
                 guard let self, !Task.isCancelled else { break }
                 if skipFirst { skipFirst = false; continue }
 
                 await bluetoothListNative()
-            }
-        }
-
-        // Observe device selection changes to auto-connect
-        deviceObserverTask = Task { [weak self] in
-            var previousDevice: BluetoothObject?
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(200))
-                guard let self, !Task.isCancelled else { break }
-
-                let currentDevice = ServiceContainer.shared.state.selectedDevice
-                if let device = currentDevice, device.address != previousDevice?.address {
-                    if device.connected == .disconnected {
-                        _ = bluetoothUpdateConnection(device, state: .connected)
-                    }
-                }
-                previousDevice = currentDevice
             }
         }
     }

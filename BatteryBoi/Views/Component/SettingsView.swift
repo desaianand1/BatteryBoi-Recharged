@@ -20,7 +20,7 @@ struct QuitKeyboardShortcutModifier: ViewModifier {
 }
 
 struct SettingsItem: View {
-    @Environment(\.appEnvironment) private var env
+    @Environment(AppEnvironment.self) private var env
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var manager: AppManager {
@@ -212,7 +212,7 @@ struct SettingsItem: View {
 }
 
 struct SettingsOverlayItem: View {
-    @Environment(\.appEnvironment) private var env
+    @Environment(AppEnvironment.self) private var env
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var bluetooth: any BluetoothServiceProtocol {
