@@ -60,8 +60,7 @@ final class AppManager: AppManagerProtocol {
     }
 
     func appUsageTracker() {
-        var calendar = Calendar.current
-        calendar.timeZone = TimeZone(identifier: "America/Los_Angeles") ?? .current
+        let calendar = Calendar.current
 
         if let latest = appUsage {
             let last = calendar.dateComponents([.year, .month, .day], from: latest.timestamp)
@@ -106,14 +105,14 @@ final class AppManager: AppManagerProtocol {
 
     }
 
-    var appIdentifyer: String {
-        if let id = UserDefaults.main.object(forKey: SystemDefaultsKeys.versionIdenfiyer.rawValue) as? String {
+    var appIdentifier: String {
+        if let id = UserDefaults.main.object(forKey: SystemDefaultsKeys.versionIdentifier.rawValue) as? String {
             return id
 
         } else {
             let id = "\(Locale.current.region?.identifier.uppercased() ?? "US")-\(UUID().uuidString)"
 
-            UserDefaults.save(.versionIdenfiyer, value: id)
+            UserDefaults.save(.versionIdentifier, value: id)
 
             return id
 

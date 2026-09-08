@@ -321,4 +321,21 @@ final class StatsServiceTests: XCTestCase {
             XCTAssertGreaterThanOrEqual(tier.gradientColors.count, 2, "\(tier) should have at least 2 gradient stops")
         }
     }
+
+    // MARK: - SettingsStateValue Localization Tests
+
+    @MainActor
+    func testAllSettingsStateValuesHaveNonEmptyTitle() {
+        let cases: [SettingsStateValue] = [.enabled, .disabled, .undetermined, .restricted]
+        for value in cases {
+            XCTAssertFalse(value.title.isEmpty, "\(value) should have a non-empty title")
+        }
+    }
+
+    @MainActor
+    func testSettingsStateValuesHaveUniqueTitle() {
+        let cases: [SettingsStateValue] = [.enabled, .disabled, .undetermined, .restricted]
+        let titles = cases.map(\.title)
+        XCTAssertEqual(titles.count, Set(titles).count, "All SettingsStateValue titles should be unique")
+    }
 }

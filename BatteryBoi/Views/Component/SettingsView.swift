@@ -97,7 +97,7 @@ struct SettingsItem: View {
         )
         .buttonStyle(HoverButtonStyle())
         .onAppear {
-            if item.type == .appEfficencyMode {
+            if item.type == .appEfficiencyMode {
                 color = battery.saver == .efficient ? "BatteryEfficient" : nil
                 subtitle = battery.saver == .efficient ? "SettingsEnabledLabel".localise() : "SettingsDisabledLabel"
                     .localise()
@@ -127,14 +127,14 @@ struct SettingsItem: View {
         .onChange(of: battery.saver) { _, newSaver in
             if let animation = changeAnimation {
                 withAnimation(animation) {
-                    if item.type == .appEfficencyMode {
+                    if item.type == .appEfficiencyMode {
                         color = newSaver == .efficient ? "BatteryEfficient" : nil
                         subtitle = newSaver == .efficient ? "SettingsEnabledLabel".localise() : "SettingsDisabledLabel"
                             .localise()
                     }
                 }
             } else {
-                if item.type == .appEfficencyMode {
+                if item.type == .appEfficiencyMode {
                     color = newSaver == .efficient ? "BatteryEfficient" : nil
                     subtitle = newSaver == .efficient ? "SettingsEnabledLabel".localise() : "SettingsDisabledLabel"
                         .localise()
@@ -233,9 +233,15 @@ struct SettingsOverlayItem: View {
 
     private var accessibilityLabel: String {
         switch item {
-        case .appQuit: "Quit application"
-        case .appDevices: manager.menu == .settings ? "Show devices" : "Show settings"
-        default: "Toggle menu"
+        case .appQuit:
+            return "AccessibilityQuitApplication".localise()
+        case .appDevices:
+            if manager.menu == .settings {
+                return "AccessibilityShowDevices".localise()
+            }
+            return "AccessibilityShowSettings".localise()
+        default:
+            return "AccessibilityToggleMenu".localise()
         }
     }
 

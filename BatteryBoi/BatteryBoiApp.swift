@@ -137,7 +137,7 @@ enum SystemDefaultsKeys: String {
 
     case versionInstalled = "sd_version_installed"
     case versionCurrent = "sd_version_current"
-    case versionIdenfiyer = "sd_version_id"
+    case versionIdentifier = "sd_version_id"
 
     case usageDay = "sd_usage_days"
     case usageTimestamp = "sd_usage_date"
@@ -165,7 +165,7 @@ enum SystemDefaultsKeys: String {
         case .batteryWindowPosition: "Battery Window Position"
         case .versionInstalled: "Installed on"
         case .versionCurrent: "Active Version"
-        case .versionIdenfiyer: "App ID"
+        case .versionIdentifier: "App ID"
         case .usageDay: "sd_usage_days"
         case .usageTimestamp: "sd_usage_timestamp"
         case .profileChecked: "Profile Validated"

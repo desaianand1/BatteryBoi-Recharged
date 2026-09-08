@@ -94,16 +94,16 @@ struct BluetoothItem: View {
     private var batteryInfo: String {
         if let item {
             if item.connected == .disconnected {
-                return "Disconnected"
+                return "BluetoothNotConnectedLabel".localise()
             } else if let left = item.battery.left, let right = item.battery.right {
-                return "Left \(Int(left)) percent, Right \(Int(right)) percent"
+                return "BluetoothBatteryLeftRightAccessibility".localise([Int(left), Int(right)])
             } else if let percent = item.battery.percent {
-                return "\(Int(percent)) percent"
+                return "AlertSomePercentTitle".localise([Int(percent)])
             } else {
-                return "Battery level unavailable"
+                return "BluetoothInvalidLabel".localise()
             }
         }
-        return "\(Int(battery.percentage)) percent"
+        return "AlertSomePercentTitle".localise([Int(battery.percentage)])
     }
 
     var body: some View {
@@ -160,7 +160,7 @@ struct BluetoothItem: View {
                                 } else {
                                     // Show left/right battery for AirPods-style devices
                                     if let left = item.battery.left, let right = item.battery.right {
-                                        Text("L: \(Int(left))%  R: \(Int(right))%")
+                                        Text("BluetoothBatteryLeftRightDisplay".localise([Int(left), Int(right)]))
                                     } else if let percent = item.battery.percent {
                                         Text("AlertSomePercentTitle".localise([Int(percent)]))
                                     } else {

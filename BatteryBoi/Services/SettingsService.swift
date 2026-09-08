@@ -388,7 +388,7 @@ final class SettingsService: SettingsServiceProtocol {
             }
         } else if action.type == .appUpdateCheck {
             updateManager.updateCheck()
-        } else if action.type == .appEfficencyMode {
+        } else if action.type == .appEfficiencyMode {
             batteryService.togglePowerSaveMode()
         } else if action.type == .appBeta {} else if action.type == .appPinned {
             switch enabledPinned {

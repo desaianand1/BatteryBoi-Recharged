@@ -106,7 +106,7 @@ struct SettingsActionObject: Hashable {
         case .appQuit: title = "SettingsQuitLabel".localise()
         case .appDevices: title = "SettingsDevicesLabel".localise()
         case .appSettings: title = "SettingsSettingsLabel".localise()
-        case .appEfficencyMode: title = "SettingsEfficiencyLabel".localise()
+        case .appEfficiencyMode: title = "SettingsEfficiencyLabel".localise()
         case .appBeta: title = "SettingsPrereleasesLabel".localise()
         case .appRate: title = "SettingsRateLabel".localise()
         case .appUpdateCheck: title = "SettingsCheckUpdatesLabel".localise()
@@ -133,7 +133,7 @@ enum SettingsActionType {
     case appPinned
     case appUpdateCheck
     case appRate
-    case appEfficencyMode
+    case appEfficiencyMode
     case appInstallUpdate
     case appBeta
     case customiseSoundEffects
@@ -144,7 +144,7 @@ enum SettingsActionType {
 
     var icon: String {
         switch self {
-        case .appEfficencyMode: "leaf.fill"
+        case .appEfficiencyMode: "leaf.fill"
         case .appUpdateCheck: "arrow.triangle.2.circlepath"
         case .appInstallUpdate: "arrow.triangle.2.circlepath"
         case .appWebsite: "globe"
@@ -203,10 +203,10 @@ enum SettingsStateValue: String {
 
     var title: String {
         switch self {
-        case .enabled: "Enabled"
-        case .disabled: "Disabled"
-        case .undetermined: "Not Set"
-        case .restricted: "Restricted"
+        case .enabled: "SettingsStateEnabled".localise()
+        case .disabled: "SettingsStateDisabled".localise()
+        case .undetermined: "SettingsStateNotSet".localise()
+        case .restricted: "SettingsStateRestricted".localise()
         }
     }
 }

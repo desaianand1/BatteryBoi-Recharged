@@ -28,7 +28,7 @@ protocol AppManagerProtocol: AnyObject {
     var appInstalled: Date { get }
 
     /// Unique app identifier
-    var appIdentifyer: String { get }
+    var appIdentifier: String { get }
 
     // MARK: - Methods
 

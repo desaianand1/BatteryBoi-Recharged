@@ -152,3 +152,20 @@
 "OnboardingCompleteTitle" = "You're All Set!";
 "OnboardingCompleteSubtitle" = "BatteryBoi is now running in your menu bar";
 "OnboardingCompleteButton" = "Open BatteryBoi";
+
+
+// Accessibility
+"AccessibilityQuitApplication" = "Quit application";
+"AccessibilityShowDevices" = "Show devices";
+"AccessibilityShowSettings" = "Show settings";
+"AccessibilityToggleMenu" = "Toggle menu";
+
+// Bluetooth Display
+"BluetoothBatteryLeftRightDisplay" = "L: %d%%  R: %d%%";
+"BluetoothBatteryLeftRightAccessibility" = "Left %d percent, Right %d percent";
+
+// Settings State
+"SettingsStateEnabled" = "Enabled";
+"SettingsStateDisabled" = "Disabled";
+"SettingsStateNotSet" = "Not Set";
+"SettingsStateRestricted" = "Restricted";

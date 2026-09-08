@@ -22,7 +22,7 @@ import Foundation
         var menu: SystemMenuView
         var appDeviceType: SystemDeviceTypes
         var appInstalled: Date
-        var appIdentifyer: String
+        var appIdentifier: String
 
         // MARK: - Test Helpers
 
@@ -40,7 +40,7 @@ import Foundation
             menu: SystemMenuView = .devices,
             appDeviceType: SystemDeviceTypes = .macbookPro,
             appInstalled: Date = Date(),
-            appIdentifyer: String = "TEST-\(UUID().uuidString)"
+            appIdentifier: String = "TEST-\(UUID().uuidString)"
         ) {
             self.counter = counter
             self.device = device
@@ -48,7 +48,7 @@ import Foundation
             self.menu = menu
             self.appDeviceType = appDeviceType
             self.appInstalled = appInstalled
-            self.appIdentifyer = appIdentifyer
+            self.appIdentifier = appIdentifier
         }
 
         // MARK: - Methods

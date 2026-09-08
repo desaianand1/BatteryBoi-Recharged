@@ -107,3 +107,20 @@
 "SettingsDevicesLabel" = "デバイス";
 "SettingsSettingsLabel" = "設定";
 "TimestampMinuteDaysLabel_Single" = "%d日";
+
+
+// Accessibility
+"AccessibilityQuitApplication" = "Quit application";
+"AccessibilityShowDevices" = "Show devices";
+"AccessibilityShowSettings" = "Show settings";
+"AccessibilityToggleMenu" = "Toggle menu";
+
+// Bluetooth Display
+"BluetoothBatteryLeftRightDisplay" = "L: %d%%  R: %d%%";
+"BluetoothBatteryLeftRightAccessibility" = "Left %d percent, Right %d percent";
+
+// Settings State
+"SettingsStateEnabled" = "Enabled";
+"SettingsStateDisabled" = "Disabled";
+"SettingsStateNotSet" = "Not Set";
+"SettingsStateRestricted" = "Restricted";
