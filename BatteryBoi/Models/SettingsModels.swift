@@ -30,8 +30,8 @@ enum SettingsSoundEffects: String, SettingsToggle {
     case enabled
     case disabled
 
-    static let enabledIcon = "AudioIcon"
-    static let disabledIcon = "MuteIcon"
+    static let enabledIcon = "speaker.wave.2.fill"
+    static let disabledIcon = "speaker.slash.fill"
 }
 
 // MARK: - Pinned Mode
@@ -40,8 +40,8 @@ enum SettingsPinned: String, SettingsToggle {
     case enabled
     case disabled
 
-    static let enabledIcon = "AudioIcon"
-    static let disabledIcon = "MuteIcon"
+    static let enabledIcon = "pin.fill"
+    static let disabledIcon = "pin.slash"
 }
 
 // MARK: - Charge Notification
@@ -50,8 +50,8 @@ enum SettingsCharged: String, SettingsToggle {
     case enabled
     case disabled
 
-    static let enabledIcon = "AudioIcon"
-    static let disabledIcon = "MuteIcon"
+    static let enabledIcon = "bolt.fill"
+    static let disabledIcon = "bolt.slash"
 }
 
 // MARK: - Beta Mode
@@ -60,8 +60,8 @@ enum SettingsBeta: String, SettingsToggle {
     case enabled
     case disabled
 
-    static let enabledIcon = "AudioIcon"
-    static let disabledIcon = "MuteIcon"
+    static let enabledIcon = "flask.fill"
+    static let disabledIcon = "flask"
 }
 
 // MARK: - Display Type
@@ -85,11 +85,11 @@ enum SettingsDisplayType: String {
 
     var icon: String {
         switch self {
-        case .countdown: "TimeIcon"
-        case .percent: "PercentIcon"
-        case .cycle: "CycleIcon"
-        case .empty: "EmptyIcon"
-        case .hidden: "EmptyIcon"
+        case .countdown: "clock.fill"
+        case .percent: "percent"
+        case .cycle: "arrow.triangle.2.circlepath"
+        case .empty: "rectangle.dashed"
+        case .hidden: "eye.slash"
         }
     }
 }
@@ -144,21 +144,21 @@ enum SettingsActionType {
 
     var icon: String {
         switch self {
-        case .appEfficencyMode: "EfficiencyIcon"
-        case .appUpdateCheck: "CycleIcon"
-        case .appInstallUpdate: "CycleIcon"
-        case .appWebsite: "WebsiteIcon"
-        case .appBeta: "WebsiteIcon"
-        case .appQuit: "WebsiteIcon"
-        case .appDevices: "WebsiteIcon"
-        case .appSettings: "WebsiteIcon"
-        case .appPinned: "WebsiteIcon"
-        case .appRate: "RateIcon"
-        case .customiseDisplay: "PercentIcon"
-        case .customiseTheme: "PercentIcon"
-        case .customiseNotifications: "PercentIcon"
-        case .customiseSoundEffects: "PercentIcon"
-        case .customiseCharge: "PercentIcon"
+        case .appEfficencyMode: "leaf.fill"
+        case .appUpdateCheck: "arrow.triangle.2.circlepath"
+        case .appInstallUpdate: "arrow.triangle.2.circlepath"
+        case .appWebsite: "globe"
+        case .appBeta: "flask.fill"
+        case .appQuit: "power"
+        case .appDevices: "rectangle.3.group"
+        case .appSettings: "gearshape.fill"
+        case .appPinned: "pin.fill"
+        case .appRate: "star.fill"
+        case .customiseDisplay: "percent"
+        case .customiseTheme: "paintbrush.fill"
+        case .customiseNotifications: "bell.fill"
+        case .customiseSoundEffects: "speaker.wave.2.fill"
+        case .customiseCharge: "bolt.fill"
         }
     }
 }

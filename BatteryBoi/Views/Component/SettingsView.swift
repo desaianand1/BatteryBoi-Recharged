@@ -59,7 +59,7 @@ struct SettingsItem: View {
             action: handleAction,
             label: {
                 HStack(alignment: .center) {
-                    Image(icon ?? item.type.icon)
+                    Image(systemName: icon ?? item.type.icon)
                         .font(Typography.icon)
                         .foregroundColor(color == nil ? Color("BatterySubtitle") : Color("BatteryEfficient"))
                         .frame(height: 36)
@@ -95,7 +95,7 @@ struct SettingsItem: View {
                 )
             }
         )
-        .buttonStyle(.plain)
+        .buttonStyle(HoverButtonStyle())
         .onAppear {
             if item.type == .appEfficencyMode {
                 color = battery.saver == .efficient ? "BatteryEfficient" : nil
@@ -196,13 +196,6 @@ struct SettingsItem: View {
             }
 
         }
-        .onHover { hover in
-            switch hover {
-            case true: NSCursor.pointingHand.push()
-            default: NSCursor.pop()
-            }
-
-        }
         .accessibilityLabel(item.title)
         .accessibilityValue(subtitle ?? "")
         .accessibilityHint("AccessibilityDoubleTapActivate".localise())
@@ -268,7 +261,7 @@ struct SettingsOverlayItem: View {
                     )
             }
         )
-        .buttonStyle(.plain)
+        .buttonStyle(HoverButtonStyle())
         .modifier(QuitKeyboardShortcutModifier(isQuitButton: item == .appQuit))
         .onAppear {
             index = 0
@@ -325,13 +318,6 @@ struct SettingsOverlayItem: View {
                     }
                 }
             }
-        }
-        .onHover { hover in
-            switch hover {
-            case true: NSCursor.pointingHand.push()
-            default: NSCursor.pop()
-            }
-
         }
         .accessibilityLabel(accessibilityLabel)
         .accessibilityHint("AccessibilityDoubleTapActivate".localise())

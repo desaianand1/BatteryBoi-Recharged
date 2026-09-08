@@ -6,40 +6,28 @@ struct HUDIcon: View {
     @Environment(AppEnvironment.self) private var env
 
     private var stats: any StatsServiceProtocol {
-        env.stats
+        self.env.stats
     }
 
     @Namespace private var animation
 
     var body: some View {
         VStack {
-            ZStack {
-                if stats.statsIcon.system == true {
-                    Image(systemName: stats.statsIcon.name)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit).matchedGeometryEffect(id: "icon", in: animation)
-
-                } else {
-                    Image(stats.statsIcon.name)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit).matchedGeometryEffect(id: "icon", in: animation)
-
-                }
-
-            }
-            .frame(width: 28, height: 28)
-            .foregroundColor(Color("BatterySubtitle"))
-            .offset(y: 1)
-
+            Image(systemName: self.stats.statsIcon.name)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .matchedGeometryEffect(id: "icon", in: self.animation)
+                .frame(width: 28, height: 28)
+                .foregroundColor(self.stats.statsIcon.color)
+                .applySymbolEffect(self.stats.statsIcon.effect)
+                .offset(y: 1)
         }
         .frame(width: 50, height: 50)
         .padding(.leading, 10)
         .padding(.trailing, 4)
         .background(Color.clear)
         .accessibilityHidden(true)
-
     }
-
 }
 
 struct HUDSummary: View {
@@ -84,8 +72,8 @@ struct HUDSummary: View {
             Spacer()
 
         }
-        .blur(radius: visible ? 0.0 : 4.0)
         .opacity(visible ? 1.0 : 0.0)
+        .blur(radius: (visible || window.state == .hidden) ? 0.0 : 4.0)
         .onAppear {
             title = stats.title
             subtitle = stats.subtitle
@@ -104,7 +92,9 @@ struct HUDSummary: View {
             if reduceMotion {
                 visible = newValue.visible
             } else {
-                withAnimation(Animation.easeOut(duration: 0.6).delay(visible == false ? 0.9 : 0.0)) {
+                withAnimation(Animation.easeOut(duration: 0.6)
+                    .delay(visible == false ? DesignAnimation.Delays.contentReveal : 0.0))
+                {
                     visible = newValue.visible
                 }
             }
@@ -162,14 +152,15 @@ struct HUDContainer: View {
                 Button(
                     action: { manager.appToggleMenu(true) },
                     label: {
-                        Image(systemName: manager.menu == .settings ? "rectangle.3.group" : "gearshape.fill")
+                        Image(systemName: self.manager.menu == .settings ? "rectangle.3.group" : "gearshape.fill")
+                            .applySymbolReplaceTransition()
                             .font(Typography.heading)
                             .foregroundColor(Color("BatterySubtitle"))
                             .frame(width: 32, height: 32)
                             .background(Circle().fill(Color("BatteryButton")))
                     }
                 )
-                .buttonStyle(.plain)
+                .buttonStyle(HoverButtonStyle())
                 .padding(.top, 8)
                 .padding(.trailing, 8)
                 .transition(.scale.combined(with: .opacity))
@@ -192,7 +183,7 @@ struct HUDContainer: View {
             }
 
             if newValue == .revealed {
-                withAnimation(Animation.easeOut.delay(0.75)) {
+                withAnimation(Animation.easeOut.delay(DesignAnimation.Delays.progressTrailing)) {
                     progress = .trailing
 
                 }

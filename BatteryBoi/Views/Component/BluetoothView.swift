@@ -7,57 +7,49 @@ struct BluetoothIcon: View {
     @State private var icon: String
     @State private var animation: Namespace.ID
 
-    @Binding private var style: RadialStyle
+    private let isSelected: Bool
 
     private var manager: AppManager {
-        env.app
+        self.env.app
     }
 
-    init(_ item: BluetoothObject?, style: Binding<RadialStyle>, animation: Namespace.ID) {
+    init(_ item: BluetoothObject?, isSelected: Bool, animation: Namespace.ID) {
         _item = State(initialValue: item)
-        _icon = State(initialValue: item?.type.icon ?? "laptopcomputer") // Default icon, will be updated in onAppear
+        _icon = State(initialValue: item?.type.icon ?? "laptopcomputer")
         _animation = State(initialValue: animation)
-
-        _style = style
-
+        self.isSelected = isSelected
     }
 
     var body: some View {
         HStack {
             ZStack {
-                if item == nil || item?.battery.percent != nil {
-                    RadialProgressMiniContainer(item, style: $style)
+                if self.item == nil || self.item?.battery.percent != nil {
+                    RadialProgressMiniContainer(self.item, isSelected: self.isSelected)
 
-                    Image(systemName: icon)
+                    Image(systemName: self.icon)
                         .font(Typography.bodyMedium)
-                        .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatterySubtitle"))
+                        .foregroundColor(self.isSelected ? Color("BatteryButton") : Color("BatterySubtitle"))
                         .padding(2)
                         .background(
                             Circle()
-                                .fill(style == .light ? Color("BatteryTitle") : Color("BatteryButton"))
+                                .fill(self.isSelected ? Color("BatteryTitle") : Color("BatteryButton"))
                                 .blur(radius: 2)
-
                         )
-                        .matchedGeometryEffect(id: icon, in: animation)
+                        .matchedGeometryEffect(id: self.icon, in: self.animation)
                         .offset(x: 12, y: 12)
 
                 } else {
-                    Image(systemName: icon)
+                    Image(systemName: self.icon)
                         .font(Typography.title)
-                        .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatterySubtitle"))
+                        .foregroundColor(self.isSelected ? Color("BatteryButton") : Color("BatterySubtitle"))
                         .padding(2)
-                        .matchedGeometryEffect(id: item?.type.icon ?? "laptopcomputer", in: animation)
-
+                        .matchedGeometryEffect(id: self.item?.type.icon ?? "laptopcomputer", in: self.animation)
                 }
-
             }
 
             Spacer().frame(width: 18)
-
         }
-
     }
-
 }
 
 struct BluetoothItem: View {
@@ -75,9 +67,10 @@ struct BluetoothItem: View {
     @Binding var hover: Bool
 
     @State var item: BluetoothObject?
-    @State var style: RadialStyle = .light
+    @State var isSelected: Bool = true
     @State private var isConnecting: Bool = false
     @State private var connectionError: BluetoothConnectionState?
+    @State private var connectionDotOpacity: Double = 1.0
 
     @Namespace private var animation
 
@@ -144,13 +137,13 @@ struct BluetoothItem: View {
             },
             label: {
                 HStack(alignment: .center) {
-                    BluetoothIcon(item, style: $style, animation: animation)
+                    BluetoothIcon(item, isSelected: self.isSelected, animation: self.animation)
 
                     VStack(alignment: .leading) {
                         if let item {
                             Text(item.device ?? item.type.type.rawValue)
                                 .font(Typography.headingLarge)
-                                .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatteryTitle"))
+                                .foregroundColor(self.isSelected ? Color("BatteryButton") : Color("BatteryTitle"))
                                 .lineLimit(1)
                                 .truncationMode(.tail)
                                 .padding(0)
@@ -175,11 +168,14 @@ struct BluetoothItem: View {
                                     }
                                 }
 
-                                // Connection status indicator (always visible)
                                 Circle()
-                                    .fill(isConnecting ? Color
-                                        .orange : (item.connected == .connected ? Color.green : Color.gray))
+                                    .fill(
+                                        self.isConnecting
+                                            ? Color.orange
+                                            : (item.connected == .connected ? Color.green : Color.gray)
+                                    )
                                     .frame(width: 6, height: 6)
+                                    .opacity(self.isConnecting ? self.connectionDotOpacity : 1.0)
                             }
                             .font(Typography.small)
                             .foregroundColor(Color("BatterySubtitle"))
@@ -187,7 +183,7 @@ struct BluetoothItem: View {
                         } else {
                             Text(manager.appDeviceType.name)
                                 .font(Typography.headingLarge)
-                                .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatteryTitle"))
+                                .foregroundColor(self.isSelected ? Color("BatteryButton") : Color("BatteryTitle"))
                                 .padding(0)
 
                             // Always show battery percentage for Mac device
@@ -205,40 +201,35 @@ struct BluetoothItem: View {
                 .padding(.trailing, 26)
                 .background(
                     RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
-                        .fill(style == .light ? Color("BatteryTitle") : Color("BatteryButton"))
+                        .fill(self.isSelected ? Color("BatteryTitle") : Color("BatteryButton"))
 
                 )
             }
         )
-        .buttonStyle(.plain)
-        .onHover { hover in
-            switch hover {
-            case true: NSCursor.pointingHand.push()
-            default: NSCursor.pop()
-            }
-
-        }
-        .onChange(of: env.window.currentDevice) { _, newValue in
-            if let animation = easeOutAnimation {
+        .buttonStyle(HoverButtonStyle())
+        .onChange(of: self.env.window.currentDevice) { _, newValue in
+            if let animation = self.easeOutAnimation {
                 withAnimation(animation) {
-                    style = newValue == item ? .light : .dark
+                    self.isSelected = newValue == self.item
                 }
             } else {
-                style = newValue == item ? .light : .dark
+                self.isSelected = newValue == self.item
             }
-
         }
         .onAppear {
-            if env.window.currentDevice == item {
-                style = .light
-
-            } else {
-                style = .dark
-
-            }
-
+            self.isSelected = self.env.window.currentDevice == self.item
         }
-        .accessibilityLabel(deviceName)
+        .onChange(of: self.isConnecting) { _, connecting in
+            if connecting, !self.reduceMotion {
+                self.connectionDotOpacity = 0.3
+                withAnimation(.easeInOut(duration: 0.4).repeatForever(autoreverses: true)) {
+                    self.connectionDotOpacity = 1.0
+                }
+            } else {
+                self.connectionDotOpacity = 1.0
+            }
+        }
+        .accessibilityLabel(self.deviceName)
         .accessibilityValue(batteryInfo)
         .accessibilityHint("AccessibilityDoubleTapSelect".localise())
         .accessibilityAddTraits(env.window.currentDevice == item ? .isSelected : [])

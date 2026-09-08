@@ -9,6 +9,7 @@
 import CoreData
 import Foundation
 import Logging
+import SwiftUI
 
 #if canImport(Sentry)
     import Sentry
@@ -373,13 +374,91 @@ final class StatsService: StatsServiceProtocol {
 
     var statsIcon: StatsIcon {
         if let device = self.window.currentDevice {
-            StatsIcon(name: device.type.icon, system: true)
-        } else {
-            switch self.window.currentAlert {
-            case .deviceOverheating: StatsIcon(name: "OverheatIcon", system: false)
-            case .userEvent: StatsIcon(name: "EventIcon", system: false)
-            default: StatsIcon(name: "ChargingIcon", system: false)
-            }
+            let tier = BatteryTier(percent: device.battery.percent ?? 100)
+            return StatsIcon(name: device.type.icon, color: tier.dotColor, effect: .none)
+        }
+
+        switch self.window.currentAlert {
+        case .chargingBegan:
+            return StatsIcon(
+                name: "bolt.fill",
+                color: BatteryTier.chargingBoltColor,
+                effect: .pulseByLayer
+            )
+        case .chargingComplete:
+            return StatsIcon(
+                name: "checkmark.circle.fill",
+                color: Color(red: 0.357, green: 1.0, blue: 0.878),
+                effect: .bounce
+            )
+        case .chargingStopped:
+            return StatsIcon(
+                name: "bolt.slash.fill",
+                color: Color(red: 1.0, green: 0.722, blue: 0.0),
+                effect: .none
+            )
+        case .percentOne:
+            return StatsIcon(
+                name: "battery.0percent",
+                color: Color(red: 1.0, green: 0.176, blue: 0.333),
+                effect: .pulseByLayer
+            )
+        case .percentFive:
+            return StatsIcon(
+                name: "battery.25percent",
+                color: Color(red: 1.0, green: 0.231, blue: 0.188),
+                effect: .pulse
+            )
+        case .percentTen:
+            return StatsIcon(
+                name: "battery.25percent",
+                color: Color(red: 1.0, green: 0.420, blue: 0.0),
+                effect: .none
+            )
+        case .percentTwentyFive:
+            return StatsIcon(
+                name: "battery.50percent",
+                color: Color(red: 1.0, green: 0.722, blue: 0.0),
+                effect: .none
+            )
+        case .deviceConnected:
+            return StatsIcon(
+                name: self.window.currentDevice?.type.icon ?? "antenna.radiowaves.left.and.right",
+                color: Color(red: 0.290, green: 0.871, blue: 0.502),
+                effect: .none
+            )
+        case .deviceRemoved:
+            return StatsIcon(
+                name: self.window.currentDevice?.type.icon ?? "antenna.radiowaves.left.and.right",
+                color: .gray,
+                effect: .none
+            )
+        case .deviceOverheating:
+            return StatsIcon(
+                name: "thermometer.sun.fill",
+                color: Color(red: 1.0, green: 0.176, blue: 0.333),
+                effect: .variableColor
+            )
+        case .userEvent:
+            return StatsIcon(
+                name: "calendar",
+                color: .gray,
+                effect: .none
+            )
+        case .userLaunched, .userInitiated, .none:
+            let tier = BatteryTier(percent: self.battery.percentage)
+            let iconName = self.batteryIconName(for: self.battery.percentage)
+            return StatsIcon(name: iconName, color: tier.dotColor, effect: .none)
+        }
+    }
+
+    private func batteryIconName(for percentage: Double) -> String {
+        switch percentage {
+        case ...10: "battery.0percent"
+        case 11 ... 35: "battery.25percent"
+        case 36 ... 65: "battery.50percent"
+        case 66 ... 90: "battery.75percent"
+        default: "battery.100percent"
         }
     }
 

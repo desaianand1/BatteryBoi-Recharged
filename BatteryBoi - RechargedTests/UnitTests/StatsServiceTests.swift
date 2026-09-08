@@ -6,6 +6,7 @@
 //
 
 @testable import BatteryBoi___Recharged
+import SwiftUI
 @preconcurrency import XCTest
 
 final class StatsServiceTests: XCTestCase {
@@ -164,25 +165,23 @@ final class StatsServiceTests: XCTestCase {
     }
 
     @MainActor
-    func testStatsIconSystemFlag() {
-        // Given a system icon
+    func testStatsIconWithEffect() {
         mockStatsService = MockStatsService(
-            statsIcon: StatsIcon(name: "battery.100", system: true)
+            statsIcon: StatsIcon(name: "bolt.fill", color: .green, effect: .pulseByLayer)
         )
 
-        // Then system flag should be true
-        XCTAssertTrue(mockStatsService.statsIcon.system)
+        XCTAssertEqual(mockStatsService.statsIcon.name, "bolt.fill")
+        XCTAssertEqual(mockStatsService.statsIcon.effect, .pulseByLayer)
     }
 
     @MainActor
-    func testStatsIconCustom() {
-        // Given a custom icon
+    func testStatsIconNoEffect() {
         mockStatsService = MockStatsService(
-            statsIcon: StatsIcon(name: "ChargingIcon", system: false)
+            statsIcon: StatsIcon(name: "battery.100percent", color: .gray, effect: .none)
         )
 
-        // Then system flag should be false
-        XCTAssertFalse(mockStatsService.statsIcon.system)
+        XCTAssertEqual(mockStatsService.statsIcon.name, "battery.100percent")
+        XCTAssertEqual(mockStatsService.statsIcon.effect, .none)
     }
 
     // MARK: - Display Simulation Tests
@@ -243,5 +242,83 @@ final class StatsServiceTests: XCTestCase {
 
         // Then subtitle should be empty string
         XCTAssertEqual(mockStatsService.subtitle, "")
+    }
+
+    // MARK: - StatsIcon Alert Type Tests
+
+    @MainActor
+    func testStatsIconReturnsCorrectIconForChargingBegan() {
+        mockStatsService = MockStatsService(
+            statsIcon: StatsIcon(
+                name: "bolt.fill",
+                color: BatteryTier.chargingBoltColor,
+                effect: .pulseByLayer
+            )
+        )
+
+        XCTAssertEqual(mockStatsService.statsIcon.name, "bolt.fill")
+        XCTAssertEqual(mockStatsService.statsIcon.color, BatteryTier.chargingBoltColor)
+        XCTAssertEqual(mockStatsService.statsIcon.effect, .pulseByLayer)
+    }
+
+    @MainActor
+    func testStatsIconReturnsCorrectIconForCriticalBattery() {
+        let criticalColor = Color(red: 1.0, green: 0.176, blue: 0.333)
+        mockStatsService = MockStatsService(
+            statsIcon: StatsIcon(name: "battery.0percent", color: criticalColor, effect: .pulseByLayer)
+        )
+
+        XCTAssertEqual(mockStatsService.statsIcon.name, "battery.0percent")
+        XCTAssertEqual(mockStatsService.statsIcon.effect, .pulseByLayer)
+    }
+
+    @MainActor
+    func testStatsIconReturnsCorrectIconForDeviceOverheating() {
+        mockStatsService = MockStatsService(
+            statsIcon: StatsIcon(
+                name: "thermometer.sun.fill",
+                color: Color(red: 1.0, green: 0.176, blue: 0.333),
+                effect: .variableColor
+            )
+        )
+
+        XCTAssertEqual(mockStatsService.statsIcon.name, "thermometer.sun.fill")
+        XCTAssertEqual(mockStatsService.statsIcon.effect, .variableColor)
+    }
+
+    @MainActor
+    func testStatsIconChangesWithAlertType() {
+        let chargingIcon = StatsIcon(name: "bolt.fill", color: .green, effect: .pulseByLayer)
+        let depletedIcon = StatsIcon(name: "battery.25percent", color: .orange, effect: .pulse)
+
+        mockStatsService.statsIcon = chargingIcon
+        XCTAssertEqual(mockStatsService.statsIcon.name, "bolt.fill")
+
+        mockStatsService.statsIcon = depletedIcon
+        XCTAssertEqual(mockStatsService.statsIcon.name, "battery.25percent")
+        XCTAssertNotEqual(mockStatsService.statsIcon.effect, chargingIcon.effect)
+    }
+
+    // MARK: - BatteryTier Tests
+
+    @MainActor
+    func testBatteryTierBoundaries() {
+        XCTAssertEqual(BatteryTier(percent: 0), .critical)
+        XCTAssertEqual(BatteryTier(percent: 15), .critical)
+        XCTAssertEqual(BatteryTier(percent: 16), .low)
+        XCTAssertEqual(BatteryTier(percent: 40), .low)
+        XCTAssertEqual(BatteryTier(percent: 41), .medium)
+        XCTAssertEqual(BatteryTier(percent: 70), .medium)
+        XCTAssertEqual(BatteryTier(percent: 71), .good)
+        XCTAssertEqual(BatteryTier(percent: 99), .good)
+        XCTAssertEqual(BatteryTier(percent: 100), .full)
+    }
+
+    @MainActor
+    func testBatteryTierGradientColorsNotEmpty() {
+        let tiers: [BatteryTier] = [.critical, .low, .medium, .good, .full]
+        for tier in tiers {
+            XCTAssertGreaterThanOrEqual(tier.gradientColors.count, 2, "\(tier) should have at least 2 gradient stops")
+        }
     }
 }

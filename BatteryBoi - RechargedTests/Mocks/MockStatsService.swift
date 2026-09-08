@@ -7,6 +7,7 @@
 
 @testable import BatteryBoi___Recharged
 import Foundation
+import SwiftUI
 
 #if DEBUG
 
@@ -35,7 +36,7 @@ import Foundation
             overlay: String? = nil,
             title: String = "Test Title",
             subtitle: String = "Test Subtitle",
-            statsIcon: StatsIcon = StatsIcon(name: "ChargingIcon", system: false)
+            statsIcon: StatsIcon = StatsIcon(name: "bolt.fill", color: .gray, effect: .none)
         ) {
             self.display = display
             self.overlay = overlay

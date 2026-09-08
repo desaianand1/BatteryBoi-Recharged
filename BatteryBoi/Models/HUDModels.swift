@@ -176,5 +176,6 @@ struct StatsDisplayObject {
 
 struct StatsIcon {
     var name: String
-    var system: Bool
+    var color: Color
+    var effect: HUDIconEffect
 }

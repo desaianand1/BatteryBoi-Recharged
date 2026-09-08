@@ -1,21 +1,4 @@
-import DynamicColor
 import SwiftUI
-
-enum RadialStyle {
-    case dark
-    case light
-    case colour
-
-    var background: Color {
-        switch self {
-        case .dark: Color("BatteryTitle")
-        case .light: Color("BatteryDefault")
-        case .colour: Color("BatteryProgressGreen")
-        }
-
-    }
-
-}
 
 struct RadialProgressBar: View {
     @Binding var progress: Double
@@ -25,188 +8,256 @@ struct RadialProgressBar: View {
     @State private var line: CGFloat
     @State private var position: Double = 0.0
 
-    @Binding var style: RadialStyle
+    private let percent: Double
+    private let isCharging: Bool
+    private let isMini: Bool
 
-    init(_ progress: Binding<Double>, size: CGSize, line: CGFloat = 10, style: Binding<RadialStyle>) {
+    @State private var glowOpacity: Double = 0.0
+    @State private var shimmerPhase: Double = 0.0
+    @State private var dotScale: CGFloat = 1.0
+    @State private var trackBreathOpacity: Double = 0.08
+    @State private var burstScale: CGFloat = 1.0
+    @State private var burstOpacity: Double = 0.0
+
+    init(
+        _ progress: Binding<Double>,
+        size: CGSize,
+        line: CGFloat = 10,
+        percent: Double,
+        isCharging: Bool,
+        isMini: Bool = false
+    ) {
         _progress = progress
         _size = State(initialValue: size)
         _line = State(initialValue: line)
+        self.percent = percent
+        self.isCharging = isCharging
+        self.isMini = isMini
+    }
 
-        _style = style
-
+    private var tier: BatteryTier {
+        BatteryTier(percent: self.percent)
     }
 
     private var progressAnimation: Animation? {
-        reduceMotion ? nil : Animation.easeOut(duration: 0.6)
+        self.reduceMotion ? nil : Animation.easeOut(duration: 0.6)
     }
 
     var body: some View {
         ZStack {
-            if style == .dark {
-                Circle()
-                    .trim(from: 0.0, to: CGFloat(position))
-                    .stroke(
-                        AngularGradient(
-                            gradient: Gradient(colors: [Color("BatteryTitle"), Color("BatteryTitle").opacity(0.96)]),
-                            center: .center
-                        ),
-                        style: StrokeStyle(lineWidth: line, lineCap: .round)
+            Circle()
+                .stroke(
+                    Color.white.opacity(self.isMini ? 0.08 : self.trackBreathOpacity),
+                    style: StrokeStyle(lineWidth: self.line, lineCap: .round)
+                )
 
+            Circle()
+                .trim(from: 0.0, to: CGFloat(self.position))
+                .stroke(
+                    AngularGradient(
+                        gradient: Gradient(colors: self.tier.gradientColors),
+                        center: .center
+                    ),
+                    style: StrokeStyle(lineWidth: self.line, lineCap: .round)
+                )
+                .rotationEffect(.degrees(-90))
+                .shadow(
+                    color: !self.isMini && (self.isCharging || self.percent >= 100)
+                        ? self.tier.dotColor.opacity(self.glowOpacity)
+                        : .clear,
+                    radius: 8
+                )
+
+            if !self.isMini, self.isCharging, self.percent < 100, !self.reduceMotion, self.position > 0 {
+                Circle()
+                    .trim(
+                        from: max(0, self.shimmerPhase * self.position - 0.04),
+                        to: min(self.position, self.shimmerPhase * self.position + 0.04)
+                    )
+                    .stroke(
+                        Color.white.opacity(0.2),
+                        style: StrokeStyle(lineWidth: self.line, lineCap: .round)
                     )
                     .rotationEffect(.degrees(-90))
-
-            } else if style == .light {
-                Circle()
-                    .trim(from: 0.0, to: CGFloat(position))
-                    .stroke(
-                        AngularGradient(
-                            gradient: Gradient(colors: [Color("BatteryButton"), Color("BatteryButton").opacity(0.96)]),
-                            center: .center
-                        ),
-                        style: StrokeStyle(lineWidth: line, lineCap: .round)
-
-                    )
-                    .rotationEffect(.degrees(-90))
-
-            } else {
-                Circle()
-                    .trim(from: 0.0, to: CGFloat(position))
-                    .stroke(
-                        AngularGradient(
-                            gradient: Gradient(colors: [Color("BatteryProgressGreen"), Color.green, Color.green]),
-                            center: .center
-                        ),
-                        style: StrokeStyle(lineWidth: line, lineCap: .round)
-                    )
-                    .rotationEffect(.degrees(-90))
-
             }
 
             Circle()
-                .fill(style.background)
-                .frame(width: line, height: line)
-                .rotationEffect(.degrees(Double(progress) * 360 - 90))
-                .offset(y: -(size.height / 2))
+                .fill(self.tier.dotColor)
+                .frame(width: self.line, height: self.line)
+                .scaleEffect(self.isMini ? 1.0 : self.dotScale)
+                .rotationEffect(.degrees(Double(self.position) * 360 - 90))
+                .offset(y: -(self.size.height / 2))
 
+            if !self.isMini, self.burstOpacity > 0 {
+                Circle()
+                    .fill(self.tier.dotColor)
+                    .frame(width: self.size.width, height: self.size.height)
+                    .scaleEffect(self.burstScale)
+                    .opacity(self.burstOpacity)
+            }
         }
-        .frame(width: size.width, height: size.height, alignment: .center)
+        .frame(width: self.size.width, height: self.size.height, alignment: .center)
+        .animation(.easeInOut(duration: 0.6), value: self.tier)
         .onAppear {
-            if let animation = progressAnimation {
+            if let animation = self.progressAnimation {
                 withAnimation(animation.delay(0.1)) {
-                    position = progress
+                    self.position = self.progress
                 }
             } else {
-                position = progress
+                self.position = self.progress
             }
-
+            self.startChargingAnimations()
         }
-        .onChange(of: progress) { _, newProgress in
-            if let animation = progressAnimation {
+        .onChange(of: self.progress) { _, newProgress in
+            if let animation = self.progressAnimation {
                 withAnimation(animation) {
-                    position = newProgress
+                    self.position = newProgress
                 }
             } else {
-                position = newProgress
+                self.position = newProgress
             }
-
+        }
+        .onChange(of: self.isCharging) { _, _ in
+            self.startChargingAnimations()
+        }
+        .onChange(of: self.percent) { oldPercent, newPercent in
+            if oldPercent < 100, newPercent >= 100, !self.isMini, !self.reduceMotion {
+                self.triggerFullBurst()
+            }
         }
         .accessibilityHidden(true)
-
     }
 
+    private func startChargingAnimations() {
+        guard !self.isMini else { return }
+
+        if self.isCharging, self.percent < 100 {
+            guard !self.reduceMotion else {
+                self.glowOpacity = 0.4
+                return
+            }
+            self.glowOpacity = 0.3
+            withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
+                self.glowOpacity = 0.5
+            }
+            self.shimmerPhase = 0.0
+            withAnimation(.linear(duration: 3.0).repeatForever(autoreverses: false)) {
+                self.shimmerPhase = 1.0
+            }
+            self.dotScale = 1.0
+            withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
+                self.dotScale = 1.3
+            }
+            self.trackBreathOpacity = 0.08
+            withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                self.trackBreathOpacity = 0.12
+            }
+        } else if self.percent >= 100 {
+            if self.reduceMotion {
+                self.glowOpacity = 0.4
+            } else {
+                withAnimation(.easeInOut(duration: 0.6)) {
+                    self.glowOpacity = 0.5
+                }
+            }
+            self.dotScale = 1.0
+            self.trackBreathOpacity = 0.08
+            self.shimmerPhase = 0.0
+        } else {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                self.glowOpacity = 0.0
+            }
+            self.dotScale = 1.0
+            self.trackBreathOpacity = 0.08
+            self.shimmerPhase = 0.0
+        }
+    }
+
+    private func triggerFullBurst() {
+        self.burstScale = 1.0
+        self.burstOpacity = 0.4
+        withAnimation(.easeOut(duration: 1.2)) {
+            self.burstScale = 1.15
+            self.burstOpacity = 0.0
+        }
+    }
 }
 
 struct RadialProgressMiniContainer: View {
     @Environment(AppEnvironment.self) private var env
 
-    private var manager: AppManager {
-        env.app
-    }
-
     private var bluetooth: any BluetoothServiceProtocol {
-        env.bluetooth
+        self.env.bluetooth
     }
 
     private var battery: any BatteryServiceProtocol {
-        env.battery
+        self.env.battery
     }
 
     @State private var device: BluetoothObject?
     @State private var progress: Double = 0.0
     @State private var percent: Int = 100
 
-    @Binding private var style: RadialStyle
+    private let isSelected: Bool
 
-    init(_ device: BluetoothObject?, style: Binding<RadialStyle>) {
+    init(_ device: BluetoothObject?, isSelected: Bool) {
         _device = State(initialValue: device)
-        _style = style
-
+        self.isSelected = isSelected
     }
 
     var body: some View {
         ZStack {
-            Circle().stroke(Color("BatterySubtitle").opacity(0.08), style: StrokeStyle(lineWidth: 4, lineCap: .round))
-
-            RadialProgressBar($progress, size: .init(width: 28, height: 28), line: 4, style: $style)
+            RadialProgressBar(
+                self.$progress,
+                size: .init(width: 28, height: 28),
+                line: 4,
+                percent: Double(self.percent),
+                isCharging: false,
+                isMini: true
+            )
 
             VStack {
-                Text("\(percent)")
-                    .foregroundColor(style == .light ? Color("BatteryButton") : Color("BatteryTitle"))
+                Text("\(self.percent)")
+                    .foregroundColor(self.isSelected ? Color("BatteryButton") : Color("BatteryTitle"))
                     .font(Typography.caption)
-
             }
-
         }
         .frame(width: 28, height: 28)
         .onAppear {
-            if let device {
+            if let device = self.device {
                 if let percent = device.battery.percent {
-                    progress = percent / 100
+                    self.progress = percent / 100
                     self.percent = Int(percent)
-
                 }
-
             } else {
-                percent = Int(battery.percentage)
-                progress = battery.percentage / 100
-
+                self.percent = Int(self.battery.percentage)
+                self.progress = self.battery.percentage / 100
             }
-
         }
-        .onChange(of: bluetooth.list.first(where: { $0.address == device?.address })) { _, device in
+        .onChange(of: self.bluetooth.list.first(where: { $0.address == self.device?.address })) { _, device in
             if let battery = device?.battery {
                 if let percent = battery.percent {
-                    progress = percent / 100
+                    self.progress = percent / 100
                     self.percent = Int(percent)
-
                 }
-
             } else {
-                percent = Int(battery.percentage)
-                progress = battery.percentage / 100
-
+                self.percent = Int(self.battery.percentage)
+                self.progress = self.battery.percentage / 100
             }
-
         }
-
     }
-
 }
 
 struct RadialProgressContainer: View {
     @Environment(AppEnvironment.self) private var env
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private var manager: AppManager {
-        env.app
-    }
-
     private var window: any WindowServiceProtocol {
-        env.window
+        self.env.window
     }
 
     private var battery: any BatteryServiceProtocol {
-        env.battery
+        self.env.battery
     }
 
     @State private var percent: Int?
@@ -215,107 +266,110 @@ struct RadialProgressContainer: View {
 
     init(_ animate: Bool) {
         _animate = State(initialValue: animate)
-
     }
 
     private var deviceChangeAnimation: Animation? {
-        reduceMotion ? nil : Animation.easeOut(duration: 0.4)
+        self.reduceMotion ? nil : Animation.easeOut(duration: 0.4)
+    }
+
+    private var currentPercent: Double {
+        Double(self.percent ?? 0)
+    }
+
+    private var isCharging: Bool {
+        self.env.window.currentDevice == nil && self.battery.charging.state == .charging
     }
 
     var body: some View {
         ZStack {
             Circle()
-                .stroke(Color("BatterySubtitle").opacity(0.08), style: StrokeStyle(lineWidth: 16, lineCap: .round))
+                .stroke(BatteryTier.trackColor, style: StrokeStyle(lineWidth: 16, lineCap: .round))
                 .padding(5)
 
-            RadialProgressBar($progress, size: .init(width: 80, height: 80), style: .constant(.colour))
+            RadialProgressBar(
+                self.$progress,
+                size: .init(width: 80, height: 80),
+                percent: self.currentPercent,
+                isCharging: self.isCharging
+            )
 
             ZStack(alignment: .center) {
-                Text("\(percent ?? 0)")
+                Text("\(self.percent ?? 0)")
                     .foregroundColor(Color("BatteryTitle"))
                     .font(Typography.progressLarge)
-                    .blur(radius: percent == nil ? 5.0 : 0.0)
-                    .opacity(percent == nil ? 0.0 : 1.0)
+                    .blur(radius: self.percent == nil ? 5.0 : 0.0)
+                    .opacity(self.percent == nil ? 0.0 : 1.0)
 
                 Text("AlertDeviceUnknownTitle".localise())
                     .foregroundColor(Color("BatteryTitle").opacity(0.4))
                     .font(Typography.heading)
-                    .blur(radius: percent == nil ? 0.0 : 5.0)
-                    .opacity(percent == nil ? 1.0 : 0.0)
-
+                    .blur(radius: self.percent == nil ? 0.0 : 5.0)
+                    .opacity(self.percent == nil ? 1.0 : 0.0)
             }
             .frame(width: 90)
-
         }
         .frame(width: 90, height: 90)
         .padding(10)
         .onAppear {
-            let animationDuration = (animate && !reduceMotion) ? 1.2 : 0.0
+            let animationDuration = (self.animate && !self.reduceMotion) ? 1.2 : 0.0
             if animationDuration > 0 {
                 withAnimation(Animation.easeOut(duration: animationDuration)) {
-                    updateProgress()
+                    self.updateProgress()
                 }
             } else {
-                updateProgress()
+                self.updateProgress()
             }
-
         }
-        .onChange(of: battery.percentage) { _, newPercentage in
-            if let devicePercent = env.window.currentDevice?.battery.percent {
-                progress = devicePercent / 100
-                percent = Int(devicePercent)
-
+        .onChange(of: self.battery.percentage) { _, newPercentage in
+            if let devicePercent = self.env.window.currentDevice?.battery.percent {
+                self.progress = devicePercent / 100
+                self.percent = Int(devicePercent)
             } else {
-                percent = Int(newPercentage)
-                progress = newPercentage / 100
-
+                self.percent = Int(newPercentage)
+                self.progress = newPercentage / 100
             }
-
         }
-        .onChange(of: env.window.currentDevice) { _, newDevice in
-            if let animation = deviceChangeAnimation {
+        .onChange(of: self.env.window.currentDevice) { _, newDevice in
+            if let animation = self.deviceChangeAnimation {
                 withAnimation(animation) {
-                    updateProgressForDevice(newDevice)
+                    self.updateProgressForDevice(newDevice)
                 }
             } else {
-                updateProgressForDevice(newDevice)
+                self.updateProgressForDevice(newDevice)
             }
-
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("AccessibilityBatteryProgress".localise())
-        .accessibilityValue(percent.map { "\($0) percent" } ?? "Not available")
-
+        .accessibilityValue(self.percent.map { "\($0) percent" } ?? "Not available")
     }
 
     private func updateProgress() {
-        if let device = env.window.currentDevice {
+        if let device = self.env.window.currentDevice {
             if let percent = device.battery.percent {
-                progress = percent / 100
+                self.progress = percent / 100
                 self.percent = Int(percent)
             } else {
-                progress = 0.0
-                percent = nil
+                self.progress = 0.0
+                self.percent = nil
             }
         } else {
-            progress = battery.percentage / 100
-            percent = Int(battery.percentage)
+            self.progress = self.battery.percentage / 100
+            self.percent = Int(self.battery.percentage)
         }
     }
 
     private func updateProgressForDevice(_ device: BluetoothObject?) {
         if let device {
             if let devicePercent = device.battery.percent {
-                progress = devicePercent / 100
-                percent = Int(devicePercent)
+                self.progress = devicePercent / 100
+                self.percent = Int(devicePercent)
             } else {
-                progress = 0.0
-                percent = nil
+                self.progress = 0.0
+                self.percent = nil
             }
         } else {
-            progress = battery.percentage / 100
-            percent = Int(battery.percentage)
+            self.progress = self.battery.percentage / 100
+            self.percent = Int(self.battery.percentage)
         }
     }
-
 }

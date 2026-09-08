@@ -99,7 +99,7 @@ enum Constants {
         static let lowBatteryMinDisplay: Double = 10.0
 
         /// Maximum display percentage for high battery (prevents visual overflow).
-        static let highBatteryMaxDisplay: Double = 90.0
+        static let highBatteryMaxDisplay: Double = 98.0
     }
 
     /// Window constants.
