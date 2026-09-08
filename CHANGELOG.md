@@ -1,3 +1,25 @@
+## [12.54.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.53.0...v12.54.0) (2026-09-08)
+
+### Features
+
+* **build:** add dev task for ad-hoc debug builds ([30d54ed](https://github.com/desaianand1/BatteryBoi-Recharged/commit/30d54edc43c7db7378f66f65c7d0b04b866f5a75))
+* **ui:** add visual polish with SF Symbols, tier gradients, and interaction feedback ([104ecb4](https://github.com/desaianand1/BatteryBoi-Recharged/commit/104ecb430afb4dcc77477f55943f8e63ac17fa31))
+
+### Bug Fixes
+
+* **a11y:** localize hardcoded strings and fix timezone and typos ([b27e352](https://github.com/desaianand1/BatteryBoi-Recharged/commit/b27e3529bc75ef98a07596e74b82efbf042a2182))
+* **app:** correct window lifecycle for menu bar app ([43b8c62](https://github.com/desaianand1/BatteryBoi-Recharged/commit/43b8c621e8dcf8e1ff2223dd4f4e3016735ec1e1))
+* **core:** correct polling interval, bluetooth updates, event selection, and debounce logic ([94e8a04](https://github.com/desaianand1/BatteryBoi-Recharged/commit/94e8a04cd4214ce1aa14eaf90a4dae0329293a61))
+* **hud:** remove duplicate mouse monitor and refactor window positioning ([5394388](https://github.com/desaianand1/BatteryBoi-Recharged/commit/53943880f60d123898859186284e559d8e4a5955))
+* **hud:** use frame hit-testing for click detection and add open grace period ([29bc5ad](https://github.com/desaianand1/BatteryBoi-Recharged/commit/29bc5ad3bbfc9a83e716907f5a4b4ab424ed9704))
+* **lifecycle:** add sleep/wake handlers and ordered shutdown ([c542699](https://github.com/desaianand1/BatteryBoi-Recharged/commit/c54269961db343aa36f3b996d582fbe551deb454))
+* **notifications:** raise bluetooth alert threshold and add locale formatting ([20c80ec](https://github.com/desaianand1/BatteryBoi-Recharged/commit/20c80ec39292f179b0cdf356ea3a0278828ecbe6))
+* **state:** fix init order race, stale charging debounce, sound suppression, and HUD transitions ([80eff41](https://github.com/desaianand1/BatteryBoi-Recharged/commit/80eff4130951c441384a862dc64d7837bdb38849))
+
+### Refactoring
+
+* **arch:** replace AppState and ServiceContainer with protocol-based DI and reactive observation ([e638276](https://github.com/desaianand1/BatteryBoi-Recharged/commit/e638276e97c477beaa88bff3bb2ff25cdd68e0cf))
+
 ## [12.53.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.52.0...v12.53.0) (2026-02-08)
 
 ### Features
