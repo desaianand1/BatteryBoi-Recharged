@@ -48,7 +48,7 @@ tasks:
       - task: lint:fix
 
   test:
-    desc: Run tests (no secrets required)
+    desc: Run tests
     cmds:
       - bundle exec fastlane test
 

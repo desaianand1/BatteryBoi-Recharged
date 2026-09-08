@@ -1,5 +1,15 @@
 default_platform(:mac)
 
+# Set the log level to only show warnings and errors
+ENV["FASTLANE_LOG_LEVEL"] = "warn"
+
+# Hide the long changelog/update check table at the start
+ENV["FASTLANE_HIDE_CHANGELOG"] = "true"
+
+# Disable ASCII animations and loading bars to keep logs clean
+ENV["FASTLANE_DISABLE_ANIMATION"] = "true"
+
+
 platform :mac do
   SCHEME = "BatteryBoi - Recharged"
   PROJECT = "BatteryBoi.xcodeproj"
