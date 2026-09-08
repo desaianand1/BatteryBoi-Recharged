@@ -133,7 +133,7 @@ public extension String {
         }
 
         if let params {
-            return String(format: output, arguments: params)
+            return String(format: output, locale: Locale.current, arguments: params)
 
         }
 

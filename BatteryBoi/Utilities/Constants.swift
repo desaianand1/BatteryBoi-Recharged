@@ -61,7 +61,7 @@ enum Constants {
         static let chargeLimit: Int = 80
 
         /// Bluetooth battery must rise above this level to re-arm alerts (10-point gap above highest alert).
-        static let bluetoothResetThreshold: Double = 35
+        static let bluetoothResetThreshold: Double = 50
     }
 
     /// Battery service constants.

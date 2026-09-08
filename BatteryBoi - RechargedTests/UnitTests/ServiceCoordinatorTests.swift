@@ -485,6 +485,36 @@ final class ServiceCoordinatorTests: XCTestCase {
         )
     }
 
+    // MARK: - Bluetooth Reset Threshold Tests
+
+    @MainActor
+    func testBluetoothResetThresholdIs50() {
+        XCTAssertEqual(
+            Constants.BatteryThresholds.bluetoothResetThreshold, 50,
+            "Bluetooth reset threshold should be 50 to provide 25-point hysteresis above highest BT alert (25%)"
+        )
+    }
+
+    @MainActor
+    func testBluetoothAlertCleansUpDisconnectedDevices() async {
+        let device = BluetoothObject.testDevice(
+            address: "BT:11:22:33:44:55",
+            name: "TestBuds",
+            batteryPercent: 20
+        )
+        mockBluetooth.simulateDeviceConnected(device)
+        coordinator.startObserving()
+        await waitForObservation()
+
+        mockBluetooth.simulateDeviceDisconnected(address: "BT:11:22:33:44:55")
+        try? await Task.sleep(for: .milliseconds(500))
+
+        XCTAssertTrue(
+            mockWindow.openHistory.contains(.deviceRemoved),
+            "Disconnecting a device should trigger removal alert"
+        )
+    }
+
     // MARK: - Event Suppression While Charging
 
     @MainActor
