@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  XCODE_VERSION: '16.3'
+  XCODE_VERSION: '26.2'
   NODE_VERSION: '24'
   SPARKLE_VERSION: '2.8.1'
   SCHEME: 'BatteryBoi - Recharged'
