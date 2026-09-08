@@ -108,6 +108,19 @@ The `task setup` command installs:
 - Pre-commit hooks (commit-msg)
 - Doppler authentication and project selection
 
+### Tool Versions
+
+CI uses pre-installed tools from the `macos-15` runner image. Expected versions are tracked as env vars in `ci.yml` for drift visibility:
+
+| Tool | Expected Version | Notes |
+|------|-----------------|-------|
+| Xcode | 26.2 (Swift 6.2) | Selected via `xcode-select`; path: `/Applications/Xcode_26.2.app` |
+| SwiftLint | 0.65.1 | Pre-installed on `macos-15`; `brew install` is a no-op if current |
+| SwiftFormat | 0.62.1 | Pre-installed on `macos-15`; local may be newer (OK if local passes, CI passes) |
+| Ruby | 3.3.x | Managed by `ruby/setup-ruby` action |
+
+**Upgrading:** When GitHub updates the runner image, check the [macos-15 Readme](https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md) for new tool versions, update the env vars in `ci.yml`, and verify `task ci` passes locally.
+
 ## Doppler Setup
 
 ### 1. Create the Doppler Project
@@ -438,13 +451,15 @@ The release lane validates: `APPLE_ID`, `APPLE_APP_PASSWORD`, `APPLE_TEAM_ID`. E
 
 ### Tests Fail in CI but Pass Locally
 
-**Cause:** Environment differences or timing issues
+**Cause:** Environment differences, Xcode/SDK version mismatch, or timing issues
 
 **Fix:**
 
 1. Check test output artifacts in GitHub Actions
-2. Run locally with same command: `task ci`
-3. Add `@MainActor` to test classes if needed
+2. Verify Xcode version in `ci.yml` matches your local Xcode (`xcodebuild -version`)
+3. Check CI logs for tool version drift (SwiftLint/SwiftFormat version lines)
+4. Run locally with same command: `task ci`
+5. Add `@MainActor` to test classes if needed
 
 ### Certificate Expired
 
@@ -529,5 +544,5 @@ gh release upload latest "fastlane/build/appcast.xml" --clobber
 
 ---
 
-**Last Updated:** 2026-09-07
+**Last Updated:** 2026-09-09
 **Maintainer:** @desaianand1
