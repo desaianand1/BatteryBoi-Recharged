@@ -14,8 +14,7 @@ struct HUDIcon: View {
     var body: some View {
         VStack {
             Image(systemName: self.stats.statsIcon.name)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
+                .resizable().scaledToFit()
                 .matchedGeometryEffect(id: "icon", in: self.animation)
                 .frame(width: 28, height: 28)
                 .foregroundColor(self.stats.statsIcon.color)

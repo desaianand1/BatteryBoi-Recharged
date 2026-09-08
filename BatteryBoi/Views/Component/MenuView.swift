@@ -30,8 +30,7 @@ public struct BatteryPulsatingIcon: View {
             .fill(Color("BatteryIconFill"))
             .mask(
                 Image(icon)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
+                    .resizable().scaledToFit()
 
             )
             .frame(width: 5, height: 8)

@@ -16,8 +16,7 @@ struct OnboardingWelcomeView: View {
 
             // App icon
             Image(nsImage: NSApp.applicationIconImage)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
+                .resizable().scaledToFit()
                 .frame(width: 80, height: 80)
                 .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
 

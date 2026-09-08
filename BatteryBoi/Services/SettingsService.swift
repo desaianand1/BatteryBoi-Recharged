@@ -247,8 +247,11 @@ final class SettingsService: SettingsServiceProtocol {
         }
 
         set {
-            if newValue == .dark { NSApp.appearance = NSAppearance(named: .darkAqua) }
-            else if newValue == .light { NSApp.appearance = NSAppearance(named: .aqua) } else {
+            if newValue == .dark {
+                NSApp.appearance = NSAppearance(named: .darkAqua)
+            } else if newValue == .light {
+                NSApp.appearance = NSAppearance(named: .aqua)
+            } else {
                 if (UserDefaults.standard.string(forKey: "AppleInterfaceStyle") ?? "Light") == "Light" {
                     NSApp.appearance = NSAppearance(named: .aqua)
                 } else {

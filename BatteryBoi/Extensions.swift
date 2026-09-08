@@ -261,11 +261,11 @@ extension UserDefaults {
     }
 
     static var main: UserDefaults {
-        UserDefaults.standard // Use standard singleton, not new instance!
+        standard // Use standard singleton, not new instance!
     }
 
     static var list: [SystemDefaultsKeys] {
-        UserDefaults.main.dictionaryRepresentation().keys.compactMap { SystemDefaultsKeys(rawValue: $0) }
+        main.dictionaryRepresentation().keys.compactMap { SystemDefaultsKeys(rawValue: $0) }
 
     }
 
@@ -301,7 +301,7 @@ extension UserDefaults {
     }
 
     static func timestamp(_ key: SystemDefaultsKeys) -> Date? {
-        if let timetamp = UserDefaults.main.object(forKey: "\(key.rawValue)_timestamp") as? Date {
+        if let timetamp = main.object(forKey: "\(key.rawValue)_timestamp") as? Date {
             return timetamp
         }
 

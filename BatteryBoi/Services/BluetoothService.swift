@@ -102,7 +102,9 @@ final class BluetoothService: BluetoothServiceProtocol {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(Constants.Timers.bluetoothScan))
                 guard let self, !Task.isCancelled else { break }
-                if skipFirst { skipFirst = false; continue }
+                if skipFirst {
+                    skipFirst = false; continue
+                }
 
                 await bluetoothListNative()
             }

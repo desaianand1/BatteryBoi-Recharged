@@ -24,6 +24,7 @@
 --disable modifierOrder
 --disable trailingCommas
 --disable redundantSelf
+--disable redundantStaticSelf
 
 # Self - insert for Swift 6 concurrency safety in closures
 --self insert
