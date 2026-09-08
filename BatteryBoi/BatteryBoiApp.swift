@@ -202,7 +202,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         hosting = NSHostingView(rootView: AnyView(MenuContainer().environment(AppEnvironment.shared)))
     }
 
-    private var globalMouseMonitor: Any?
     private var windowMoveObserver: NSObjectProtocol?
     private var displayObserverTask: Task<Void, Never>?
     private var wakeRefreshTask: Task<Void, Never>?
@@ -424,23 +423,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
     func applicationFocusDidMove(window: NSWindow) {
         if window.title == Constants.Window.modalWindowTitle {
-            // Only add monitor if not already added
-            if globalMouseMonitor == nil {
-                globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseUp]) { [weak self] _ in
-                    guard self != nil else { return }
-                    window.animator().alphaValue = 1.0
-                    window.animator().setFrame(
-                        WindowService.shared.calculateFrame(moved: nil),
-                        display: true,
-                        animate: true
-                    )
-                }
-            }
-
             _ = WindowService.shared.calculateFrame(moved: window.frame)
-
         }
-
     }
 
     @objc
@@ -468,12 +452,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
     func applicationWillTerminate(_: Notification) {
         AppEnvironment.shared.coordinator.stopObserving()
-
-        // Remove global mouse monitor
-        if let monitor = globalMouseMonitor {
-            NSEvent.removeMonitor(monitor)
-            globalMouseMonitor = nil
-        }
 
         // Remove notification observers
         if let observer = windowMoveObserver {

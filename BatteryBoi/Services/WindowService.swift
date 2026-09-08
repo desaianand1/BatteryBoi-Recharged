@@ -87,7 +87,7 @@ final class WindowService: WindowServiceProtocol {
 
     // MARK: - Private Properties
 
-    private var triggered: Int = 0
+    private var userHasMoved: Bool = false
     nonisolated(unsafe) private var globalMouseMonitor: Any?
     nonisolated(unsafe) private var dismissalTask: Task<Void, Never>?
     nonisolated(unsafe) private var stateTransitionTask: Task<Void, Never>?
@@ -143,7 +143,7 @@ final class WindowService: WindowServiceProtocol {
         }
         currentAlert = nil
         currentDevice = nil
-        triggered = 0
+        userHasMoved = false
     }
 
     // MARK: - Initialization
@@ -155,7 +155,7 @@ final class WindowService: WindowServiceProtocol {
         self.settings = settings
         self.environmentProvider = environment
         setupMouseMonitor()
-        position = windowLastPosition
+        self.position = loadSavedPosition()
     }
 
     deinit {
@@ -368,44 +368,38 @@ final class WindowService: WindowServiceProtocol {
 
         let positionDefault = CGSize(width: 420, height: 220)
 
-        if triggered > 5 {
-            if let moved {
+        if let moved {
+            if self.userHasMoved {
                 _ = calculateWindowLastPosition(
                     moved: moved,
                     windowHeight: windowHeight,
                     windowWidth: windowWidth,
                     windowMargin: windowMargin
                 )
-
                 return NSRect(x: moved.origin.x, y: moved.origin.y, width: moved.width, height: moved.height)
+            } else {
+                self.userHasMoved = true
             }
-        } else {
-            triggered += 1
         }
 
         return calculateInitialPosition(
-            mode: windowLastPosition,
+            mode: loadSavedPosition(),
             defaultSize: positionDefault,
             windowMargin: windowMargin
         )
     }
 
-    private var windowLastPosition: WindowPosition {
-        get {
-            if let positionString = UserDefaults.main
-                .object(forKey: SystemDefaultsKeys.batteryWindowPosition.rawValue) as? String
-            {
-                withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.7, blendDuration: 0.5)) {
-                    position = WindowPosition(rawValue: positionString) ?? .topMiddle
-                }
-            }
-
-            return position
+    private func loadSavedPosition() -> WindowPosition {
+        if let positionString = UserDefaults.main
+            .object(forKey: SystemDefaultsKeys.batteryWindowPosition.rawValue) as? String
+        {
+            return WindowPosition(rawValue: positionString) ?? .topMiddle
         }
+        return self.position
+    }
 
-        set {
-            UserDefaults.save(.batteryWindowPosition, value: newValue.rawValue)
-        }
+    private func savePosition(_ position: WindowPosition) {
+        UserDefaults.save(.batteryWindowPosition, value: position.rawValue)
     }
 
     private func calculateWindowLastPosition(
@@ -433,7 +427,8 @@ final class WindowService: WindowServiceProtocol {
             positionMode = .center
         }
 
-        windowLastPosition = positionMode
+        self.position = positionMode
+        savePosition(positionMode)
 
         return positionMode
     }
