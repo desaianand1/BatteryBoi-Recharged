@@ -1,3 +1,21 @@
+## [12.55.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.54.0...v12.55.0) (2026-09-11)
+
+### Features
+
+* **a11y:** localize settings tiles, device detail, and menu bar labels ([02d1a8b](https://github.com/desaianand1/BatteryBoi-Recharged/commit/02d1a8b296cae51c0a08294b40d0d5aea8df5c0e))
+* **hud:** add expand/collapse toggle with hover-aware dismiss timer ([d840e0a](https://github.com/desaianand1/BatteryBoi-Recharged/commit/d840e0affee5e42f0815629911beb22dae268210))
+* **ui:** redesign expanded panel with device detail and settings tiles ([0de9e6b](https://github.com/desaianand1/BatteryBoi-Recharged/commit/0de9e6bd0f09b634ea81e14c73219cb0354816ca))
+
+### Bug Fixes
+
+* **battery:** replace polling with IOKit push notifications and fix charge estimation ([ddb9f79](https://github.com/desaianand1/BatteryBoi-Recharged/commit/ddb9f79a2079bf35c6ca8f64233519365fb3529b))
+* **stats:** respect hidden display type in menu bar ([38d8368](https://github.com/desaianand1/BatteryBoi-Recharged/commit/38d83685efe6eaca558c398fe57f07f1220546f8))
+* **test:** update window frame assertions to match new default size ([fd8cc80](https://github.com/desaianand1/BatteryBoi-Recharged/commit/fd8cc80d9ffb5c281529a655ff994ceac2889259))
+
+### Refactoring
+
+* **animation:** extract timing tokens and animation constants ([34f8421](https://github.com/desaianand1/BatteryBoi-Recharged/commit/34f8421e96780e46a49b0fd2c4732f159dca06e3))
+
 ## [12.54.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.53.0...v12.54.0) (2026-09-08)
 
 ### Features
