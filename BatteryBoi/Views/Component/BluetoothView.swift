@@ -47,7 +47,7 @@ struct BluetoothIcon: View {
                 }
             }
 
-            Spacer().frame(width: 18)
+            Spacer().frame(width: Spacing.sm)
         }
     }
 }
@@ -148,7 +148,7 @@ struct BluetoothItem: View {
                                 .truncationMode(.tail)
                                 .padding(0)
 
-                            HStack(spacing: 4) {
+                            HStack(spacing: Spacing.xs) {
                                 // Show connecting state with spinner
                                 if isConnecting {
                                     ProgressView()
@@ -236,6 +236,355 @@ struct BluetoothItem: View {
 
     }
 
+}
+
+// MARK: - Device Row (compact for devices column)
+
+struct DeviceRow: View {
+    @Environment(AppEnvironment.self) private var env
+
+    private var battery: any BatteryServiceProtocol {
+        self.env.battery
+    }
+
+    private var manager: AppManager {
+        self.env.app
+    }
+
+    let device: BluetoothObject?
+    let onSelect: () -> Void
+
+    @Namespace private var animation
+
+    private var name: String {
+        if let device = self.device {
+            return device.device ?? device.type.type.rawValue
+        }
+        return self.manager.appDeviceType.name
+    }
+
+    private var batteryText: String {
+        if let device = self.device {
+            if device.connected == .disconnected {
+                return "BluetoothNotConnectedLabel".localise()
+            } else if let percent = device.battery.percent {
+                return "AlertSomePercentTitle".localise([Int(percent)])
+            } else {
+                return "BatteryUnavailableLabel".localise()
+            }
+        }
+        return "AlertSomePercentTitle".localise([Int(self.battery.percentage)])
+    }
+
+    var body: some View {
+        Button(action: self.onSelect) {
+            HStack(spacing: Spacing.sm) {
+                BluetoothIcon(self.device, isSelected: false, animation: self.animation)
+
+                VStack(alignment: .leading, spacing: Spacing.xxs) {
+                    Text(self.name)
+                        .font(Typography.heading)
+                        .foregroundStyle(Color("BatteryTitle"))
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+
+                    HStack(spacing: Spacing.xs) {
+                        Text(self.batteryText)
+                            .font(Typography.caption)
+                            .foregroundStyle(Color("BatterySubtitle"))
+
+                        if let device = self.device {
+                            Circle()
+                                .fill(device.connected == .connected ? Color.green : Color.gray)
+                                .frame(width: 5, height: 5)
+                        }
+                    }
+                }
+
+                Spacer()
+            }
+            .padding(.vertical, Spacing.xsm)
+            .padding(.horizontal, Spacing.smd)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color("BatteryButton"))
+            )
+        }
+        .buttonStyle(HoverButtonStyle())
+        .accessibilityLabel(self.name)
+        .accessibilityValue(self.batteryText)
+    }
+}
+
+// MARK: - Devices Column
+
+struct DevicesColumnView: View {
+    @Environment(AppEnvironment.self) private var env
+
+    private var bluetooth: any BluetoothServiceProtocol {
+        self.env.bluetooth
+    }
+
+    let onSelectDevice: (BluetoothObject?) -> Void
+
+    var body: some View {
+        VStack(spacing: Spacing.xs) {
+            DeviceRow(device: nil, onSelect: { self.onSelectDevice(nil) })
+
+            if self.bluetooth.permissionStatus == .denied || self.bluetooth.permissionStatus == .restricted {
+                BluetoothPermissionDeniedView()
+            } else if self.bluetooth.connected.isEmpty {
+                Text("DeviceDetailNoOtherDevicesLabel".localise())
+                    .font(Typography.caption)
+                    .foregroundStyle(Color("BatterySubtitle"))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, Spacing.sm)
+            } else {
+                ForEach(self.bluetooth.connected, id: \.address) { device in
+                    DeviceRow(device: device, onSelect: { self.onSelectDevice(device) })
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Device Detail View
+
+struct DeviceDetailView: View {
+    @Environment(AppEnvironment.self) private var env
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var battery: any BatteryServiceProtocol {
+        self.env.battery
+    }
+
+    private var manager: AppManager {
+        self.env.app
+    }
+
+    let device: BluetoothObject?
+    let onBack: () -> Void
+
+    @State private var isConnecting: Bool = false
+    @Namespace private var animation
+
+    private var isMacDevice: Bool {
+        self.device == nil
+    }
+
+    private var name: String {
+        if let device = self.device {
+            return device.device ?? device.type.type.rawValue
+        }
+        return self.manager.appDeviceType.name
+    }
+
+    private var deviceIcon: String {
+        if let device = self.device {
+            return device.type.icon
+        }
+        return "laptopcomputer"
+    }
+
+    private var deviceSubtitle: String {
+        if let device = self.device {
+            if let percent = device.battery.percent {
+                return "AlertSomePercentTitle".localise([Int(percent)])
+            }
+            return device.connected == .connected
+                ? "DeviceDetailConnectedLabel".localise()
+                : "DeviceDetailDisconnectedLabel".localise()
+        }
+        return "AlertSomePercentTitle".localise([Int(self.battery.percentage)])
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            Button(action: self.onBack) {
+                HStack(spacing: Spacing.xs) {
+                    Image(systemName: "chevron.left")
+                    Text("DeviceDetailBackLabel".localise())
+                }
+                .font(Typography.heading)
+                .foregroundStyle(Color("BatterySubtitle"))
+            }
+            .buttonStyle(HoverButtonStyle())
+
+            HStack(spacing: Spacing.smd) {
+                VStack {
+                    ZStack {
+                        BluetoothIcon(self.device, isSelected: false, animation: self.animation)
+                    }
+                    .frame(width: 48, height: 48)
+                }
+
+                VStack(alignment: .leading, spacing: Spacing.xxs) {
+                    Text(self.name)
+                        .font(Typography.titleBold)
+                        .foregroundStyle(Color("BatteryTitle"))
+
+                    Text(self.deviceSubtitle)
+                        .font(Typography.heading)
+                        .foregroundStyle(Color("BatterySubtitle"))
+                }
+            }
+
+            VStack(alignment: .leading, spacing: Spacing.smd) {
+                if self.isMacDevice {
+                    self.macDetailRows
+                } else {
+                    self.bluetoothDetailRows
+                }
+            }
+            .padding(Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
+                    .fill(Color("BatteryButton"))
+            )
+
+            if !self.isMacDevice, let device = self.device {
+                self.connectionButton(for: device)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var macDetailRows: some View {
+        VStack(alignment: .leading, spacing: Spacing.smd) {
+            self.detailRow(
+                "arrow.triangle.2.circlepath",
+                "DeviceDetailCyclesLabel".localise(),
+                self.battery.metrics?.cycles.formatted ?? "BatteryUnavailableLabel".localise()
+            )
+            self.detailRow(
+                "heart.fill",
+                "DeviceDetailHealthLabel".localise(),
+                self.battery.metrics?.health.rawValue ?? "BatteryUnavailableLabel".localise()
+            )
+            self.detailRow(
+                self.battery.thermal == .optimal ? "thermometer.medium" : "thermometer.high",
+                "DeviceDetailThermalLabel".localise(),
+                self.battery.thermal == .optimal
+                    ? "DeviceDetailOptimalLabel".localise()
+                    : "AlertOverheatingTitle".localise(),
+                effect: self.battery.thermal == .optimal ? .none : .pulse
+            )
+            self.detailRow(
+                self.battery.charging.state == .charging ? "bolt.fill" : "battery.100percent",
+                "DeviceDetailPowerLabel".localise(),
+                self.battery.charging.state == .charging
+                    ? "DeviceDetailACPowerLabel".localise()
+                    : "DeviceDetailBatteryPowerLabel".localise(),
+                effect: self.battery.charging.state == .charging ? .pulse : .none
+            )
+        }
+    }
+
+    @ViewBuilder
+    private var bluetoothDetailRows: some View {
+        if let device = self.device {
+            VStack(alignment: .leading, spacing: Spacing.smd) {
+                self.detailRow(
+                    "antenna.radiowaves.left.and.right",
+                    "DeviceDetailStatusLabel".localise(),
+                    device.connected == .connected
+                        ? "DeviceDetailConnectedLabel".localise()
+                        : "DeviceDetailDisconnectedLabel".localise(),
+                    effect: device.connected == .connected ? .variableColor : .none
+                )
+                self.detailRow(
+                    device.type.icon,
+                    "DeviceDetailTypeLabel".localise(),
+                    device.type.type.name
+                )
+
+                if let left = device.battery.left, let right = device.battery.right {
+                    self.detailRow(
+                        "battery.75percent",
+                        "DeviceDetailBatteryLabel".localise(),
+                        "BluetoothBatteryLeftRightDisplay".localise([Int(left), Int(right)])
+                    )
+                } else if let percent = device.battery.percent {
+                    self.detailRow(
+                        "battery.75percent",
+                        "DeviceDetailBatteryLabel".localise(),
+                        "AlertSomePercentTitle".localise([Int(percent)])
+                    )
+                } else {
+                    self.detailRow(
+                        "battery.75percent",
+                        "DeviceDetailBatteryLabel".localise(),
+                        "BluetoothInvalidLabel".localise()
+                    )
+                }
+            }
+        }
+    }
+
+    private func detailRow(
+        _ icon: String,
+        _ label: String,
+        _ value: String,
+        effect: HUDIconEffect = .none
+    ) -> some View {
+        HStack(spacing: Spacing.sm) {
+            Image(systemName: icon)
+                .font(Typography.heading)
+                .foregroundStyle(Color("BatterySubtitle"))
+                .frame(width: 18, alignment: .center)
+                .applySymbolEffect(effect)
+            Text(label)
+                .font(Typography.heading)
+                .foregroundStyle(Color("BatterySubtitle"))
+            Spacer()
+            Text(value)
+                .font(Typography.headingLarge)
+                .foregroundStyle(Color("BatteryTitle"))
+        }
+    }
+
+    @ViewBuilder
+    private func connectionButton(for device: BluetoothObject) -> some View {
+        let isConnected = device.connected == .connected
+        Button(
+            action: {
+                guard !self.isConnecting else { return }
+                self.isConnecting = true
+                Task {
+                    let targetState: BluetoothState = isConnected ? .disconnected : .connected
+                    _ = self.env.bluetooth.updateConnection(device, state: targetState)
+                    await MainActor.run { self.isConnecting = false }
+                }
+            },
+            label: {
+                HStack(spacing: Spacing.xsm) {
+                    if self.isConnecting {
+                        ProgressView()
+                            .scaleEffect(0.6)
+                            .frame(width: 12, height: 12)
+                    } else {
+                        Image(systemName: isConnected ? "xmark.circle" : "link")
+                            .font(Typography.heading)
+                    }
+                    Text(isConnected
+                        ? "BluetoothDisconnectLabel".localise()
+                        : "BluetoothConnectLabel".localise())
+                        .font(Typography.heading)
+                }
+                .foregroundStyle(Color("BatterySubtitle"))
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.sm)
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
+                        .fill(Color("BatteryButton"))
+                )
+            }
+        )
+        .buttonStyle(HoverButtonStyle())
+        .disabled(self.isConnecting)
+    }
 }
 
 struct BluetoothEmptyStateView: View {

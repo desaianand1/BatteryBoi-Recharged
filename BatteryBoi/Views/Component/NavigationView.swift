@@ -1,181 +1,68 @@
 import SwiftUI
 
-struct NavigationContainer: View {
+struct ExpandedPanelView: View {
     @Environment(AppEnvironment.self) private var env
-
-    private var manager: AppManager {
-        env.app
-    }
-
-    private var updates: UpdateManager {
-        env.update
-    }
-
-    private var settings: any SettingsServiceProtocol {
-        env.settings
-    }
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var bluetooth: any BluetoothServiceProtocol {
-        env.bluetooth
+        self.env.bluetooth
     }
 
-    private var window: any WindowServiceProtocol {
-        env.window
-    }
-
-    @State
-    var update: Bool = false
-    @State
-    var hover: Bool = false
-    @State
-    var scroll: CGPoint = .zero
-    @State
-    var size: CGSize = .zero
+    @State private var selectedDetail: BluetoothObject?
+    @State private var showingDetail: Bool = false
 
     var body: some View {
-        ZStack {
-            GeometryReader { geo in
-                HStack(spacing: 0) {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(alignment: .bottom, spacing: 8) {
-                            ForEach(self.settings.menu, id: \.self) { item in
-                                if self.manager.menu == .settings {
-                                    SettingsItem(hover: self.$hover, item: item)
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(Color("BatterySubtitle").opacity(0.15))
+                .frame(height: 1)
+                .padding(.horizontal, Spacing.md)
 
-                                }
-
+            if self.showingDetail {
+                DeviceDetailView(
+                    device: self.selectedDetail,
+                    onBack: {
+                        if self.reduceMotion {
+                            self.showingDetail = false
+                        } else {
+                            withAnimation(.easeOut(duration: RevealTiming.collapseDuration)) {
+                                self.showingDetail = false
                             }
-
-                            if self.manager.menu == .devices {
-                                if self.env.window.currentDevice != nil {
-                                    BluetoothItem(nil, hover: self.$hover)
-
-                                }
-
-                            }
-
-                            ForEach(self.bluetooth.connected, id: \.address) { item in
-                                if self.manager.menu == .devices {
-                                    BluetoothItem(item, hover: self.$hover)
-
-                                }
-
-                            }
-
-                            // Show appropriate state when in devices tab
-                            if self.manager.menu == .devices {
-                                if self.bluetooth.permissionStatus == .denied || self.bluetooth
-                                    .permissionStatus == .restricted
-                                {
-                                    BluetoothPermissionDeniedView()
-                                } else if self.bluetooth.connected.isEmpty {
-                                    BluetoothEmptyStateView()
-                                }
-                            }
-
-                            if !self.bluetooth.connected.isEmpty {
-                                Spacer().frame(width: self.size.width)
-
+                        }
+                    }
+                )
+                .padding(.horizontal, Spacing.lg)
+                .padding(.vertical, Spacing.md)
+                .transition(self.reduceMotion ? .identity : .move(edge: .trailing).combined(with: .opacity))
+            } else {
+                HStack(alignment: .top, spacing: Spacing.sm) {
+                    ScrollView(.vertical, showsIndicators: false) {
+                        DevicesColumnView(onSelectDevice: { device in
+                            self.selectedDetail = device
+                            if self.reduceMotion {
+                                self.showingDetail = true
                             } else {
-                                Spacer().frame(width: self.size.width / 2)
-
-                            }
-
-                        }
-                        .animation(Animation.bouncy, value: self.manager.menu)
-                        .background(GeometryReader { geometry in
-                            Color.clear.preference(
-                                key: SettingsScrollOffsetKey.self,
-                                value: geometry.frame(in: .named("scroll")).origin
-                            )
-
-                        })
-                        .onPreferenceChange(SettingsScrollOffsetKey.self) { value in
-                            Task { @MainActor in
-                                if window.state == .detailed {
-                                    self.scroll = value
-
+                                withAnimation(.easeOut(duration: RevealTiming.expandDuration)) {
+                                    self.showingDetail = true
                                 }
                             }
-
-                        }
-
+                        })
                     }
-                    .coordinateSpace(name: "scroll")
-                    .mask(30, scroll: self.$scroll)
-                    .frame(width: geo.size.width)
+                    .frame(minWidth: 160, maxWidth: 240)
 
-                    ZStack(alignment: .trailing) {
-                        HStack(spacing: 8) {
-                            SettingsOverlayItem(.appDevices)
-
-                            SettingsOverlayItem(.appQuit)
-
-                        }
-
-                    }
-                    .frame(height: 60)
-                    .background(
-                        HStack(alignment: .center, spacing: 0) {
-                            LinearGradient(
-                                gradient: Gradient(colors: [
-                                    Color("BatteryBackground").opacity(0.0),
-                                    Color("BatteryBackground"),
-                                ]),
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                            .frame(width: 30)
-
-                            Rectangle().fill(Color("BatteryBackground"))
-
-                        }
-                        .frame(width: self.size.width + 16)
-                        .offset(x: !self.bluetooth.connected.isEmpty ? -8.0 : 48.0)
-
-                    )
-                    .overlay(
-                        GeometryReader { geo in
-                            Color.clear.onAppear {
-                                self.size = geo.size
-
-                            }
-
-                        }
-
-                    )
-                    .offset(x: -(self.size.width))
-
+                    SettingsTileGrid()
                 }
-
+                .padding(Spacing.md)
+                .transition(self.reduceMotion ? .identity : .opacity)
             }
-
         }
-        .padding(.horizontal, 14)
-        .frame(height: 86)
-        .onHover { hover in
-            withAnimation(Animation.easeOut.delay(self.hover ? 1.2 : 0.1)) {
-                self.hover = hover
-
-            }
-
-        }
-        .onAppear {
-            self.update = self.updates.available != nil ? true : false
-
-        }
-        .onChange(of: self.bluetooth.connected) { _, _ in
-            // Empty state is now shown via BluetoothEmptyStateView
-            // No longer auto-switch to settings when devices disconnect
-        }
-        .onChange(of: self.updates.available) { _, newValue in
-            withAnimation(Animation.easeOut.delay(0.1)) {
-                self.update = newValue != nil ? true : false
-
-            }
-
-        }
-
     }
+}
 
+// MARK: - Legacy NavigationContainer (bridges to ExpandedPanelView)
+
+struct NavigationContainer: View {
+    var body: some View {
+        ExpandedPanelView()
+    }
 }
