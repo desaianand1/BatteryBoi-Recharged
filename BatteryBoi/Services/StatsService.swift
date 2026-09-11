@@ -239,16 +239,14 @@ final class StatsService: StatsServiceProtocol {
         let displayType = self.settings.enabledDisplay(false)
         let state = self.battery.charging.state
 
-        if state == .charging {
-            if displayType == .empty {
-                return nil
-            }
-        } else {
-            if displayType == .empty {
-                return nil
-            } else if self.settings.enabledDisplay() == .countdown {
+        if displayType == .hidden || displayType == .empty {
+            return nil
+        }
+
+        if state != .charging {
+            if displayType == .countdown {
                 return statsCountdown
-            } else if self.settings.enabledDisplay() == .cycle {
+            } else if displayType == .cycle {
                 if let cycle = self.battery.metrics?.cycles.formatted {
                     return cycle
                 }
@@ -259,19 +257,18 @@ final class StatsService: StatsServiceProtocol {
     }
 
     private var statsOverlay: String? {
+        let displayType = self.settings.enabledDisplay(false)
         let state = self.battery.charging.state
 
-        if state == .charging {
+        if displayType == .hidden || state == .charging {
             return nil
-        } else {
-            if self.settings.enabledDisplay() == .countdown {
-                return "\(Int(self.battery.percentage))"
-            } else if self.settings.enabledDisplay() == .empty {
-                return "\(Int(self.battery.percentage))"
-            } else {
-                return statsCountdown
-            }
         }
+
+        if displayType == .countdown || displayType == .empty {
+            return "\(Int(self.battery.percentage))"
+        }
+
+        return statsCountdown
     }
 
     private var statsCountdown: String? {
@@ -509,7 +506,7 @@ final class StatsService: StatsServiceProtocol {
     }
 
     private func recordWattage() async {
-        let wattage = await self.battery.fetchHourWattage() ?? 0.0
+        let wattage = self.battery.fetchHourWattage() ?? 0.0
         let deviceName = self.app.appDeviceType.name
 
         let context = container.newBackgroundContext()
