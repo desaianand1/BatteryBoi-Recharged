@@ -8,14 +8,19 @@
 import SwiftUI
 
 struct OnboardingCompleteView: View {
-    @State private var onboarding = OnboardingService.shared
-    @State private var showCheckmark: Bool = false
+    @Environment(AppEnvironment.self) private var env
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var onboarding: OnboardingService {
+        self.env.onboarding
+    }
+
+    @State private var showCheckmark = false
 
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: Spacing.lg) {
             Spacer()
 
-            // Animated checkmark
             ZStack {
                 Circle()
                     .fill(Color("BBTitle").opacity(0.1))
@@ -23,62 +28,66 @@ struct OnboardingCompleteView: View {
 
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 60))
-                    .foregroundColor(Color("BBTitle"))
-                    .scaleEffect(showCheckmark ? 1.0 : 0.5)
-                    .opacity(showCheckmark ? 1.0 : 0.0)
+                    .foregroundStyle(Color("BBTitle"))
+                    .scaleEffect(self.showCheckmark ? 1.0 : 0.5)
+                    .opacity(self.showCheckmark ? 1.0 : 0.0)
+                    .applySymbolEffect(self.showCheckmark ? .appear : .none)
             }
 
-            // Success message
-            VStack(spacing: 8) {
+            VStack(spacing: Spacing.sm) {
                 Text("OnboardingCompleteTitle".localise())
                     .font(Typography.title)
-                    .foregroundColor(Color("BBTitle"))
+                    .foregroundStyle(Color("BBTitle"))
                     .multilineTextAlignment(.center)
 
                 Text("OnboardingCompleteSubtitle".localise())
                     .font(Typography.body)
-                    .foregroundColor(Color("BBSubtitle"))
+                    .foregroundStyle(Color("BBSubtitle"))
                     .multilineTextAlignment(.center)
             }
-            .padding(.horizontal, 32)
+            .padding(.horizontal, Spacing.xl)
 
             Spacer()
 
-            // CTA button
-            Button(
-                action: completeOnboarding,
-                label: {
-                    Text("OnboardingCompleteButton".localise())
-                        .font(Typography.heading)
-                        .foregroundColor(Color("BBSurface"))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(
-                            RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
-                                .fill(Color("BBTitle"))
-                        )
-                }
-            )
-            .buttonStyle(.plain)
-            .padding(.horizontal, 32)
-            .padding(.bottom, 16)
+            Button {
+                self.completeOnboarding()
+            } label: {
+                Text("OnboardingCompleteButton".localise())
+                    .font(Typography.heading)
+                    .foregroundStyle(Color("BBBackground"))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: BatteryTier.full.gradientColors,
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                    )
+            }
+            .buttonStyle(HoverButtonStyle())
+            .padding(.horizontal, Spacing.xl)
+            .padding(.bottom, Spacing.md)
+            .accessibilityLabel("OnboardingCompleteButton".localise())
         }
-        .padding(.top, 32)
+        .padding(.top, Spacing.xl)
         .onAppear {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.2)) {
-                showCheckmark = true
+                self.showCheckmark = true
             }
         }
     }
 
     private func completeOnboarding() {
-        onboarding.complete()
+        self.onboarding.complete()
 
-        // Close onboarding window and open HUD
         if let window = NSApp.windows.first(where: { $0.title == "onboarding" }) {
             window.close()
         }
 
-        WindowService.shared.open(.userLaunched, device: nil)
+        self.env.window.open(.userLaunched, device: nil)
     }
 }
