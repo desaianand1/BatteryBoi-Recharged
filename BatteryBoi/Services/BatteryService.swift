@@ -38,8 +38,6 @@ final class BatteryService: BatteryServiceProtocol {
     // Note: nonisolated(unsafe) is justified for task properties that are only
     // accessed in deinit (which is always nonisolated) per SE-0371.
 
-    nonisolated(unsafe) private var statusTask: Task<Void, Never>?
-    nonisolated(unsafe) private var remainingTask: Task<Void, Never>?
     nonisolated(unsafe) private var metricsTask: Task<Void, Never>?
     nonisolated(unsafe) private var thermalTask: Task<Void, Never>?
     nonisolated(unsafe) private var forceRefreshTask: Task<Void, Never>?
@@ -63,8 +61,8 @@ final class BatteryService: BatteryServiceProtocol {
         nil
     }
 
-    func fetchHourWattage() async -> Double? {
-        await fetchPowerHourWattage()
+    func fetchHourWattage() -> Double? {
+        fetchPowerHourWattage()
     }
 
     // MARK: - Initialization
@@ -74,8 +72,6 @@ final class BatteryService: BatteryServiceProtocol {
     }
 
     deinit {
-        statusTask?.cancel()
-        remainingTask?.cancel()
         metricsTask?.cancel()
         thermalTask?.cancel()
         forceRefreshTask?.cancel()
@@ -85,21 +81,11 @@ final class BatteryService: BatteryServiceProtocol {
     // MARK: - Private Methods
 
     private func startMonitoring() {
-        // Initial read + 30s safety-net poll (IOKit callback is primary)
-        statusTask = Task { [weak self] in
-            await self?.powerStatus()
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(Constants.Timers.safetyNetPoll))
-                guard let self, !Task.isCancelled else { break }
-                await self.powerStatus()
-            }
-        }
+        powerStatus()
 
-        remainingTask = Task { [weak self] in
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(Constants.Timers.batteryRemaining))
-                guard let self, !Task.isCancelled else { break }
-                remaining = await fetchPowerRemaining()
+        IOKitBatteryService.shared.startPowerSourceNotifications { [weak self] in
+            Task { @MainActor [weak self] in
+                self?.powerStatus()
             }
         }
 
@@ -107,7 +93,7 @@ final class BatteryService: BatteryServiceProtocol {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(Constants.Timers.thermalCheck))
                 guard let self, !Task.isCancelled else { break }
-                await powerThermalCheck()
+                powerThermalCheck()
             }
         }
 
@@ -115,81 +101,66 @@ final class BatteryService: BatteryServiceProtocol {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(Constants.Timers.metricsCheck))
                 guard let self, !Task.isCancelled else { break }
-                saver = await fetchPowerSaveModeStatus()
-                metrics = await fetchPowerProfilerDetails()
+                saver = fetchPowerSaveModeStatus()
+                metrics = fetchPowerProfilerDetails()
             }
         }
     }
 
     func powerForceRefresh() {
+        self.rate = nil
         forceRefreshTask?.cancel()
         forceRefreshTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(Constants.Timers.forceRefreshDelay))
             guard let self, !Task.isCancelled else { return }
-            await self.powerStatus()
+            self.powerStatus()
 
             try? await Task.sleep(for: .seconds(Constants.Timers.forceRefreshSecondary))
             guard !Task.isCancelled else { return }
-            self.saver = await self.fetchPowerSaveModeStatus()
-            self.metrics = await self.fetchPowerProfilerDetails()
+            self.saver = self.fetchPowerSaveModeStatus()
+            self.metrics = self.fetchPowerProfilerDetails()
         }
     }
 
-    private func powerStatus() async {
-        let (newCharging, newPercentage) = await fetchPowerInfo()
+    private func powerStatus() {
+        let info = IOKitBatteryService.shared.getBatteryInfo()
+        let newCharging: BatteryChargingState = info.isACPowered ? .charging : .battery
+        let newPercentage = Double(info.percentage)
+
         self.percentage = newPercentage
         if newCharging != self.charging.state {
             self.charging = .init(newCharging)
         }
+        self.remaining = self.buildRemaining(fromMinutes: info.timeRemaining)
+        self.updateChargeRate(charging: newCharging, percentage: newPercentage)
+        self.persistDepletionRate(totalMinutes: info.timeRemaining, charging: newCharging, percentage: newPercentage)
     }
 
-    private func fetchPowerInfo() async -> (charging: BatteryChargingState, percentage: Double) {
-        let info = await IOKitBatteryService.shared.getBatteryInfo()
-        let charging: BatteryChargingState = info.isACPowered ? .charging : .battery
-        return (charging, Double(info.percentage))
-    }
-
-    private func fetchPowerRemaining() async -> BatteryRemaining? {
-        // Use native IOKit API instead of shell command
-        if let timeRemaining = await IOKitBatteryService.shared.getTimeRemaining() {
-            let hour = timeRemaining.hours
-            let minute = timeRemaining.minutes
-            powerDepletionAverage = (Double(hour) * 60.0 * 60.0) + (Double(minute) * 60.0)
-            return .init(hour: hour, minute: minute)
+    private func buildRemaining(fromMinutes totalMinutes: Int?) -> BatteryRemaining {
+        if let totalMinutes, totalMinutes > 0 {
+            let hours = totalMinutes / Constants.Battery.minutesPerHour
+            let minutes = totalMinutes % Constants.Battery.minutesPerHour
+            return BatteryRemaining(hour: hours, minute: minutes)
         }
-
-        // Fallback to depletion rate estimate if IOKit returns nil
-        if let rate = powerDepletionAverage {
-            let date = Date().addingTimeInterval(rate * percentage)
+        if let rate = self.depletionAverage {
+            let date = Date().addingTimeInterval(rate * self.percentage)
             let components = Calendar.current.dateComponents([.hour, .minute], from: Date(), to: date)
-            return .init(hour: components.hour ?? 0, minute: components.minute ?? 0)
+            return BatteryRemaining(hour: components.hour ?? 0, minute: components.minute ?? 0)
         }
-
-        return .init(hour: 0, minute: 0)
+        return BatteryRemaining(hour: 0, minute: 0)
     }
 
     var powerUntilFull: Date? {
         guard percentage < 100 else { return nil }
         guard charging.state == .charging else { return nil }
 
-        let remainder = 100 - percentage
+        let remainder = 100.0 - percentage
 
-        if let exists = rate, percentage > exists.percent {
-            let elapsed = Date().timeIntervalSince(exists.timestamp)
-            let percentGained = percentage - exists.percent
-            guard percentGained > 0 else {
-                rate = .init(percentage)
-                return nil
-            }
-            let secondsPerPercent = elapsed / percentGained
-            UserDefaults.save(.batteryUntilFull, value: secondsPerPercent)
-            rate = .init(percentage)
-            return Date(timeIntervalSinceNow: secondsPerPercent * remainder)
+        if let remaining, (remaining.hours ?? 0) > 0 || (remaining.minutes ?? 0) > 0 {
+            let totalMinutes = ((remaining.hours ?? 0) * Constants.Battery.minutesPerHour) + (remaining.minutes ?? 0)
+            return Date(timeIntervalSinceNow: Double(totalMinutes) * Constants.Battery.secondsPerMinute)
         }
 
-        rate = .init(percentage)
-
-        // Use stored rate or fallback
         let stored = UserDefaults.main.double(forKey: SystemDefaultsKeys.batteryUntilFull.rawValue)
         if stored > 0 {
             return Date(timeIntervalSinceNow: stored * remainder)
@@ -197,37 +168,55 @@ final class BatteryService: BatteryServiceProtocol {
         return nil
     }
 
-    private var powerDepletionAverage: Double? {
-        get {
-            if let averages = UserDefaults.main
-                .object(forKey: SystemDefaultsKeys.batteryDepletionRate.rawValue) as? [Double],
-                !averages.isEmpty
-            {
-                return averages.reduce(0.0, +) / Double(averages.count)
+    private func updateChargeRate(charging: BatteryChargingState, percentage: Double) {
+        guard charging == .charging else {
+            if self.rate != nil {
+                self.rate = nil
             }
-            return nil
+            return
         }
-
-        set {
-            if let seconds = newValue {
-                let averages = UserDefaults.main
-                    .object(forKey: SystemDefaultsKeys.batteryDepletionRate.rawValue) as? [Double] ?? [Double]()
-
-                guard percentage > 0.0, seconds > 0.0 else { return }
-                let depletionRate = seconds / percentage
-                guard depletionRate.isFinite, depletionRate > 0.0 else { return }
-
-                if averages.contains(depletionRate) == false, charging.state == .battery {
-                    var list = Array(averages.suffix(Constants.Battery.depletionRateHistorySize))
-                    list.append(depletionRate)
-                    UserDefaults.save(.batteryDepletionRate, value: list)
+        if let existing = self.rate, percentage > existing.percent {
+            let elapsed = Date().timeIntervalSince(existing.timestamp)
+            let gained = percentage - existing.percent
+            if gained > 0, elapsed > 0 {
+                let secondsPerPercent = elapsed / gained
+                if secondsPerPercent.isFinite, secondsPerPercent > 0 {
+                    UserDefaults.save(.batteryUntilFull, value: secondsPerPercent)
                 }
             }
         }
+        self.rate = .init(percentage)
     }
 
-    private func fetchPowerSaveModeStatus() async -> BatteryModeType {
-        // Use native ProcessInfo API instead of shell command
+    private var depletionAverage: Double? {
+        if let averages = UserDefaults.main
+            .object(forKey: SystemDefaultsKeys.batteryDepletionRate.rawValue) as? [Double],
+            !averages.isEmpty
+        {
+            return averages.reduce(0.0, +) / Double(averages.count)
+        }
+        return nil
+    }
+
+    private func persistDepletionRate(totalMinutes: Int?, charging: BatteryChargingState, percentage: Double) {
+        guard let totalMinutes, totalMinutes > 0, charging == .battery else { return }
+        guard percentage > 0.0 else { return }
+
+        let seconds = Double(totalMinutes) * Constants.Battery.secondsPerMinute
+        let depletionRate = seconds / percentage
+        guard depletionRate.isFinite, depletionRate > 0.0 else { return }
+
+        let averages = UserDefaults.main
+            .object(forKey: SystemDefaultsKeys.batteryDepletionRate.rawValue) as? [Double] ?? [Double]()
+
+        if !averages.contains(depletionRate) {
+            var list = Array(averages.suffix(Constants.Battery.depletionRateHistorySize))
+            list.append(depletionRate)
+            UserDefaults.save(.batteryDepletionRate, value: list)
+        }
+    }
+
+    private func fetchPowerSaveModeStatus() -> BatteryModeType {
         let isLowPowerMode = IOKitBatteryService.shared.isLowPowerModeEnabled()
         return isLowPowerMode ? .efficient : .normal
     }
@@ -254,28 +243,25 @@ final class BatteryService: BatteryServiceProtocol {
 
                 saveModeFetchTask = Task { [weak self] in
                     guard let self else { return }
-                    self.saver = await self.fetchPowerSaveModeStatus()
+                    self.saver = self.fetchPowerSaveModeStatus()
                 }
             }
         }
     }
 
-    private func powerThermalCheck() async {
-        // Use native ProcessInfo API instead of shell command
+    private func powerThermalCheck() {
         let isThrottled = IOKitBatteryService.shared.getThermalState()
         thermal = isThrottled ? .suboptimal : .optimal
     }
 
-    private func fetchPowerProfilerDetails() async -> BatteryMetricsObject? {
-        // Use native IOKit API instead of system_profiler command
-        guard let metrics = await IOKitBatteryService.shared.getBatteryMetrics() else {
+    private func fetchPowerProfilerDetails() -> BatteryMetricsObject? {
+        guard let metrics = IOKitBatteryService.shared.getBatteryMetrics() else {
             return nil
         }
         return BatteryMetricsObject(cycleCount: metrics.cycleCount, condition: metrics.condition)
     }
 
-    func fetchPowerHourWattage() async -> Double? {
-        // Use native IOKit API instead of shell commands
-        await IOKitBatteryService.shared.getWattHours()
+    func fetchPowerHourWattage() -> Double? {
+        IOKitBatteryService.shared.getWattHours()
     }
 }

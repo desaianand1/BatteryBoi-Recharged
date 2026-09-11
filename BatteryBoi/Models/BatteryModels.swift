@@ -139,7 +139,9 @@ struct BatteryRemaining: Equatable {
     init(hour: Int, minute: Int) {
         self.hours = hour
         self.minutes = minute
-        self.date = Date(timeIntervalSinceNow: TimeInterval(hour * 3600 + minute * 60))
+        self
+            .date = Date(timeIntervalSinceNow: Double(hour) * Constants.Battery
+                .secondsPerHour + Double(minute) * Constants.Battery.secondsPerMinute)
 
         if hour == 0, minute == 0 {
             formatted = "AlertDeviceCalculatingTitle".localise()

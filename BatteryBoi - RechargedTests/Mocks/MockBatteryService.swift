@@ -69,7 +69,7 @@ import Foundation
             nil
         }
 
-        func fetchHourWattage() async -> Double? {
+        func fetchHourWattage() -> Double? {
             nil
         }
 

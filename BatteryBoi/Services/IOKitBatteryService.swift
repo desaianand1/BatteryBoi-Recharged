@@ -36,7 +36,7 @@ actor IOKitBatteryService {
 
     /// Gets basic battery information using the IOPowerSources API.
     /// This is the recommended approach for percentage, charging state, and time remaining.
-    func getBatteryInfo() -> IOKitBatteryInfo {
+    nonisolated func getBatteryInfo() -> IOKitBatteryInfo {
         guard let snapshot = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
               let sources = IOPSCopyPowerSourcesList(snapshot)?.takeRetainedValue() as? [CFTypeRef],
               let source = sources.first,
@@ -75,7 +75,7 @@ actor IOKitBatteryService {
 
     /// Gets detailed battery metrics from the AppleSmartBattery IORegistry entry.
     /// Replaces `system_profiler SPPowerDataType` for cycle count and condition.
-    func getBatteryMetrics() -> IOKitBatteryMetrics? {
+    nonisolated func getBatteryMetrics() -> IOKitBatteryMetrics? {
         let service = IOServiceGetMatchingService(
             kIOMainPortDefault, // NOT kIOMasterPortDefault (deprecated macOS 12+)
             IOServiceMatching("AppleSmartBattery")
@@ -116,10 +116,13 @@ actor IOKitBatteryService {
 
     /// Gets battery time remaining in hours and minutes format.
     /// Returns nil if the system is still calculating.
-    func getTimeRemaining() -> (hours: Int, minutes: Int)? {
+    nonisolated func getTimeRemaining() -> (hours: Int, minutes: Int)? {
         let info = getBatteryInfo()
         guard let totalMinutes = info.timeRemaining, totalMinutes >= 0 else { return nil }
-        return (hours: totalMinutes / 60, minutes: totalMinutes % 60)
+        return (
+            hours: totalMinutes / Constants.Battery.minutesPerHour,
+            minutes: totalMinutes % Constants.Battery.minutesPerHour
+        )
     }
 
     // MARK: - Thermal State (replaces pmset -g therm)
@@ -164,7 +167,7 @@ actor IOKitBatteryService {
     // MARK: - Wattage Calculation
 
     /// Calculates the battery watt-hours from max capacity and voltage.
-    func getWattHours() -> Double? {
+    nonisolated func getWattHours() -> Double? {
         guard let metrics = getBatteryMetrics(),
               let voltage = metrics.voltage,
               metrics.maxCapacity > 0

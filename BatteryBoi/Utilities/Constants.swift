@@ -9,14 +9,12 @@ enum Constants {
         // MARK: - Service Polling
 
         static let bluetoothScan: TimeInterval = 15
-        static let batteryRemaining: TimeInterval = 30
         static let metricsCheck: TimeInterval = 300
         static let thermalCheck: TimeInterval = 90
-        static let chargingDebounce: TimeInterval = 2
+        static let chargingDebounce: TimeInterval = 0.3
 
-        // MARK: - Safety-Net & Periodic Checks
+        // MARK: - Periodic Checks
 
-        static let safetyNetPoll: TimeInterval = 30
         static let bluetoothBatteryCheck: TimeInterval = 60
         static let eventCheck: TimeInterval = 30
 
@@ -38,12 +36,14 @@ enum Constants {
 
         static let hudDismissDelay: Double = 0.8
         static let hudProgressDelay: Double = 0.2
-        static let hudRevealDelay: Double = 1.0
+        static let hudRevealDelay: Double = RevealTiming.totalReveal
         static let hudTimeoutShort: Double = 5
         static let hudTimeoutLong: Double = 10
         static let stateChangeDebounce: Double = 0.15
         static let mouseEventDebounce: Double = 0.1
         static let clickGracePeriod: Double = 0.5
+        static let hoverMaxHold: Double = 30
+        static let hoverMinResume: Double = 3
 
         // MARK: - Scroll Opacity
 
@@ -67,6 +67,9 @@ enum Constants {
     /// Battery service constants.
     enum Battery {
         static let depletionRateHistorySize: Int = 15
+        static let secondsPerMinute: Double = 60.0
+        static let secondsPerHour: Double = 3600.0
+        static let minutesPerHour: Int = 60
     }
 
     /// Animation durations.
@@ -148,5 +151,11 @@ enum Constants {
 
         /// HUD window corner radius.
         static let hud: CGFloat = 42
+
+        /// HUD mask circle radius (half of 120pt circle).
+        static let maskCircle: CGFloat = 60
+
+        /// HUD dismiss shrink target radius.
+        static let maskDismiss: CGFloat = 20
     }
 }

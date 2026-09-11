@@ -63,7 +63,6 @@ final class ServiceCoordinator {
         observeBluetoothDevices()
         observeEvents()
         observeSettings()
-        startSafetyNetPoll()
     }
 
     func handleSleep() {
@@ -195,25 +194,6 @@ final class ServiceCoordinator {
                 if key == .enabledPinned, self.settings.pinned == .enabled {
                     self.window.opacity = 1.0
                 }
-            }
-        }
-        observationTasks.append(task)
-    }
-
-    // MARK: - Safety Net
-
-    private func startSafetyNetPoll() {
-        let task = Task { [weak self] in
-            var lastObservedPercentage = self?.battery.percentage ?? 100
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(Constants.Timers.safetyNetPoll))
-                guard let self, !Task.isCancelled else { break }
-                let actual = self.battery.percentage
-                if abs(actual - lastObservedPercentage) > 1.0 {
-                    BLogger.app.warning("Safety net: observation missed percentage change")
-                    self.handlePercentageChange(to: actual)
-                }
-                lastObservedPercentage = actual
             }
         }
         observationTasks.append(task)
