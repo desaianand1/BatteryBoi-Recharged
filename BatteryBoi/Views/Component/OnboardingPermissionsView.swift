@@ -5,157 +5,165 @@
 //  Permissions step of the onboarding flow.
 //
 
+import CoreBluetooth
 import SwiftUI
 import UserNotifications
 
 struct OnboardingPermissionsView: View {
-    @State private var onboarding = OnboardingService.shared
-    @State private var bluetoothEnabled: Bool = false
-    @State private var notificationsEnabled: Bool = false
+    @Environment(AppEnvironment.self) private var env
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var onboarding: OnboardingService {
+        self.env.onboarding
+    }
+
+    @State private var bluetoothEnabled = false
+    @State private var notificationsEnabled = false
 
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: Spacing.lg) {
             Spacer()
 
-            // Title
-            VStack(spacing: 8) {
+            VStack(spacing: Spacing.sm) {
                 Text("OnboardingPermissionsTitle".localise())
                     .font(Typography.title)
-                    .foregroundColor(Color("BBTitle"))
+                    .foregroundStyle(Color("BBTitle"))
+                    .multilineTextAlignment(.center)
+
+                Text("OnboardingPermissionsSubtitle".localise())
+                    .font(Typography.body)
+                    .foregroundStyle(Color("BBSubtitle"))
                     .multilineTextAlignment(.center)
             }
-            .padding(.horizontal, 32)
+            .padding(.horizontal, Spacing.xl)
 
-            // Permission cards
-            VStack(spacing: 12) {
-                PermissionCard(
+            VStack(spacing: Spacing.smd) {
+                OnboardingPermissionCard(
                     icon: "antenna.radiowaves.left.and.right",
                     title: "OnboardingBluetoothTitle".localise(),
                     description: "OnboardingBluetoothBody".localise(),
-                    isEnabled: $bluetoothEnabled,
-                    action: requestBluetoothPermission
+                    isEnabled: self.$bluetoothEnabled,
+                    reduceMotion: self.reduceMotion,
+                    action: self.requestBluetoothPermission
                 )
 
-                PermissionCard(
+                OnboardingPermissionCard(
                     icon: "bell.badge",
                     title: "OnboardingNotificationsTitle".localise(),
                     description: "OnboardingNotificationsBody".localise(),
-                    isEnabled: $notificationsEnabled,
-                    action: requestNotificationPermission
+                    isEnabled: self.$notificationsEnabled,
+                    reduceMotion: self.reduceMotion,
+                    action: self.requestNotificationPermission
                 )
             }
-            .padding(.horizontal, 32)
+            .padding(.horizontal, Spacing.xl)
 
             Spacer()
 
-            // Buttons
-            VStack(spacing: 12) {
-                Button(
-                    action: { onboarding.advance() },
-                    label: {
-                        Text("OnboardingPermissionsContinue".localise())
-                            .font(Typography.heading)
-                            .foregroundColor(Color("BBSurface"))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(
-                                RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
-                                    .fill(Color("BBTitle"))
-                            )
-                    }
-                )
-                .buttonStyle(.plain)
+            VStack(spacing: Spacing.smd) {
+                Button {
+                    self.onboarding.advance()
+                } label: {
+                    Text("OnboardingPermissionsContinue".localise())
+                        .font(Typography.heading)
+                        .foregroundStyle(Color("BBSurface"))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
+                            RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
+                                .fill(Color("BBTitle"))
+                        )
+                }
+                .buttonStyle(HoverButtonStyle())
+                .accessibilityLabel("OnboardingPermissionsContinue".localise())
 
-                Button(
-                    action: { onboarding.advance() },
-                    label: {
-                        Text("OnboardingPermissionsSkip".localise())
-                            .font(Typography.small)
-                            .foregroundColor(Color("BBSubtitle"))
-                    }
-                )
-                .buttonStyle(.plain)
+                Button {
+                    self.onboarding.advance()
+                } label: {
+                    Text("OnboardingPermissionsSkip".localise())
+                        .font(Typography.caption)
+                        .foregroundStyle(Color("BBSubtitle"))
+                }
+                .buttonStyle(HoverButtonStyle())
+                .accessibilityLabel("OnboardingPermissionsSkip".localise())
             }
-            .padding(.horizontal, 32)
-            .padding(.bottom, 16)
+            .padding(.horizontal, Spacing.xl)
+            .padding(.bottom, Spacing.md)
         }
-        .padding(.top, 32)
+        .padding(.top, Spacing.xl)
         .onAppear {
-            checkCurrentPermissions()
+            self.checkCurrentPermissions()
         }
     }
 
     private func checkCurrentPermissions() {
-        // Check Bluetooth authorization
         let btAuth = CBCentralManager.authorization
-        bluetoothEnabled = btAuth == .allowedAlways
+        self.bluetoothEnabled = btAuth == .allowedAlways
 
-        // Check notification authorization
         UNUserNotificationCenter.current().getNotificationSettings { notificationSettings in
             let isAuthorized = notificationSettings.authorizationStatus == .authorized
             Task { @MainActor in
-                notificationsEnabled = isAuthorized
+                self.notificationsEnabled = isAuthorized
             }
         }
     }
 
     private func requestBluetoothPermission() {
-        // Bluetooth permission is triggered by accessing CBCentralManager
-        // The system will prompt automatically when needed
-        bluetoothEnabled = true
+        self.bluetoothEnabled = true
     }
 
     private func requestNotificationPermission() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
             Task { @MainActor in
-                notificationsEnabled = granted
+                self.notificationsEnabled = granted
             }
         }
     }
 }
 
-private struct PermissionCard: View {
+private struct OnboardingPermissionCard: View {
     let icon: String
     let title: String
     let description: String
     @Binding var isEnabled: Bool
+    let reduceMotion: Bool
     let action: () -> Void
 
     var body: some View {
-        HStack(spacing: 16) {
-            Image(systemName: icon)
-                .font(.system(size: 24))
-                .foregroundColor(isEnabled ? Color("BBTitle") : Color("BBSubtitle"))
+        HStack(spacing: Spacing.md) {
+            Image(systemName: self.icon)
+                .font(Typography.icon)
+                .foregroundStyle(self.isEnabled ? Color("BBTitle") : Color("BBSubtitle"))
                 .frame(width: 40)
+                .applySymbolEffect(self.isEnabled ? .pulse : .variableColor)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                Text(self.title)
                     .font(Typography.heading)
-                    .foregroundColor(Color("BBTitle"))
+                    .foregroundStyle(Color("BBTitle"))
 
-                Text(description)
-                    .font(Typography.small)
-                    .foregroundColor(Color("BBSubtitle"))
+                Text(self.description)
+                    .font(Typography.caption)
+                    .foregroundStyle(Color("BBSubtitle"))
                     .lineLimit(2)
             }
 
             Spacer()
 
-            Toggle("", isOn: $isEnabled)
+            Toggle("", isOn: self.$isEnabled)
                 .toggleStyle(.switch)
                 .labelsHidden()
-                .onChange(of: isEnabled) { _, newValue in
+                .onChange(of: self.isEnabled) { _, newValue in
                     if newValue {
-                        action()
+                        self.action()
                     }
                 }
+                .accessibilityLabel(self.title)
         }
-        .padding(16)
+        .padding(Spacing.md)
         .background(
             RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
                 .fill(Color("BBSurface"))
         )
     }
 }
-
-import CoreBluetooth
