@@ -8,131 +8,197 @@
 import SwiftUI
 
 struct OnboardingPreferencesView: View {
-    @State private var onboarding = OnboardingService.shared
-    @State private var settings = SettingsService.shared
+    @Environment(AppEnvironment.self) private var env
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var onboarding: OnboardingService {
+        self.env.onboarding
+    }
+
+    private var settings: any SettingsServiceProtocol {
+        self.env.settings
+    }
+
     @State private var selectedDisplay: SettingsDisplayType = .percent
-    @State private var soundEffectsEnabled: Bool = true
-    @State private var launchAtLoginEnabled: Bool = true
+    @State private var soundEffectsEnabled = true
+    @State private var launchAtLoginEnabled = true
 
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: Spacing.lg) {
             Spacer()
 
-            // Title
             Text("OnboardingPreferencesTitle".localise())
                 .font(Typography.title)
-                .foregroundColor(Color("BBTitle"))
+                .foregroundStyle(Color("BBTitle"))
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
+                .padding(.horizontal, Spacing.xl)
 
-            // Preference cards
-            VStack(spacing: 12) {
-                // Display mode picker
-                VStack(alignment: .leading, spacing: 8) {
+            VStack(spacing: Spacing.smd) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text("OnboardingDisplayModeLabel".localise())
                         .font(Typography.heading)
-                        .foregroundColor(Color("BBTitle"))
+                        .foregroundStyle(Color("BBTitle"))
 
-                    Picker("", selection: $selectedDisplay) {
-                        Text("SettingsDisplayPercentLabel".localise()).tag(SettingsDisplayType.percent)
-                        Text("SettingsDisplayEstimateLabel".localise()).tag(SettingsDisplayType.countdown)
-                        Text("SettingsDisplayCycleLabel".localise()).tag(SettingsDisplayType.cycle)
-                        Text("SettingsDisplayNoneLabel".localise()).tag(SettingsDisplayType.empty)
-                    }
-                    .pickerStyle(.segmented)
+                    OnboardingDisplayTileGrid(
+                        selected: self.$selectedDisplay,
+                        reduceMotion: self.reduceMotion
+                    )
                 }
-                .padding(16)
+                .padding(Spacing.md)
                 .background(
                     RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
                         .fill(Color("BBSurface"))
                 )
 
-                // Sound effects toggle
-                PreferenceToggle(
+                OnboardingPreferenceToggle(
                     icon: "speaker.wave.2",
                     title: "OnboardingSoundEffectsLabel".localise(),
-                    isEnabled: $soundEffectsEnabled
+                    isEnabled: self.$soundEffectsEnabled
                 )
 
-                // Launch at login toggle
-                PreferenceToggle(
+                OnboardingPreferenceToggle(
                     icon: "power",
                     title: "OnboardingLaunchAtLoginLabel".localise(),
-                    isEnabled: $launchAtLoginEnabled
+                    isEnabled: self.$launchAtLoginEnabled
                 )
             }
-            .padding(.horizontal, 32)
+            .padding(.horizontal, Spacing.xl)
 
             Spacer()
 
-            // CTA button
-            Button(
-                action: saveAndAdvance,
-                label: {
-                    Text("OnboardingPreferencesButton".localise())
-                        .font(Typography.heading)
-                        .foregroundColor(Color("BBSurface"))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(
-                            RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
-                                .fill(Color("BBTitle"))
-                        )
-                }
-            )
-            .buttonStyle(.plain)
-            .padding(.horizontal, 32)
-            .padding(.bottom, 16)
+            Button {
+                self.saveAndAdvance()
+            } label: {
+                Text("OnboardingPreferencesButton".localise())
+                    .font(Typography.heading)
+                    .foregroundStyle(Color("BBSurface"))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
+                            .fill(Color("BBTitle"))
+                    )
+            }
+            .buttonStyle(HoverButtonStyle())
+            .padding(.horizontal, Spacing.xl)
+            .padding(.bottom, Spacing.md)
+            .accessibilityLabel("OnboardingPreferencesButton".localise())
         }
-        .padding(.top, 32)
+        .padding(.top, Spacing.xl)
         .onAppear {
-            loadCurrentSettings()
+            self.loadCurrentSettings()
         }
     }
 
     private func loadCurrentSettings() {
-        selectedDisplay = settings.display
-        soundEffectsEnabled = settings.enabledSoundEffects == .enabled
-        launchAtLoginEnabled = settings.enabledAutoLaunch == .enabled
+        self.selectedDisplay = self.settings.display
+        self.soundEffectsEnabled = self.settings.sfx == .enabled
+        self.launchAtLoginEnabled = self.settings.autoLaunch == .enabled
     }
 
     private func saveAndAdvance() {
-        // Save display preference
-        settings.display = selectedDisplay
-
-        // Save sound effects preference
-        settings.enabledSoundEffects = soundEffectsEnabled ? .enabled : .disabled
-
-        // Save launch at login preference
-        settings.enabledAutoLaunch = launchAtLoginEnabled ? .enabled : .disabled
-
-        onboarding.advance()
+        while self.settings.display != self.selectedDisplay {
+            self.settings.toggleDisplay()
+        }
+        self.settings.soundEffects = self.soundEffectsEnabled ? .enabled : .disabled
+        self.settings.autoLaunch = self.launchAtLoginEnabled ? .enabled : .disabled
+        self.onboarding.advance()
     }
 }
 
-private struct PreferenceToggle: View {
+// MARK: - Display Tile Grid
+
+private struct OnboardingDisplayTileGrid: View {
+    @Binding var selected: SettingsDisplayType
+    let reduceMotion: Bool
+
+    private let displayOptions: [(type: SettingsDisplayType, label: String)] = [
+        (.countdown, "SettingsDisplayEstimateLabel"),
+        (.percent, "SettingsDisplayPercentLabel"),
+        (.cycle, "SettingsDisplayCycleLabel"),
+        (.empty, "SettingsDisplayNoneLabel"),
+    ]
+
+    var body: some View {
+        VStack(spacing: Spacing.sm) {
+            HStack(spacing: Spacing.sm) {
+                self.tile(for: self.displayOptions[0])
+                self.tile(for: self.displayOptions[1])
+            }
+
+            HStack(spacing: Spacing.sm) {
+                self.tile(for: self.displayOptions[2])
+                self.tile(for: self.displayOptions[3])
+            }
+        }
+    }
+
+    private func tile(for option: (type: SettingsDisplayType, label: String)) -> some View {
+        Button {
+            self.selected = option.type
+        } label: {
+            VStack(spacing: Spacing.xsm) {
+                Image(systemName: option.type.icon)
+                    .font(Typography.icon)
+                    .foregroundStyle(Color("BBSubtitle"))
+                    .frame(height: 28)
+                    .applySymbolReplaceTransition()
+
+                Text(option.label.localise())
+                    .font(Typography.heading)
+                    .foregroundStyle(Color("BBTitle"))
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, minHeight: 72)
+            .background(
+                RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
+                    .fill(Color("BBBackground"))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
+                    .strokeBorder(
+                        Color("BBTitle").opacity(self.selected == option.type ? 0.3 : 0.0),
+                        lineWidth: 2
+                    )
+            )
+            .animation(
+                DesignAnimation.easeOut(duration: 0.2, reduceMotion: self.reduceMotion),
+                value: self.selected
+            )
+        }
+        .buttonStyle(HoverButtonStyle())
+        .accessibilityLabel(option.label.localise())
+        .accessibilityValue(self.selected == option.type ? "Selected" : "")
+        .accessibilityAddTraits(self.selected == option.type ? .isSelected : [])
+    }
+}
+
+// MARK: - Preference Toggle
+
+private struct OnboardingPreferenceToggle: View {
     let icon: String
     let title: String
     @Binding var isEnabled: Bool
 
     var body: some View {
-        HStack(spacing: 16) {
-            Image(systemName: icon)
-                .font(.system(size: 20))
-                .foregroundColor(Color("BBSubtitle"))
+        HStack(spacing: Spacing.md) {
+            Image(systemName: self.icon)
+                .font(Typography.icon)
+                .foregroundStyle(Color("BBSubtitle"))
                 .frame(width: 28)
 
-            Text(title)
+            Text(self.title)
                 .font(Typography.heading)
-                .foregroundColor(Color("BBTitle"))
+                .foregroundStyle(Color("BBTitle"))
 
             Spacer()
 
-            Toggle("", isOn: $isEnabled)
+            Toggle("", isOn: self.$isEnabled)
                 .toggleStyle(.switch)
                 .labelsHidden()
+                .accessibilityLabel(self.title)
         }
-        .padding(16)
+        .padding(Spacing.md)
         .background(
             RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
                 .fill(Color("BBSurface"))
