@@ -382,7 +382,7 @@ struct BatteryContainer: View {
                         .fill(Color("BatteryEfficient"))
                         .frame(width: 5, height: 5)
                         .position(x: -5, y: (geo.size.height / 2) + 0.5)
-                        .accessibilityLabel("Update available")
+                        .accessibilityLabel("AccessibilityUpdateAvailable".localise())
 
                 }
 
@@ -392,11 +392,13 @@ struct BatteryContainer: View {
 
         )
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Battery level")
+        .accessibilityLabel("AccessibilityBatteryLevel".localise())
         .accessibilityValue(
-            "\(Int(manager.percentage)) percent\(manager.charging.state == .charging ? ", charging" : "")"
+            manager.charging.state == .charging
+                ? "AccessibilityPercentChargingLabel".localise([Int(manager.percentage)])
+                : "AccessibilityPercentLabel".localise([Int(manager.percentage)])
         )
-        .accessibilityHint("Shows current battery status")
+        .accessibilityHint("AccessibilityBatteryStatusHint".localise())
 
     }
 

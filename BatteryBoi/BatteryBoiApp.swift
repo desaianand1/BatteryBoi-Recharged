@@ -40,6 +40,7 @@ public enum SystemSoundEffects: String {
         guard SettingsService.shared.enabledSoundEffects == .enabled || force else { return }
 
         guard let sound = NSSound(named: rawValue) else {
+            BLogger.app.warning("Sound effect '\(rawValue)' not found in bundle")
             return
         }
 

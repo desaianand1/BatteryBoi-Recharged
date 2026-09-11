@@ -79,7 +79,7 @@ enum SettingsDisplayType: String {
         case .percent: "SettingsDisplayPercentLabel".localise()
         case .empty: "SettingsDisplayNoneLabel".localise()
         case .cycle: "SettingsDisplayCycleLabel".localise()
-        case .hidden: "SettingsDisplayHiddenLabel".localise()
+        case .hidden: "SettingsDisplayMenuBarHiddenLabel".localise()
         }
     }
 

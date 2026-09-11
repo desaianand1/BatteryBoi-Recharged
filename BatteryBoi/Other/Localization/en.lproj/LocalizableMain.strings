@@ -43,6 +43,7 @@
 "SettingsDisplayEstimateLabel" = "Time";
 "SettingsDisplayNoneLabel" = "Empty";
 "SettingsDisplayHiddenLabel" = "Hidden";
+"SettingsDisplayMenuBarHiddenLabel" = "Menu Bar: Hidden";
 "SettingsEnabledLabel" = "Enabled";
 "SettingsDisabledLabel" = "Disabled";
 
@@ -106,6 +107,9 @@
 "AccessibilityBatteryNotification" = "Battery status notification";
 "AccessibilityDoubleTapActivate" = "Double tap to activate";
 "AccessibilityDoubleTapSelect" = "Double tap to select this device";
+"AccessibilityUpdateAvailable" = "Update available";
+"AccessibilityBatteryLevel" = "Battery level";
+"AccessibilityBatteryStatusHint" = "Shows current battery status";
 
 // Settings navigation
 "SettingsThemeLabel" = "Theme";
@@ -169,3 +173,31 @@
 "SettingsStateDisabled" = "Disabled";
 "SettingsStateNotSet" = "Not Set";
 "SettingsStateRestricted" = "Restricted";
+
+// Settings Tiles
+"SettingsTileDisplayLabel" = "Display";
+"SettingsTileSoundLabel" = "Sound";
+"SettingsTileAlertsLabel" = "Alerts";
+"SettingsTilePinLabel" = "Pin";
+"SettingsTileOnLabel" = "On";
+"SettingsTileOffLabel" = "Off";
+
+// Device Detail
+"DeviceDetailBackLabel" = "Back";
+"DeviceDetailStatusLabel" = "Status";
+"DeviceDetailTypeLabel" = "Type";
+"DeviceDetailBatteryLabel" = "Battery";
+"DeviceDetailCyclesLabel" = "Cycles";
+"DeviceDetailHealthLabel" = "Health";
+"DeviceDetailThermalLabel" = "Thermal";
+"DeviceDetailPowerLabel" = "Power Source";
+"DeviceDetailConnectedLabel" = "Connected";
+"DeviceDetailDisconnectedLabel" = "Disconnected";
+"DeviceDetailOptimalLabel" = "Normal";
+"DeviceDetailACPowerLabel" = "AC Power";
+"DeviceDetailBatteryPowerLabel" = "Battery";
+"DeviceDetailNoOtherDevicesLabel" = "No other devices";
+
+// Accessibility - Settings interaction
+"AccessibilityOpenSettings" = "Double tap to open settings";
+"AccessibilityCloseSettings" = "Double tap to close settings";
