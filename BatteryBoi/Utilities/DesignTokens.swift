@@ -22,16 +22,74 @@ enum Typography {
 }
 
 enum Spacing {
+    static let xxs: CGFloat = 2
     static let xs: CGFloat = 4
+    static let xsm: CGFloat = 6
     static let sm: CGFloat = 8
+    static let smd: CGFloat = 12
     static let md: CGFloat = 16
     static let lg: CGFloat = 24
     static let xl: CGFloat = 32
     static let xxl: CGFloat = 60
 }
 
+enum RevealTiming {
+
+    // MARK: Atomic — tweak only these; everything else derives
+
+    static let circleBounce: Double = 0.6
+    static let circlePause: Double = 0.7
+    static let ringFadeIn: Double = 0.3
+    static let glowPulse: Double = 0.4
+    static let glowFade: Double = 0.4
+    static let arcSweep: Double = 0.8
+    static let pillExpansion: Double = 2.6
+    static let contentFade: Double = 0.8
+    static let ringSlide: Double = 0.35
+
+    // MARK: Derived — calculated from atomics
+
+    static let circlePhaseEnd: Double = circleBounce + circlePause
+    static let arcSweepDelay: Double = 0.1
+    static let glowStartDelay: Double = 0.1
+    static let glowEnd: Double = glowStartDelay + glowPulse + glowFade
+    static let arcSweepEnd: Double = arcSweepDelay + arcSweep
+    static let ringSlideDelay: Double = circlePhaseEnd
+    static let contentRevealDelay: Double = circlePhaseEnd + 0.25
+    static let totalReveal: Double = circlePhaseEnd + pillExpansion
+
+    // MARK: Dismiss
+
+    static let dismissTextFade: Double = 0.15
+    static let dismissContainerFade: Double = 0.3
+    static let dismissMaskHold: Double = 0.35
+    static let dismissPillContract: Double = 0.3
+    static let dismissCircleShrink: Double = 0.3
+
+    // MARK: Expand / Collapse
+
+    static let expandDuration: Double = 0.3
+    static let collapseDuration: Double = 0.3
+}
+
+enum ChargingAnimation {
+    static let glowPeriod: Double = 1.0
+    static let shimmerPeriod: Double = 3.0
+    static let dotPulsePeriod: Double = 2.0
+    static let trackBreathePeriod: Double = 4.0
+    static let fullBurstDuration: Double = 1.2
+    static let glowMinOpacity: Double = 0.3
+    static let glowMaxOpacity: Double = 0.5
+    static let glowStaticOpacity: Double = 0.4
+    static let dotMinScale: Double = 1.0
+    static let dotMaxScale: Double = 1.3
+    static let trackMinOpacity: Double = 0.08
+    static let trackMaxOpacity: Double = 0.12
+    static let burstMaxScale: Double = 1.15
+    static let burstStartOpacity: Double = 0.4
+}
+
 enum DesignAnimation {
-    /// Returns nil if reduce motion is enabled, otherwise returns the specified animation
     static func spring(
         response: Double = 0.4,
         dampingFraction: Double = 0.8,
@@ -40,25 +98,18 @@ enum DesignAnimation {
         reduceMotion ? nil : .spring(response: response, dampingFraction: dampingFraction)
     }
 
-    /// Returns nil if reduce motion is enabled, otherwise returns the specified easeOut animation
     static func easeOut(duration: Double = 0.3, reduceMotion: Bool) -> Animation? {
         reduceMotion ? nil : .easeOut(duration: duration)
     }
 
-    /// Returns nil if reduce motion is enabled, otherwise returns the specified easeIn animation
     static func easeIn(duration: Double = 0.3, reduceMotion: Bool) -> Animation? {
         reduceMotion ? nil : .easeIn(duration: duration)
     }
 
-    /// Returns nil if reduce motion is enabled, otherwise returns the standard interactive spring
     static func interactiveSpring(reduceMotion: Bool) -> Animation? {
         reduceMotion ? nil : .interactiveSpring(response: 0.6, dampingFraction: 0.9, blendDuration: 1)
     }
 
-    enum Delays {
-        static let contentReveal: Double = 0.9
-        static let progressTrailing: Double = 0.75
-    }
 }
 
 // MARK: - Battery Tier
@@ -212,5 +263,26 @@ struct HoverButtonStyle: ButtonStyle {
                     NSCursor.pop()
                 }
             }
+    }
+}
+
+// MARK: - Blur Fade Transition
+
+struct BlurFadeModifier: ViewModifier {
+    let isActive: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: self.isActive ? 0 : 4)
+            .opacity(self.isActive ? 1 : 0)
+    }
+}
+
+extension AnyTransition {
+    static var blurFade: AnyTransition {
+        .modifier(
+            active: BlurFadeModifier(isActive: false),
+            identity: BlurFadeModifier(isActive: true)
+        )
     }
 }

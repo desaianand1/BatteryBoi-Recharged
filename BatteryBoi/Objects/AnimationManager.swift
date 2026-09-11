@@ -124,7 +124,7 @@ struct AnimationModifier: ViewModifier {
         content
             .frame(width: width, height: height)
             .opacity(opacity)
-            .cornerRadius(radius)
+            .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
             .blur(radius: blur)
             .scaleEffect(scale)
             .rotationEffect(.degrees(rotate))
