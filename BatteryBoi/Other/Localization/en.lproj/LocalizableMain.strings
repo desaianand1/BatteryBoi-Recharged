@@ -130,6 +130,8 @@
 "BluetoothUnavailableError" = "Device not available. It may be connected to another Mac.";
 "BluetoothGenericError" = "Something went wrong. Please try again.";
 "BluetoothRetryButton" = "Try Again";
+"BluetoothRetryHint" = "Double-tap to retry the connection";
+"BluetoothOpenSettingsHint" = "Double-tap to open Bluetooth settings";
 "BluetoothConnectingLabel" = "Connecting...";
 
 // Onboarding - Welcome

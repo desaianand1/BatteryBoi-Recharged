@@ -366,6 +366,7 @@ struct DeviceDetailView: View {
     let onBack: () -> Void
 
     @State private var isConnecting: Bool = false
+    @State private var connectionError: BluetoothConnectionState?
     @Namespace private var animation
 
     private var isMacDevice: Bool {
@@ -444,10 +445,38 @@ struct DeviceDetailView: View {
             )
 
             if !self.isMacDevice, let device = self.device {
-                self.connectionButton(for: device)
+                if let error = self.connectionError {
+                    BluetoothConnectionFailedView(
+                        deviceName: self.name,
+                        errorType: error,
+                        retryAction: {
+                            self.connectionError = nil
+                            self.isConnecting = true
+                            Task {
+                                let result = self.env.bluetooth.updateConnection(device, state: .connected)
+                                await MainActor.run {
+                                    self.isConnecting = false
+                                    if result != .connected {
+                                        self.connectionError = result
+                                    }
+                                }
+                            }
+                        }
+                    )
+                    .transition(.opacity.combined(with: .blurReplace))
+                } else {
+                    self.connectionButton(for: device)
+                        .transition(.opacity.combined(with: .blurReplace))
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .task(id: self.connectionError) {
+            guard self.connectionError != nil else { return }
+            try? await Task.sleep(for: .seconds(5))
+            self.connectionError = nil
+        }
+        .animation(DesignAnimation.easeOut(reduceMotion: self.reduceMotion), value: self.connectionError)
     }
 
     private var macDetailRows: some View {
@@ -553,8 +582,13 @@ struct DeviceDetailView: View {
                 self.isConnecting = true
                 Task {
                     let targetState: BluetoothState = isConnected ? .disconnected : .connected
-                    _ = self.env.bluetooth.updateConnection(device, state: targetState)
-                    await MainActor.run { self.isConnecting = false }
+                    let result = self.env.bluetooth.updateConnection(device, state: targetState)
+                    await MainActor.run {
+                        self.isConnecting = false
+                        if result != .connected, result != .disconnected {
+                            self.connectionError = result
+                        }
+                    }
                 }
             },
             label: {
@@ -679,46 +713,69 @@ struct BluetoothConnectionFailedView: View {
     let retryAction: () -> Void
 
     var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: errorIcon)
-                .font(.system(size: 24))
-                .foregroundColor(errorColor)
+        VStack(spacing: Spacing.smd) {
+            Image(systemName: self.errorIcon)
+                .font(Typography.icon)
+                .foregroundColor(self.errorColor)
+                .applySymbolEffect(.pulse)
 
-            VStack(spacing: 4) {
-                Text(deviceName)
+            VStack(spacing: Spacing.xs) {
+                Text(self.deviceName)
                     .font(Typography.heading)
                     .foregroundColor(Color("BBTitle"))
 
-                Text(errorMessage)
+                Text(self.errorMessage)
                     .font(Typography.small)
                     .foregroundColor(Color("BBSubtitle"))
                     .multilineTextAlignment(.center)
             }
 
-            if errorType != .restricted {
-                Button(action: retryAction) {
+            if self.errorType == .restricted {
+                Button(action: self.openSystemPreferences) {
+                    HStack(spacing: Spacing.xsm) {
+                        Image(systemName: "gear")
+                        Text("BluetoothOpenSettingsButton".localise())
+                    }
+                    .font(Typography.heading)
+                    .foregroundColor(Color("BBSurface"))
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.vertical, Spacing.sm)
+                    .background(
+                        RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
+                            .fill(Color("BBTitle"))
+                    )
+                }
+                .buttonStyle(HoverButtonStyle())
+                .accessibilityLabel("BluetoothOpenSettingsButton".localise())
+                .accessibilityHint("BluetoothOpenSettingsHint".localise())
+            } else {
+                Button(action: self.retryAction) {
                     Text("BluetoothRetryButton".localise())
-                        .font(Typography.small)
+                        .font(Typography.heading)
                         .foregroundColor(Color("BBTitle"))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
+                        .padding(.horizontal, Spacing.md)
+                        .padding(.vertical, Spacing.sm)
                         .background(
                             RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
                                 .stroke(Color("BBSubtitle"), lineWidth: 1)
                         )
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(HoverButtonStyle())
+                .accessibilityLabel("BluetoothRetryButton".localise())
+                .accessibilityHint("BluetoothRetryHint".localise())
             }
         }
-        .padding()
+        .padding(Spacing.md)
+        .frame(maxWidth: .infinity)
         .background(
             RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
                 .fill(Color("BBSurface"))
         )
+        .accessibilityElement(children: .combine)
     }
 
     private var errorIcon: String {
-        switch errorType {
+        switch self.errorType {
         case .restricted: "lock.shield"
         case .failed: "exclamationmark.triangle"
         case .unavailable: "questionmark.circle"
@@ -727,19 +784,25 @@ struct BluetoothConnectionFailedView: View {
     }
 
     private var errorColor: Color {
-        switch errorType {
-        case .restricted: .orange
-        case .failed: .red
-        default: Color("BBSubtitle")
+        switch self.errorType {
+        case .failed: SemanticColor.error
+        case .restricted: SemanticColor.warning
+        default: SemanticColor.info
         }
     }
 
     private var errorMessage: String {
-        switch errorType {
+        switch self.errorType {
         case .restricted: "BluetoothRestrictedError".localise()
         case .failed: "BluetoothConnectionFailedError".localise()
         case .unavailable: "BluetoothUnavailableError".localise()
         default: "BluetoothGenericError".localise()
+        }
+    }
+
+    private func openSystemPreferences() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Bluetooth") {
+            NSWorkspace.shared.open(url)
         }
     }
 }
