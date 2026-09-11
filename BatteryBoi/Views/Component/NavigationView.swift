@@ -14,7 +14,7 @@ struct ExpandedPanelView: View {
     var body: some View {
         VStack(spacing: 0) {
             Rectangle()
-                .fill(Color("BatterySubtitle").opacity(0.15))
+                .fill(Color("BBSubtitle").opacity(0.15))
                 .frame(height: 1)
                 .padding(.horizontal, Spacing.md)
 

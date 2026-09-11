@@ -32,7 +32,7 @@ struct OnboardingView: View {
             HStack(spacing: 8) {
                 ForEach(OnboardingService.Step.allCases, id: \.self) { step in
                     Circle()
-                        .fill(step == onboarding.currentStep ? Color("BatteryTitle") : Color("BatterySubtitle")
+                        .fill(step == onboarding.currentStep ? Color("BBTitle") : Color("BBSubtitle")
                             .opacity(0.3))
                         .frame(width: 8, height: 8)
                         .animation(.easeInOut(duration: 0.2), value: onboarding.currentStep)
@@ -41,6 +41,6 @@ struct OnboardingView: View {
             .padding(.bottom, 24)
         }
         .frame(width: 400, height: 480)
-        .background(Color("BatteryBackground"))
+        .background(Color("BBBackground"))
     }
 }

@@ -28,11 +28,11 @@ struct BluetoothIcon: View {
 
                     Image(systemName: self.icon)
                         .font(Typography.bodyMedium)
-                        .foregroundColor(self.isSelected ? Color("BatteryButton") : Color("BatterySubtitle"))
+                        .foregroundColor(self.isSelected ? Color("BBSurface") : Color("BBSubtitle"))
                         .padding(2)
                         .background(
                             Circle()
-                                .fill(self.isSelected ? Color("BatteryTitle") : Color("BatteryButton"))
+                                .fill(self.isSelected ? Color("BBTitle") : Color("BBSurface"))
                                 .blur(radius: 2)
                         )
                         .matchedGeometryEffect(id: self.icon, in: self.animation)
@@ -41,7 +41,7 @@ struct BluetoothIcon: View {
                 } else {
                     Image(systemName: self.icon)
                         .font(Typography.title)
-                        .foregroundColor(self.isSelected ? Color("BatteryButton") : Color("BatterySubtitle"))
+                        .foregroundColor(self.isSelected ? Color("BBSurface") : Color("BBSubtitle"))
                         .padding(2)
                         .matchedGeometryEffect(id: self.item?.type.icon ?? "laptopcomputer", in: self.animation)
                 }
@@ -143,7 +143,7 @@ struct BluetoothItem: View {
                         if let item {
                             Text(item.device ?? item.type.type.rawValue)
                                 .font(Typography.headingLarge)
-                                .foregroundColor(self.isSelected ? Color("BatteryButton") : Color("BatteryTitle"))
+                                .foregroundColor(self.isSelected ? Color("BBSurface") : Color("BBTitle"))
                                 .lineLimit(1)
                                 .truncationMode(.tail)
                                 .padding(0)
@@ -178,18 +178,18 @@ struct BluetoothItem: View {
                                     .opacity(self.isConnecting ? self.connectionDotOpacity : 1.0)
                             }
                             .font(Typography.small)
-                            .foregroundColor(Color("BatterySubtitle"))
+                            .foregroundColor(Color("BBSubtitle"))
 
                         } else {
                             Text(manager.appDeviceType.name)
                                 .font(Typography.headingLarge)
-                                .foregroundColor(self.isSelected ? Color("BatteryButton") : Color("BatteryTitle"))
+                                .foregroundColor(self.isSelected ? Color("BBSurface") : Color("BBTitle"))
                                 .padding(0)
 
                             // Always show battery percentage for Mac device
                             Text("AlertSomePercentTitle".localise([Int(battery.percentage)]))
                                 .font(Typography.small)
-                                .foregroundColor(Color("BatterySubtitle"))
+                                .foregroundColor(Color("BBSubtitle"))
 
                         }
 
@@ -201,7 +201,7 @@ struct BluetoothItem: View {
                 .padding(.trailing, 26)
                 .background(
                     RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
-                        .fill(self.isSelected ? Color("BatteryTitle") : Color("BatteryButton"))
+                        .fill(self.isSelected ? Color("BBTitle") : Color("BBSurface"))
 
                 )
             }
@@ -284,14 +284,14 @@ struct DeviceRow: View {
                 VStack(alignment: .leading, spacing: Spacing.xxs) {
                     Text(self.name)
                         .font(Typography.heading)
-                        .foregroundStyle(Color("BatteryTitle"))
+                        .foregroundStyle(Color("BBTitle"))
                         .lineLimit(1)
                         .truncationMode(.tail)
 
                     HStack(spacing: Spacing.xs) {
                         Text(self.batteryText)
                             .font(Typography.caption)
-                            .foregroundStyle(Color("BatterySubtitle"))
+                            .foregroundStyle(Color("BBSubtitle"))
 
                         if let device = self.device {
                             Circle()
@@ -307,7 +307,7 @@ struct DeviceRow: View {
             .padding(.horizontal, Spacing.smd)
             .background(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color("BatteryButton"))
+                    .fill(Color("BBSurface"))
             )
         }
         .buttonStyle(HoverButtonStyle())
@@ -336,7 +336,7 @@ struct DevicesColumnView: View {
             } else if self.bluetooth.connected.isEmpty {
                 Text("DeviceDetailNoOtherDevicesLabel".localise())
                     .font(Typography.caption)
-                    .foregroundStyle(Color("BatterySubtitle"))
+                    .foregroundStyle(Color("BBSubtitle"))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Spacing.sm)
             } else {
@@ -406,7 +406,7 @@ struct DeviceDetailView: View {
                     Text("DeviceDetailBackLabel".localise())
                 }
                 .font(Typography.heading)
-                .foregroundStyle(Color("BatterySubtitle"))
+                .foregroundStyle(Color("BBSubtitle"))
             }
             .buttonStyle(HoverButtonStyle())
 
@@ -421,11 +421,11 @@ struct DeviceDetailView: View {
                 VStack(alignment: .leading, spacing: Spacing.xxs) {
                     Text(self.name)
                         .font(Typography.titleBold)
-                        .foregroundStyle(Color("BatteryTitle"))
+                        .foregroundStyle(Color("BBTitle"))
 
                     Text(self.deviceSubtitle)
                         .font(Typography.heading)
-                        .foregroundStyle(Color("BatterySubtitle"))
+                        .foregroundStyle(Color("BBSubtitle"))
                 }
             }
 
@@ -440,7 +440,7 @@ struct DeviceDetailView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
-                    .fill(Color("BatteryButton"))
+                    .fill(Color("BBSurface"))
             )
 
             if !self.isMacDevice, let device = self.device {
@@ -531,16 +531,16 @@ struct DeviceDetailView: View {
         HStack(spacing: Spacing.sm) {
             Image(systemName: icon)
                 .font(Typography.heading)
-                .foregroundStyle(Color("BatterySubtitle"))
+                .foregroundStyle(Color("BBSubtitle"))
                 .frame(width: 18, alignment: .center)
                 .applySymbolEffect(effect)
             Text(label)
                 .font(Typography.heading)
-                .foregroundStyle(Color("BatterySubtitle"))
+                .foregroundStyle(Color("BBSubtitle"))
             Spacer()
             Text(value)
                 .font(Typography.headingLarge)
-                .foregroundStyle(Color("BatteryTitle"))
+                .foregroundStyle(Color("BBTitle"))
         }
     }
 
@@ -572,13 +572,13 @@ struct DeviceDetailView: View {
                         : "BluetoothConnectLabel".localise())
                         .font(Typography.heading)
                 }
-                .foregroundStyle(Color("BatterySubtitle"))
+                .foregroundStyle(Color("BBSubtitle"))
                 .padding(.horizontal, Spacing.md)
                 .padding(.vertical, Spacing.sm)
                 .frame(maxWidth: .infinity)
                 .background(
                     RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
-                        .fill(Color("BatteryButton"))
+                        .fill(Color("BBSurface"))
                 )
             }
         )
@@ -592,16 +592,16 @@ struct BluetoothEmptyStateView: View {
         HStack(alignment: .center, spacing: 12) {
             Image(systemName: "airpodspro")
                 .font(.system(size: 24))
-                .foregroundColor(Color("BatterySubtitle").opacity(0.6))
+                .foregroundColor(Color("BBSubtitle").opacity(0.6))
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("BluetoothNoDevicesTitle".localise())
                     .font(Typography.headingLarge)
-                    .foregroundColor(Color("BatteryTitle"))
+                    .foregroundColor(Color("BBTitle"))
 
                 Text("BluetoothNoDevicesBody".localise())
                     .font(Typography.small)
-                    .foregroundColor(Color("BatterySubtitle"))
+                    .foregroundColor(Color("BBSubtitle"))
                     .lineLimit(2)
             }
         }
@@ -609,7 +609,7 @@ struct BluetoothEmptyStateView: View {
         .padding(.vertical, 16)
         .background(
             RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
-                .fill(Color("BatteryButton"))
+                .fill(Color("BBSurface"))
         )
         .accessibilityElement(children: .combine)
     }
@@ -621,7 +621,7 @@ struct BluetoothPermissionDeniedView: View {
             ZStack {
                 Image(systemName: "antenna.radiowaves.left.and.right")
                     .font(.system(size: 32))
-                    .foregroundColor(Color("BatterySubtitle").opacity(0.4))
+                    .foregroundColor(Color("BBSubtitle").opacity(0.4))
 
                 Image(systemName: "exclamationmark.circle.fill")
                     .font(.system(size: 14))
@@ -632,11 +632,11 @@ struct BluetoothPermissionDeniedView: View {
             VStack(spacing: 6) {
                 Text("BluetoothPermissionDeniedTitle".localise())
                     .font(Typography.headingLarge)
-                    .foregroundColor(Color("BatteryTitle"))
+                    .foregroundColor(Color("BBTitle"))
 
                 Text("BluetoothPermissionDeniedBody".localise())
                     .font(Typography.small)
-                    .foregroundColor(Color("BatterySubtitle"))
+                    .foregroundColor(Color("BBSubtitle"))
                     .multilineTextAlignment(.center)
                     .lineLimit(3)
             }
@@ -647,12 +647,12 @@ struct BluetoothPermissionDeniedView: View {
                     Text("BluetoothOpenSettingsButton".localise())
                 }
                 .font(Typography.heading)
-                .foregroundColor(Color("BatteryButton"))
+                .foregroundColor(Color("BBSurface"))
                 .padding(.horizontal, 20)
                 .padding(.vertical, 10)
                 .background(
                     RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
-                        .fill(Color("BatteryTitle"))
+                        .fill(Color("BBTitle"))
                 )
             }
             .buttonStyle(.plain)
@@ -661,7 +661,7 @@ struct BluetoothPermissionDeniedView: View {
         .padding(.vertical, 20)
         .background(
             RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
-                .fill(Color("BatteryButton"))
+                .fill(Color("BBSurface"))
         )
         .accessibilityElement(children: .combine)
     }
@@ -687,11 +687,11 @@ struct BluetoothConnectionFailedView: View {
             VStack(spacing: 4) {
                 Text(deviceName)
                     .font(Typography.heading)
-                    .foregroundColor(Color("BatteryTitle"))
+                    .foregroundColor(Color("BBTitle"))
 
                 Text(errorMessage)
                     .font(Typography.small)
-                    .foregroundColor(Color("BatterySubtitle"))
+                    .foregroundColor(Color("BBSubtitle"))
                     .multilineTextAlignment(.center)
             }
 
@@ -699,12 +699,12 @@ struct BluetoothConnectionFailedView: View {
                 Button(action: retryAction) {
                     Text("BluetoothRetryButton".localise())
                         .font(Typography.small)
-                        .foregroundColor(Color("BatteryTitle"))
+                        .foregroundColor(Color("BBTitle"))
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
                         .background(
                             RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
-                                .stroke(Color("BatterySubtitle"), lineWidth: 1)
+                                .stroke(Color("BBSubtitle"), lineWidth: 1)
                         )
                 }
                 .buttonStyle(.plain)
@@ -713,7 +713,7 @@ struct BluetoothConnectionFailedView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
-                .fill(Color("BatteryButton"))
+                .fill(Color("BBSurface"))
         )
     }
 
@@ -730,7 +730,7 @@ struct BluetoothConnectionFailedView: View {
         switch errorType {
         case .restricted: .orange
         case .failed: .red
-        default: Color("BatterySubtitle")
+        default: Color("BBSubtitle")
         }
     }
 

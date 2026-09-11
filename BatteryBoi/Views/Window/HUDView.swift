@@ -151,9 +151,9 @@ struct HUDContainer: View {
                     label: {
                         Image(systemName: "xmark")
                             .font(Typography.heading)
-                            .foregroundStyle(Color("BatterySubtitle"))
+                            .foregroundStyle(Color("BBSubtitle"))
                             .frame(width: 32, height: 32)
-                            .background(Circle().fill(Color("BatteryButton")))
+                            .background(Circle().fill(Color("BBSurface")))
                     }
                 )
                 .buttonStyle(HoverButtonStyle())
@@ -263,7 +263,7 @@ struct HUDGlow: View {
 
     var body: some View {
         Circle()
-            .fill(Color("BatteryBackground"))
+            .fill(Color("BBBackground"))
             .frame(width: 80, height: 80)
             .timeline($timeline, state: $animation)
             .onAppear {
@@ -375,7 +375,7 @@ struct HUDView: View {
         .frame(minWidth: 380, idealWidth: 450, maxWidth: 520)
         .frame(minHeight: 200, idealHeight: 250, maxHeight: 500)
         .background(
-            Color("BatteryBackground").opacity(window.opacity)
+            Color("BBBackground").opacity(window.opacity)
 
         )
         .timeline($timeline, state: $animation)

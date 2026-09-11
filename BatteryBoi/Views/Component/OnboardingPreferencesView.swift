@@ -21,7 +21,7 @@ struct OnboardingPreferencesView: View {
             // Title
             Text("OnboardingPreferencesTitle".localise())
                 .font(Typography.title)
-                .foregroundColor(Color("BatteryTitle"))
+                .foregroundColor(Color("BBTitle"))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
 
@@ -31,7 +31,7 @@ struct OnboardingPreferencesView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("OnboardingDisplayModeLabel".localise())
                         .font(Typography.heading)
-                        .foregroundColor(Color("BatteryTitle"))
+                        .foregroundColor(Color("BBTitle"))
 
                     Picker("", selection: $selectedDisplay) {
                         Text("SettingsDisplayPercentLabel".localise()).tag(SettingsDisplayType.percent)
@@ -44,7 +44,7 @@ struct OnboardingPreferencesView: View {
                 .padding(16)
                 .background(
                     RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
-                        .fill(Color("BatteryButton"))
+                        .fill(Color("BBSurface"))
                 )
 
                 // Sound effects toggle
@@ -71,12 +71,12 @@ struct OnboardingPreferencesView: View {
                 label: {
                     Text("OnboardingPreferencesButton".localise())
                         .font(Typography.heading)
-                        .foregroundColor(Color("BatteryButton"))
+                        .foregroundColor(Color("BBSurface"))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .background(
                             RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
-                                .fill(Color("BatteryTitle"))
+                                .fill(Color("BBTitle"))
                         )
                 }
             )
@@ -119,12 +119,12 @@ private struct PreferenceToggle: View {
         HStack(spacing: 16) {
             Image(systemName: icon)
                 .font(.system(size: 20))
-                .foregroundColor(Color("BatterySubtitle"))
+                .foregroundColor(Color("BBSubtitle"))
                 .frame(width: 28)
 
             Text(title)
                 .font(Typography.heading)
-                .foregroundColor(Color("BatteryTitle"))
+                .foregroundColor(Color("BBTitle"))
 
             Spacer()
 
@@ -135,7 +135,7 @@ private struct PreferenceToggle: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
-                .fill(Color("BatteryButton"))
+                .fill(Color("BBSurface"))
         )
     }
 }

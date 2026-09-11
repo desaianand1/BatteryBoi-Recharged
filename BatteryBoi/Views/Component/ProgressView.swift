@@ -220,7 +220,7 @@ struct RadialProgressMiniContainer: View {
 
             VStack {
                 Text("\(self.percent)")
-                    .foregroundColor(self.isSelected ? Color("BatteryButton") : Color("BatteryTitle"))
+                    .foregroundColor(self.isSelected ? Color("BBSurface") : Color("BBTitle"))
                     .font(Typography.caption)
             }
         }
@@ -308,19 +308,19 @@ struct RadialProgressContainer: View {
 
             ZStack(alignment: .center) {
                 Text("\(self.percent ?? 0)")
-                    .foregroundColor(Color("BatteryTitle"))
+                    .foregroundColor(Color("BBTitle"))
                     .font(Typography.progressLarge)
                     .blur(radius: self.percent == nil ? 5.0 : (self.isHovered ? 4.0 : 0.0))
                     .opacity(self.percent == nil ? 0.0 : (self.isHovered ? 0.0 : 1.0))
 
                 Image(systemName: "gearshape.fill")
                     .font(.system(size: 22, weight: .medium))
-                    .foregroundStyle(Color("BatterySubtitle"))
+                    .foregroundStyle(Color("BBSubtitle"))
                     .blur(radius: self.isHovered ? 0.0 : 4.0)
                     .opacity(self.isHovered ? 1.0 : 0.0)
 
                 Text("AlertDeviceUnknownTitle".localise())
-                    .foregroundColor(Color("BatteryTitle").opacity(0.4))
+                    .foregroundColor(Color("BBTitle").opacity(0.4))
                     .font(Typography.heading)
                     .blur(radius: (self.isHovered || self.percent != nil) ? 5.0 : 0.0)
                     .opacity((self.isHovered || self.percent != nil) ? 0.0 : 1.0)

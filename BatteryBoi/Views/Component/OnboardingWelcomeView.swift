@@ -24,12 +24,12 @@ struct OnboardingWelcomeView: View {
             VStack(spacing: 8) {
                 Text("OnboardingWelcomeTitle".localise())
                     .font(Typography.title)
-                    .foregroundColor(Color("BatteryTitle"))
+                    .foregroundColor(Color("BBTitle"))
                     .multilineTextAlignment(.center)
 
                 Text("OnboardingWelcomeSubtitle".localise())
                     .font(Typography.body)
-                    .foregroundColor(Color("BatterySubtitle"))
+                    .foregroundColor(Color("BBSubtitle"))
                     .multilineTextAlignment(.center)
             }
 
@@ -50,12 +50,12 @@ struct OnboardingWelcomeView: View {
                 label: {
                     Text("OnboardingWelcomeButton".localise())
                         .font(Typography.heading)
-                        .foregroundColor(Color("BatteryButton"))
+                        .foregroundColor(Color("BBSurface"))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .background(
                             RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
-                                .fill(Color("BatteryTitle"))
+                                .fill(Color("BBTitle"))
                         )
                 }
             )
@@ -75,12 +75,12 @@ private struct FeatureRow: View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 18))
-                .foregroundColor(Color("BatteryTitle"))
+                .foregroundColor(Color("BBTitle"))
                 .frame(width: 24)
 
             Text(text)
                 .font(Typography.body)
-                .foregroundColor(Color("BatterySubtitle"))
+                .foregroundColor(Color("BBSubtitle"))
         }
     }
 }

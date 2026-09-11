@@ -14,7 +14,7 @@ struct AboutContainer: View {
                     Text("AboutTitle".localise())
 
                 }
-                .foregroundColor(Color("BatteryTitle"))
+                .foregroundColor(Color("BBTitle"))
                 .font(.system(size: 26, weight: .bold))
                 .padding(.horizontal, 4)
                 .padding(.bottom, 30)
@@ -30,14 +30,14 @@ struct AboutContainer: View {
 
                 }
                 .lineSpacing(14)
-                .foregroundColor(Color("BatterySubtitle"))
+                .foregroundColor(Color("BBSubtitle"))
                 .font(.system(size: 12, weight: .medium))
                 .padding(.horizontal, 24)
 
                 // Version display
                 Text(updates.versionDisplay)
                     .font(.system(size: 10, weight: .regular))
-                    .foregroundColor(Color("BatterySubtitle").opacity(0.6))
+                    .foregroundColor(Color("BBSubtitle").opacity(0.6))
                     .padding(.top, 20)
             }
             .frame(width: 340)

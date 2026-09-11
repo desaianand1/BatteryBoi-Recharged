@@ -27,7 +27,7 @@ public struct BatteryPulsatingIcon: View {
 
     public var body: some View {
         Rectangle()
-            .fill(Color("BatteryIconFill"))
+            .fill(Color("BBIconFill"))
             .mask(
                 Image(icon)
                     .resizable().scaledToFit()
@@ -144,7 +144,7 @@ private struct BatteryStatus: View {
 
             }
             .offset(y: hover ? size.height : 0.0)
-            .foregroundColor(Color("BatteryIconFill"))
+            .foregroundColor(Color("BBIconFill"))
             .frame(width: size.width, height: size.height)
 
         }
@@ -179,7 +179,7 @@ private struct BatteryStatus: View {
 
         }
         .frame(alignment: .center)
-        .foregroundColor(Color("BatteryIconFill"))
+        .foregroundColor(Color("BBIconFill"))
         .animation(Animation.easeInOut, value: manager.charging)
 
     }
@@ -198,7 +198,7 @@ private struct BatteryStub: View {
 
     var body: some View {
         ZStack {
-            BatteryMask(3.4).foregroundColor(Color("BatteryDefault"))
+            BatteryMask(3.4).foregroundColor(Color("BBDefault"))
 
         }
         .position(x: proxy.size.width + 2, y: proxy.size.height / 2)
@@ -250,7 +250,7 @@ struct BatteryIcon: View {
 
             }
             .frame(maxWidth: size.width, alignment: .leading)
-            .foregroundColor(Color("BatteryIconFill"))
+            .foregroundColor(Color("BBIconFill"))
             .overlay(
                 BatteryStatus(size, font: font, hover: $hover)
 
@@ -261,7 +261,7 @@ struct BatteryIcon: View {
         .inverse(
             BatteryStatus(size, font: font, hover: $hover).mask(
                 Rectangle()
-                    .fill(Color("BatteryIconFill"))
+                    .fill(Color("BBIconFill"))
                     .frame(width: size.width)
                     .position(x: -(size.width / 2) + (progress + 2.0), y: size.height / 2)
 
@@ -340,7 +340,7 @@ struct BatteryContainer: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: radius, style: .continuous)
-                .fill(Color("BatteryDefault"))
+                .fill(Color("BBDefault"))
                 .opacity(0.9)
                 .frame(width: size.width, height: size.height)
                 .mask(
@@ -379,7 +379,7 @@ struct BatteryContainer: View {
             GeometryReader { geo in
                 if updates.available != nil {
                     Circle()
-                        .fill(Color("BatteryEfficient"))
+                        .fill(Color("BBAccent"))
                         .frame(width: 5, height: 5)
                         .position(x: -5, y: (geo.size.height / 2) + 0.5)
                         .accessibilityLabel("AccessibilityUpdateAvailable".localise())

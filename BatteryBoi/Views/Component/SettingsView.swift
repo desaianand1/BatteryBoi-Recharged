@@ -90,24 +90,24 @@ struct SettingsTile: View {
             VStack(spacing: Spacing.xsm) {
                 Image(systemName: self.icon)
                     .font(Typography.icon)
-                    .foregroundStyle(Color("BatterySubtitle"))
+                    .foregroundStyle(Color("BBSubtitle"))
                     .frame(height: 28)
                     .applySymbolReplaceTransition()
 
                 Text(self.tileType.label)
                     .font(Typography.heading)
-                    .foregroundStyle(Color("BatteryTitle"))
+                    .foregroundStyle(Color("BBTitle"))
                     .lineLimit(1)
 
                 Text(self.subtitle)
                     .font(Typography.caption)
-                    .foregroundStyle(Color("BatterySubtitle"))
+                    .foregroundStyle(Color("BBSubtitle"))
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity, minHeight: 80)
             .background(
                 RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
-                    .fill(Color("BatteryButton"))
+                    .fill(Color("BBSurface"))
             )
         }
         .buttonStyle(HoverButtonStyle())
@@ -147,11 +147,11 @@ struct SettingsTileGrid: View {
                         Text("SettingsQuitLabel".localise())
                             .font(Typography.heading)
                     }
-                    .foregroundStyle(Color("BatterySubtitle"))
+                    .foregroundStyle(Color("BBSubtitle"))
                     .frame(maxWidth: .infinity, minHeight: 36)
                     .background(
                         RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
-                            .fill(Color("BatteryButton"))
+                            .fill(Color("BBSurface"))
                     )
                 }
             )
@@ -206,14 +206,14 @@ struct SettingsItem: View {
                 HStack(alignment: .center) {
                     Image(systemName: icon ?? item.type.icon)
                         .font(Typography.icon)
-                        .foregroundColor(color == nil ? Color("BatterySubtitle") : Color("BatteryEfficient"))
+                        .foregroundColor(color == nil ? Color("BBSubtitle") : Color("BBAccent"))
                         .frame(height: 36)
                         .padding(.trailing, 6)
 
                     VStack(alignment: .leading) {
                         Text(item.title)
                             .font(Typography.headingLarge)
-                            .foregroundColor(Color("BatteryTitle"))
+                            .foregroundColor(Color("BBTitle"))
                             .lineLimit(1)
                             .truncationMode(.tail)
                             .padding(0)
@@ -221,7 +221,7 @@ struct SettingsItem: View {
                         if hover == true, subtitle != nil {
                             Text(subtitle ?? "")
                                 .font(Typography.small)
-                                .foregroundColor(Color("BatterySubtitle"))
+                                .foregroundColor(Color("BBSubtitle"))
                                 .lineLimit(1)
                                 .truncationMode(.tail)
                         }
@@ -232,7 +232,7 @@ struct SettingsItem: View {
                 .padding(.trailing, 26)
                 .background(
                     RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
-                        .fill(Color("BatteryButton"))
+                        .fill(Color("BBSurface"))
                 )
             }
         )
@@ -379,12 +379,12 @@ struct SettingsOverlayItem: View {
             action: handleOverlayAction,
             label: {
                 RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
-                    .fill(Color("BatteryButton"))
+                    .fill(Color("BBSurface"))
                     .frame(width: 60)
                     .overlay(
                         Image(systemName: icon)
                             .font(Typography.headingLarge)
-                            .foregroundColor(Color("BatterySubtitle"))
+                            .foregroundColor(Color("BBSubtitle"))
                     )
             }
         )

@@ -33,6 +33,13 @@ enum Spacing {
     static let xxl: CGFloat = 60
 }
 
+enum SemanticColor {
+    static let success = Color("BBStatusSuccess")
+    static let warning = Color("BBStatusWarning")
+    static let error = Color("BBStatusError")
+    static let info = Color("BBStatusInfo")
+}
+
 enum RevealTiming {
 
     // MARK: Atomic — tweak only these; everything else derives

@@ -21,7 +21,7 @@ struct OnboardingPermissionsView: View {
             VStack(spacing: 8) {
                 Text("OnboardingPermissionsTitle".localise())
                     .font(Typography.title)
-                    .foregroundColor(Color("BatteryTitle"))
+                    .foregroundColor(Color("BBTitle"))
                     .multilineTextAlignment(.center)
             }
             .padding(.horizontal, 32)
@@ -55,12 +55,12 @@ struct OnboardingPermissionsView: View {
                     label: {
                         Text("OnboardingPermissionsContinue".localise())
                             .font(Typography.heading)
-                            .foregroundColor(Color("BatteryButton"))
+                            .foregroundColor(Color("BBSurface"))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
                             .background(
                                 RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
-                                    .fill(Color("BatteryTitle"))
+                                    .fill(Color("BBTitle"))
                             )
                     }
                 )
@@ -71,7 +71,7 @@ struct OnboardingPermissionsView: View {
                     label: {
                         Text("OnboardingPermissionsSkip".localise())
                             .font(Typography.small)
-                            .foregroundColor(Color("BatterySubtitle"))
+                            .foregroundColor(Color("BBSubtitle"))
                     }
                 )
                 .buttonStyle(.plain)
@@ -125,17 +125,17 @@ private struct PermissionCard: View {
         HStack(spacing: 16) {
             Image(systemName: icon)
                 .font(.system(size: 24))
-                .foregroundColor(isEnabled ? Color("BatteryTitle") : Color("BatterySubtitle"))
+                .foregroundColor(isEnabled ? Color("BBTitle") : Color("BBSubtitle"))
                 .frame(width: 40)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(Typography.heading)
-                    .foregroundColor(Color("BatteryTitle"))
+                    .foregroundColor(Color("BBTitle"))
 
                 Text(description)
                     .font(Typography.small)
-                    .foregroundColor(Color("BatterySubtitle"))
+                    .foregroundColor(Color("BBSubtitle"))
                     .lineLimit(2)
             }
 
@@ -153,7 +153,7 @@ private struct PermissionCard: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
-                .fill(Color("BatteryButton"))
+                .fill(Color("BBSurface"))
         )
     }
 }

@@ -15,7 +15,7 @@ struct UpdatePromptView: View {
         if updates.available != nil {
             HStack(alignment: .top, spacing: 3) {
                 Circle()
-                    .fill(Color("BatteryEfficient"))
+                    .fill(Color("BBAccent"))
                     .frame(width: 5, height: 5)
                     .offset(y: 5)
 
@@ -24,7 +24,7 @@ struct UpdatePromptView: View {
             }
             .padding(0)
             .font(.system(size: 12, weight: .bold))
-            .foregroundColor(Color("BatteryEfficient"))
+            .foregroundColor(Color("BBAccent"))
             .lineLimit(2)
             .padding(.top, 10)
             .onHover { hover in

@@ -414,7 +414,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         window.titlebarAppearsTransparent = true
         window.titleVisibility = NSWindow.TitleVisibility.hidden
         window.isMovableByWindowBackground = true
-        window.backgroundColor = NSColor(named: "BatteryBackground")
+        window.backgroundColor = NSColor(named: "BBBackground")
         window.center()
         window.makeKeyAndOrderFront(Any?.none)
 

@@ -18,12 +18,12 @@ struct OnboardingCompleteView: View {
             // Animated checkmark
             ZStack {
                 Circle()
-                    .fill(Color("BatteryTitle").opacity(0.1))
+                    .fill(Color("BBTitle").opacity(0.1))
                     .frame(width: 100, height: 100)
 
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 60))
-                    .foregroundColor(Color("BatteryTitle"))
+                    .foregroundColor(Color("BBTitle"))
                     .scaleEffect(showCheckmark ? 1.0 : 0.5)
                     .opacity(showCheckmark ? 1.0 : 0.0)
             }
@@ -32,12 +32,12 @@ struct OnboardingCompleteView: View {
             VStack(spacing: 8) {
                 Text("OnboardingCompleteTitle".localise())
                     .font(Typography.title)
-                    .foregroundColor(Color("BatteryTitle"))
+                    .foregroundColor(Color("BBTitle"))
                     .multilineTextAlignment(.center)
 
                 Text("OnboardingCompleteSubtitle".localise())
                     .font(Typography.body)
-                    .foregroundColor(Color("BatterySubtitle"))
+                    .foregroundColor(Color("BBSubtitle"))
                     .multilineTextAlignment(.center)
             }
             .padding(.horizontal, 32)
@@ -50,12 +50,12 @@ struct OnboardingCompleteView: View {
                 label: {
                     Text("OnboardingCompleteButton".localise())
                         .font(Typography.heading)
-                        .foregroundColor(Color("BatteryButton"))
+                        .foregroundColor(Color("BBSurface"))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .background(
                             RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
-                                .fill(Color("BatteryTitle"))
+                                .fill(Color("BBTitle"))
                         )
                 }
             )

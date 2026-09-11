@@ -61,7 +61,7 @@ struct ViewMarkdown: View {
             if components.count == 1 {
                 Text(components[0])
                     .font(.system(size: 12, weight: .regular))
-                    .foregroundColor(Color("BatterySubtitle"))
+                    .foregroundColor(Color("BBSubtitle"))
                     .lineLimit(3)
 
             } else {
@@ -69,13 +69,13 @@ struct ViewMarkdown: View {
                     if number.isMultiple(of: 2) {
                         Text(components[number])
                             .font(.system(size: 12, weight: .regular))
-                            .foregroundColor(Color("BatterySubtitle"))
+                            .foregroundColor(Color("BBSubtitle"))
                             .lineLimit(1)
 
                     } else {
                         Text(components[number])
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color("BatteryTitle").opacity(0.9))
+                            .foregroundColor(Color("BBTitle").opacity(0.9))
                             .lineLimit(1)
 
                     }
