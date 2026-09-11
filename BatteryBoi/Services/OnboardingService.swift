@@ -32,9 +32,7 @@ final class OnboardingService {
 
     func advance() {
         if let nextStep = Step(rawValue: currentStep.rawValue + 1) {
-            withAnimation(.easeInOut(duration: 0.3)) {
-                currentStep = nextStep
-            }
+            currentStep = nextStep
         }
     }
 
