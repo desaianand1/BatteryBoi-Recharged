@@ -46,7 +46,7 @@ struct ViewScrollMask: ViewModifier {
 
 }
 
-struct ViewMarkdown: View {
+struct BoldStyledText: View {
     @Binding var text: String
 
     @State private var components = [String]()
