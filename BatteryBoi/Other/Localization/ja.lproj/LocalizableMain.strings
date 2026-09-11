@@ -9,6 +9,7 @@
 "AlertDeviceDisconnectedTitle" = "'%@'の接続が解除されました"; //'Joe's Headphones'の接続が解除されました
 "AlertDeviceUnknownTitle" = "不明";
 "AlertDeviceCalculatingTitle" = "計算中...";
+"AlertChargeTomorrowPrefix" = "明日";
 "AlertOverheatingTitle" = "過熱";
 "AlertLimitedTitle" = "バッテリー不足...";
 

@@ -7,6 +7,7 @@
 "AlertDeviceDisconnectedTitle" = "'%@' déconnecté"; // 'Écouteurs de Joe' déconnectés
 "AlertDeviceUnknownTitle" = "Inconnu";
 "AlertDeviceCalculatingTitle" = "Calcul en cours...";
+"AlertChargeTomorrowPrefix" = "demain";
 "AlertOverheatingTitle" = "Surchauffe";
 "AlertLimitedTitle" = "Batterie insuffisante...";
 

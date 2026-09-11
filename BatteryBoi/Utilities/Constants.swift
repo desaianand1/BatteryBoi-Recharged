@@ -70,6 +70,7 @@ enum Constants {
         static let secondsPerMinute: Double = 60.0
         static let secondsPerHour: Double = 3600.0
         static let minutesPerHour: Int = 60
+        static let maxSecondsPerPercent: Double = 300.0
     }
 
     /// Animation durations.

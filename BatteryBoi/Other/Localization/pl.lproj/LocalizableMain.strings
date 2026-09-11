@@ -7,6 +7,7 @@
 "AlertDeviceDisconnectedTitle" = "Odłączono '%@'"; //'Odłączono słuchawki Joe'
 "AlertDeviceUnknownTitle" = "Nieznane";
 "AlertDeviceCalculatingTitle" = "Obliczanie...";
+"AlertChargeTomorrowPrefix" = "jutro";
 "AlertOverheatingTitle" = "Przegrzewanie";
 "AlertLimitedTitle" = "Za mało baterii...";
 

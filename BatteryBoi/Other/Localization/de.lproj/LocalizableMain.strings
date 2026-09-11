@@ -8,6 +8,7 @@
 "AlertDeviceDisconnectedTitle" = "'%@' getrennt"; // 'Joe's Headphones' Disconnected
 "AlertDeviceUnknownTitle" = "Unbekannt";
 "AlertDeviceCalculatingTitle" = "Berechne...";
+"AlertChargeTomorrowPrefix" = "morgen";
 "AlertOverheatingTitle" = "Überhitzung";
 "AlertLimitedTitle" = "Nicht genug Akku...";
 

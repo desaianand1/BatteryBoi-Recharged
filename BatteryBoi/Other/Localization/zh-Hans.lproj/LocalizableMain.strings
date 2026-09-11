@@ -7,6 +7,7 @@
 "AlertDeviceDisconnectedTitle" = "'%@' 已断开"; // 'Joe's Headphones' Disconnected
 "AlertDeviceUnknownTitle" = "未知设备";
 "AlertDeviceCalculatingTitle" = "正在计算...";
+"AlertChargeTomorrowPrefix" = "明天";
 "AlertOverheatingTitle" = "过热";
 "AlertLimitedTitle" = "电量不足...";
 

@@ -195,22 +195,17 @@ public extension Date {
     }
 
     var time: String {
-        let locale = NSLocale.current
-        let formatter = DateFormatter.dateFormat(fromTemplate: "j", options: 0, locale: locale)
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        formatter.dateStyle = .none
+        formatter.locale = Locale.current
 
-        if let formatter {
-            if formatter.contains("a") == true {
-                return string("hh:mm a")
+        let timeString = formatter.string(from: self)
 
-            } else {
-                return string("HH:mm")
-
-            }
-
+        if !Calendar.current.isDateInToday(self) {
+            return "\("AlertChargeTomorrowPrefix".localise()) \(timeString)"
         }
-
-        return "AlertDeviceUnknownTitle".localise()
-
+        return timeString
     }
 
 }

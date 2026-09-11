@@ -33,6 +33,10 @@ final class BatteryService: BatteryServiceProtocol {
     var metrics: BatteryMetricsObject?
     var thermal: BatteryThermalState = .optimal
 
+    // MARK: - Private Charge State
+
+    private var ioKitChargeMinutes: Int?
+
     // MARK: - Private Properties
 
     // Note: nonisolated(unsafe) is justified for task properties that are only
@@ -109,6 +113,7 @@ final class BatteryService: BatteryServiceProtocol {
 
     func powerForceRefresh() {
         self.rate = nil
+        self.ioKitChargeMinutes = nil
         forceRefreshTask?.cancel()
         forceRefreshTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(Constants.Timers.forceRefreshDelay))
@@ -131,6 +136,7 @@ final class BatteryService: BatteryServiceProtocol {
         if newCharging != self.charging.state {
             self.charging = .init(newCharging)
         }
+        self.ioKitChargeMinutes = info.isCharging ? info.timeRemaining : nil
         self.remaining = self.buildRemaining(fromMinutes: info.timeRemaining)
         self.updateChargeRate(charging: newCharging, percentage: newPercentage)
         self.persistDepletionRate(totalMinutes: info.timeRemaining, charging: newCharging, percentage: newPercentage)
@@ -151,20 +157,35 @@ final class BatteryService: BatteryServiceProtocol {
     }
 
     var powerUntilFull: Date? {
+        guard self.charging.state == .charging else { return nil }
+
+        let stored = UserDefaults.main.double(forKey: SystemDefaultsKeys.batteryUntilFull.rawValue)
+        return Self.chargeCompletionDate(
+            percentage: self.percentage,
+            ioKitMinutes: self.ioKitChargeMinutes,
+            storedSecondsPerPercent: stored > 0 ? stored : nil
+        )
+    }
+
+    static func chargeCompletionDate(
+        percentage: Double,
+        ioKitMinutes: Int?,
+        storedSecondsPerPercent: Double?
+    ) -> Date? {
         guard percentage < 100 else { return nil }
-        guard charging.state == .charging else { return nil }
 
         let remainder = 100.0 - percentage
 
-        if let remaining, (remaining.hours ?? 0) > 0 || (remaining.minutes ?? 0) > 0 {
-            let totalMinutes = ((remaining.hours ?? 0) * Constants.Battery.minutesPerHour) + (remaining.minutes ?? 0)
-            return Date(timeIntervalSinceNow: Double(totalMinutes) * Constants.Battery.secondsPerMinute)
+        if let minutes = ioKitMinutes, minutes > 0 {
+            return Date(timeIntervalSinceNow: Double(minutes) * Constants.Battery.secondsPerMinute)
         }
 
-        let stored = UserDefaults.main.double(forKey: SystemDefaultsKeys.batteryUntilFull.rawValue)
-        if stored > 0 {
-            return Date(timeIntervalSinceNow: stored * remainder)
+        if let stored = storedSecondsPerPercent, stored > 0 {
+            let seconds = stored * remainder
+            guard seconds <= remainder * Constants.Battery.maxSecondsPerPercent else { return nil }
+            return Date(timeIntervalSinceNow: seconds)
         }
+
         return nil
     }
 

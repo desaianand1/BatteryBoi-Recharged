@@ -9,6 +9,7 @@
 "AlertDeviceDisconnectedTitle" = "'%@' Ontkoppeld"; // 'Joe's Headphones' Disconnected
 "AlertDeviceUnknownTitle" = "Onbekend";
 "AlertDeviceCalculatingTitle" = "Aan het rekenen...";
+"AlertChargeTomorrowPrefix" = "morgen";
 
 "AlertEstimateSummary" = "%@ totdat de batterij leeg is"; // 1 hour, 32 minutes until empty
 "AlertPercentSummary" = "Tijd om op te laden!";

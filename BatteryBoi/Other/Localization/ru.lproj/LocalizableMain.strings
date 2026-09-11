@@ -9,6 +9,7 @@
 "AlertDeviceDisconnectedTitle" = "'%@' Отключено"; // 'Joe's Headphones' Disconnected
 "AlertDeviceUnknownTitle" = "Неизвестно";
 "AlertDeviceCalculatingTitle" = "Идёт рассчёт...";
+"AlertChargeTomorrowPrefix" = "завтра";
 
 "AlertEstimateSummary" = "Заряда хватит на %@"; // 1 hour, 32 minutes until empty
 "AlertPercentSummary" = "Пора искать зарядное устройство!";

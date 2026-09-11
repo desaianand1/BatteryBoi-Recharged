@@ -9,6 +9,7 @@
 "AlertDeviceDisconnectedTitle" = "'%@' Bağlantısı Kesildi"; // 'Joe's Headphones' Disconnected
 "AlertDeviceUnknownTitle" = "Bilinmiyor";
 "AlertDeviceCalculatingTitle" = "Hesaplanıyor...";
+"AlertChargeTomorrowPrefix" = "yarın";
 
 "AlertEstimateSummary" = "%@ kaldı"; // 1 hour, 32 minutes until empty
 "AlertPercentSummary" = "Şarj kablosunu takma zamanı!";

@@ -61,8 +61,10 @@ import Foundation
             saver = saver == .efficient ? .normal : .efficient
         }
 
+        var stubbedUntilFull: Date?
+
         var untilFull: Date? {
-            nil
+            stubbedUntilFull
         }
 
         func hourWattage() -> Double? {

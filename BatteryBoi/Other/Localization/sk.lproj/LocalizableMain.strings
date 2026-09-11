@@ -9,6 +9,7 @@
 "AlertDeviceDisconnectedTitle" = "'%@' odpojené"; // 'Joe's Headphones' Disconnected
 "AlertDeviceUnknownTitle" = "Neznáme";
 "AlertDeviceCalculatingTitle" = "Prebieha výpočet...";
+"AlertChargeTomorrowPrefix" = "zajtra";
 
 "AlertEstimateSummary" = "%@ do vybitia"; // 1 hour, 32 minutes until empty
 "AlertPercentSummary" = "Čas pripojiť kábel!";

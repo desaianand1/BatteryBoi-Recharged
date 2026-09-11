@@ -9,6 +9,7 @@
 "AlertDeviceDisconnectedTitle" = "Disconnected"; //'Joe's Headphones' Disconnected
 "AlertDeviceUnknownTitle" = "Unknown";
 "AlertDeviceCalculatingTitle" = "Calculating...";
+"AlertChargeTomorrowPrefix" = "tomorrow";
 
 "AlertEstimateSummary" = "**%@** until empty"; // 1 hour, 32 minutes until empty
 "AlertPercentSummary" = "Time to grab the cable!";

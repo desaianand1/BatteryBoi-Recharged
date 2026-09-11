@@ -7,6 +7,7 @@
 "AlertDeviceDisconnectedTitle" = "'%@' odvezane"; // 'Joe's Headphones' Disconnected
 "AlertDeviceUnknownTitle" = "Neznano";
 "AlertDeviceCalculatingTitle" = "Računanje...";
+"AlertChargeTomorrowPrefix" = "jutri";
 "AlertOverheatingTitle" = "Pregrevanje";
 "AlertLimitedTitle" = "Premalo baterije...";
 
