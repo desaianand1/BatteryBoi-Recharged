@@ -45,8 +45,6 @@ struct HUDSummary: View {
         env.window
     }
 
-    @State private var title = ""
-    @State private var subtitle = ""
     @State private var visible: Bool = false
 
     var body: some View {
@@ -54,12 +52,12 @@ struct HUDSummary: View {
             HUDIcon()
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(title)
+                Text(stats.title)
                     .font(Typography.titleBold)
                     .foregroundColor(.white)
                     .lineLimit(2)
 
-                BoldStyledText($subtitle)
+                BoldStyledText(.constant(stats.subtitle))
 
                 if updates.available != nil {
                     UpdatePromptView()
@@ -74,19 +72,9 @@ struct HUDSummary: View {
         .blur(radius: self.visible ? 0.0 : (window.state == .hidden ? 0.0 : 4.0))
         .opacity(visible ? 1.0 : 0.0)
         .onAppear {
-            title = stats.title
-            subtitle = stats.subtitle
             if window.state == .revealed || window.state == .detailed {
                 visible = true
             }
-        }
-        .onChange(of: stats.title) { _, newValue in
-            title = newValue
-
-        }
-        .onChange(of: stats.subtitle) { _, newValue in
-            subtitle = newValue
-
         }
         .onChange(of: window.state) { oldValue, newValue in
             if oldValue == .detailed, newValue == .revealed {
@@ -106,7 +94,7 @@ struct HUDSummary: View {
 
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(title). \(subtitle)")
+        .accessibilityLabel("\(stats.title). \(stats.subtitle)")
 
     }
 

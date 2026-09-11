@@ -64,6 +64,8 @@ final class EventService: EventServiceProtocol {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(Constants.Timers.eventRefresh))
                 guard let self, !Task.isCancelled else { break }
+                let status = EKEventStore.authorizationStatus(for: .event)
+                guard status != .denied, status != .restricted else { continue }
                 eventAuthorizeStatus()
             }
         }

@@ -414,6 +414,7 @@ struct SettingsOverlayItem: View {
         .onChange(of: bluetooth.connected) { _, newValue in
             if item == .appDevices {
                 timeline = newValue.map(\.type.icon)
+                index = 0
             }
         }
         .task {
