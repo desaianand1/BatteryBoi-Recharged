@@ -31,6 +31,7 @@ final class AppEnvironment {
 
     let app: AppManager
     let update: UpdateManager
+    let onboarding: OnboardingService
 
     // MARK: - Production Init
 
@@ -43,6 +44,7 @@ final class AppEnvironment {
         self.app = AppManager.shared
         self.update = UpdateManager.shared
         self.event = EventService.shared
+        self.onboarding = OnboardingService.shared
         self.coordinator = ServiceCoordinator(
             battery: BatteryService.shared,
             bluetooth: BluetoothService.shared,
@@ -63,6 +65,7 @@ final class AppEnvironment {
         event: any EventServiceProtocol,
         app: AppManager,
         update: UpdateManager,
+        onboarding: OnboardingService = .shared,
         coordinator: ServiceCoordinator? = nil
     ) {
         self.battery = battery
@@ -73,6 +76,7 @@ final class AppEnvironment {
         self.event = event
         self.app = app
         self.update = update
+        self.onboarding = onboarding
         self.coordinator = coordinator ?? ServiceCoordinator(
             battery: battery,
             bluetooth: bluetooth,
