@@ -185,14 +185,14 @@ final class WindowServiceBehaviorTests: XCTestCase {
         let frame = mockWindowService.calculateFrame(moved: nil)
 
         // Then a default frame should be returned
-        XCTAssertEqual(frame.width, 420)
-        XCTAssertEqual(frame.height, 220)
+        XCTAssertEqual(frame.width, 450)
+        XCTAssertEqual(frame.height, 250)
     }
 
     @MainActor
     func testCalculateFrameWithMovedPosition() {
         // Given a moved position
-        let movedFrame = NSRect(x: 200, y: 300, width: 420, height: 220)
+        let movedFrame = NSRect(x: 200, y: 300, width: 450, height: 250)
 
         // When calculating frame
         let frame = mockWindowService.calculateFrame(moved: movedFrame)
