@@ -8,79 +8,127 @@
 import SwiftUI
 
 struct OnboardingWelcomeView: View {
-    @State private var onboarding = OnboardingService.shared
+    @Environment(AppEnvironment.self) private var env
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var onboarding: OnboardingService {
+        self.env.onboarding
+    }
+
+    @State private var iconAppeared = false
+    @State private var cardsAppeared: [Bool] = [false, false, false]
 
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: Spacing.lg) {
             Spacer()
 
-            // App icon
             Image(nsImage: NSApp.applicationIconImage)
                 .resizable().scaledToFit()
                 .frame(width: 80, height: 80)
                 .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .scaleEffect(self.iconAppeared ? 1.0 : 0.8)
+                .opacity(self.iconAppeared ? 1.0 : 0.0)
 
-            // Welcome text
-            VStack(spacing: 8) {
+            VStack(spacing: Spacing.sm) {
                 Text("OnboardingWelcomeTitle".localise())
                     .font(Typography.title)
-                    .foregroundColor(Color("BBTitle"))
+                    .foregroundStyle(Color("BBTitle"))
                     .multilineTextAlignment(.center)
 
                 Text("OnboardingWelcomeSubtitle".localise())
                     .font(Typography.body)
-                    .foregroundColor(Color("BBSubtitle"))
+                    .foregroundStyle(Color("BBSubtitle"))
                     .multilineTextAlignment(.center)
             }
 
-            // Feature list
-            VStack(alignment: .leading, spacing: 12) {
-                FeatureRow(icon: "battery.100", text: "OnboardingWelcomeFeature1".localise())
-                FeatureRow(icon: "bell.badge", text: "OnboardingWelcomeFeature2".localise())
-                FeatureRow(icon: "chart.line.uptrend.xyaxis", text: "OnboardingWelcomeFeature3".localise())
+            VStack(spacing: Spacing.smd) {
+                OnboardingFeatureCard(
+                    icon: "battery.100",
+                    effect: .variableColor,
+                    title: "OnboardingWelcomeFeature1".localise(),
+                    appeared: self.cardsAppeared[0]
+                )
+
+                OnboardingFeatureCard(
+                    icon: "bell.badge",
+                    effect: .pulse,
+                    title: "OnboardingWelcomeFeature2".localise(),
+                    appeared: self.cardsAppeared[1]
+                )
+
+                OnboardingFeatureCard(
+                    icon: "chart.line.uptrend.xyaxis",
+                    effect: .variableColor,
+                    title: "OnboardingWelcomeFeature3".localise(),
+                    appeared: self.cardsAppeared[2]
+                )
             }
-            .padding(.horizontal, 32)
-            .padding(.top, 8)
+            .padding(.horizontal, Spacing.xl)
 
             Spacer()
 
-            // CTA button
-            Button(
-                action: { onboarding.advance() },
-                label: {
-                    Text("OnboardingWelcomeButton".localise())
-                        .font(Typography.heading)
-                        .foregroundColor(Color("BBSurface"))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(
-                            RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
-                                .fill(Color("BBTitle"))
-                        )
-                }
-            )
-            .buttonStyle(.plain)
-            .padding(.horizontal, 32)
-            .padding(.bottom, 16)
+            Button {
+                self.onboarding.advance()
+            } label: {
+                Text("OnboardingWelcomeButton".localise())
+                    .font(Typography.heading)
+                    .foregroundStyle(Color("BBSurface"))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
+                            .fill(Color("BBTitle"))
+                    )
+            }
+            .buttonStyle(HoverButtonStyle())
+            .padding(.horizontal, Spacing.xl)
+            .padding(.bottom, Spacing.md)
+            .accessibilityLabel("OnboardingWelcomeButton".localise())
         }
-        .padding(.top, 32)
+        .padding(.top, Spacing.xl)
+        .onAppear {
+            withAnimation(DesignAnimation.spring(reduceMotion: self.reduceMotion)) {
+                self.iconAppeared = true
+            }
+            for index in self.cardsAppeared.indices {
+                let delay = Double(index) * 0.1
+                withAnimation(
+                    DesignAnimation.spring(reduceMotion: self.reduceMotion)?
+                        .delay(delay)
+                ) {
+                    self.cardsAppeared[index] = true
+                }
+            }
+        }
     }
 }
 
-private struct FeatureRow: View {
+private struct OnboardingFeatureCard: View {
     let icon: String
-    let text: String
+    let effect: HUDIconEffect
+    let title: String
+    let appeared: Bool
 
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 18))
-                .foregroundColor(Color("BBTitle"))
-                .frame(width: 24)
+        HStack(spacing: Spacing.smd) {
+            Image(systemName: self.icon)
+                .font(Typography.icon)
+                .foregroundStyle(Color("BBSubtitle"))
+                .frame(width: 32)
+                .applySymbolEffect(self.effect)
 
-            Text(text)
-                .font(Typography.body)
-                .foregroundColor(Color("BBSubtitle"))
+            Text(self.title)
+                .font(Typography.heading)
+                .foregroundStyle(Color("BBTitle"))
+
+            Spacer()
         }
+        .padding(Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
+                .fill(Color("BBSurface"))
+        )
+        .opacity(self.appeared ? 1.0 : 0.0)
+        .offset(y: self.appeared ? 0 : 8)
     }
 }
