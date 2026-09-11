@@ -83,7 +83,7 @@ import Foundation
             if let moved {
                 return moved
             }
-            return NSRect(x: 100, y: 100, width: 420, height: 220)
+            return NSRect(x: 100, y: 100, width: 450, height: 250)
         }
 
         func handleSleep() {
@@ -95,6 +95,17 @@ import Foundation
             state = .hidden
             currentAlert = nil
             openHistory.removeAll()
+        }
+
+        var toggleExpandedCallCount = 0
+
+        func toggleExpanded() {
+            toggleExpandedCallCount += 1
+            if state == .revealed {
+                state = .detailed
+            } else if state == .detailed {
+                state = .revealed
+            }
         }
 
         // MARK: - Alert Tracking

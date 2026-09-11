@@ -40,7 +40,7 @@ struct RadialProgressBar: View {
     }
 
     private var progressAnimation: Animation? {
-        self.reduceMotion ? nil : Animation.easeOut(duration: 0.6)
+        self.reduceMotion ? nil : Animation.easeOut(duration: RevealTiming.arcSweep)
     }
 
     var body: some View {
@@ -100,7 +100,7 @@ struct RadialProgressBar: View {
         .animation(.easeInOut(duration: 0.6), value: self.tier)
         .onAppear {
             if let animation = self.progressAnimation {
-                withAnimation(animation.delay(0.1)) {
+                withAnimation(animation) {
                     self.position = self.progress
                 }
             } else {
@@ -133,51 +133,53 @@ struct RadialProgressBar: View {
 
         if self.isCharging, self.percent < 100 {
             guard !self.reduceMotion else {
-                self.glowOpacity = 0.4
+                self.glowOpacity = ChargingAnimation.glowStaticOpacity
                 return
             }
-            self.glowOpacity = 0.3
-            withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
-                self.glowOpacity = 0.5
+            self.glowOpacity = ChargingAnimation.glowMinOpacity
+            withAnimation(.easeInOut(duration: ChargingAnimation.glowPeriod).repeatForever(autoreverses: true)) {
+                self.glowOpacity = ChargingAnimation.glowMaxOpacity
             }
             self.shimmerPhase = 0.0
-            withAnimation(.linear(duration: 3.0).repeatForever(autoreverses: false)) {
+            withAnimation(.linear(duration: ChargingAnimation.shimmerPeriod).repeatForever(autoreverses: false)) {
                 self.shimmerPhase = 1.0
             }
-            self.dotScale = 1.0
-            withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
-                self.dotScale = 1.3
+            self.dotScale = ChargingAnimation.dotMinScale
+            withAnimation(.easeInOut(duration: ChargingAnimation.dotPulsePeriod).repeatForever(autoreverses: true)) {
+                self.dotScale = ChargingAnimation.dotMaxScale
             }
-            self.trackBreathOpacity = 0.08
-            withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
-                self.trackBreathOpacity = 0.12
+            self.trackBreathOpacity = ChargingAnimation.trackMinOpacity
+            withAnimation(
+                .easeInOut(duration: ChargingAnimation.trackBreathePeriod).repeatForever(autoreverses: true)
+            ) {
+                self.trackBreathOpacity = ChargingAnimation.trackMaxOpacity
             }
         } else if self.percent >= 100 {
             if self.reduceMotion {
-                self.glowOpacity = 0.4
+                self.glowOpacity = ChargingAnimation.glowStaticOpacity
             } else {
                 withAnimation(.easeInOut(duration: 0.6)) {
-                    self.glowOpacity = 0.5
+                    self.glowOpacity = ChargingAnimation.glowMaxOpacity
                 }
             }
-            self.dotScale = 1.0
-            self.trackBreathOpacity = 0.08
+            self.dotScale = ChargingAnimation.dotMinScale
+            self.trackBreathOpacity = ChargingAnimation.trackMinOpacity
             self.shimmerPhase = 0.0
         } else {
             withAnimation(.easeInOut(duration: 0.3)) {
                 self.glowOpacity = 0.0
             }
-            self.dotScale = 1.0
-            self.trackBreathOpacity = 0.08
+            self.dotScale = ChargingAnimation.dotMinScale
+            self.trackBreathOpacity = ChargingAnimation.trackMinOpacity
             self.shimmerPhase = 0.0
         }
     }
 
     private func triggerFullBurst() {
         self.burstScale = 1.0
-        self.burstOpacity = 0.4
-        withAnimation(.easeOut(duration: 1.2)) {
-            self.burstScale = 1.15
+        self.burstOpacity = ChargingAnimation.burstStartOpacity
+        withAnimation(.easeOut(duration: ChargingAnimation.fullBurstDuration)) {
+            self.burstScale = ChargingAnimation.burstMaxScale
             self.burstOpacity = 0.0
         }
     }
@@ -263,6 +265,8 @@ struct RadialProgressContainer: View {
     @State private var percent: Int?
     @State private var progress: Double = 0.0
     @State private var animate: Bool
+    @State private var textVisible: Bool = false
+    @State private var isHovered: Bool = false
 
     init(_ animate: Bool) {
         _animate = State(initialValue: animate)
@@ -278,6 +282,15 @@ struct RadialProgressContainer: View {
 
     private var isCharging: Bool {
         self.env.window.currentDevice == nil && self.battery.charging.state == .charging
+    }
+
+    private var textRevealBlur: CGFloat {
+        guard !self.textVisible else { return 0.0 }
+        return self.window.state == .hidden ? 0.0 : 4.0
+    }
+
+    private var textRevealOpacity: Double {
+        self.textVisible ? 1.0 : 0.0
     }
 
     var body: some View {
@@ -297,27 +310,75 @@ struct RadialProgressContainer: View {
                 Text("\(self.percent ?? 0)")
                     .foregroundColor(Color("BatteryTitle"))
                     .font(Typography.progressLarge)
-                    .blur(radius: self.percent == nil ? 5.0 : 0.0)
-                    .opacity(self.percent == nil ? 0.0 : 1.0)
+                    .blur(radius: self.percent == nil ? 5.0 : (self.isHovered ? 4.0 : 0.0))
+                    .opacity(self.percent == nil ? 0.0 : (self.isHovered ? 0.0 : 1.0))
+
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundStyle(Color("BatterySubtitle"))
+                    .blur(radius: self.isHovered ? 0.0 : 4.0)
+                    .opacity(self.isHovered ? 1.0 : 0.0)
 
                 Text("AlertDeviceUnknownTitle".localise())
                     .foregroundColor(Color("BatteryTitle").opacity(0.4))
                     .font(Typography.heading)
-                    .blur(radius: self.percent == nil ? 0.0 : 5.0)
-                    .opacity(self.percent == nil ? 1.0 : 0.0)
+                    .blur(radius: (self.isHovered || self.percent != nil) ? 5.0 : 0.0)
+                    .opacity((self.isHovered || self.percent != nil) ? 0.0 : 1.0)
             }
-            .frame(width: 90)
+            .frame(width: Constants.Progress.containerSize)
+            .blur(radius: self.textRevealBlur)
+            .opacity(self.textRevealOpacity)
         }
         .frame(width: 90, height: 90)
         .padding(10)
-        .onAppear {
-            let animationDuration = (self.animate && !self.reduceMotion) ? 1.2 : 0.0
-            if animationDuration > 0 {
-                withAnimation(Animation.easeOut(duration: animationDuration)) {
-                    self.updateProgress()
-                }
+        .contentShape(Circle())
+        .onHover { hovering in
+            guard self.window.state == .revealed else { return }
+            if self.reduceMotion {
+                self.isHovered = hovering
             } else {
-                self.updateProgress()
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                    self.isHovered = hovering
+                }
+            }
+            if hovering {
+                NSCursor.pointingHand.push()
+            } else {
+                NSCursor.pop()
+            }
+        }
+        .onTapGesture {
+            guard self.window.state == .revealed else { return }
+            self.window.toggleExpanded()
+        }
+        .onAppear {
+            self.updatePercentOnly()
+            if !self.animate || self.window.state == .revealed || self.window.state == .detailed {
+                self.textVisible = true
+            }
+        }
+        .onChange(of: self.window.state) { _, newValue in
+            if newValue == .revealed, self.animate {
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(Int(RevealTiming.arcSweepDelay * 1000)))
+                    self.updateProgress()
+                    if self.reduceMotion {
+                        self.textVisible = true
+                    } else {
+                        withAnimation(.easeOut(duration: RevealTiming.arcSweep)) {
+                            self.textVisible = true
+                        }
+                    }
+                }
+            }
+            if newValue == .detailed || !newValue.visible {
+                if self.isHovered {
+                    self.isHovered = false
+                    NSCursor.pop()
+                }
+            }
+            if !newValue.visible {
+                self.textVisible = false
             }
         }
         .onChange(of: self.battery.percentage) { _, newPercentage in
@@ -341,6 +402,24 @@ struct RadialProgressContainer: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("AccessibilityBatteryProgress".localise())
         .accessibilityValue(self.percent.map { "\($0) percent" } ?? "Not available")
+        .accessibilityHint("AccessibilityOpenSettings".localise())
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { self.window.toggleExpanded() }
+    }
+
+    private func updatePercentOnly() {
+        if let device = self.env.window.currentDevice {
+            if let percent = device.battery.percent {
+                self.percent = Int(percent)
+            } else {
+                self.percent = nil
+            }
+        } else {
+            self.percent = Int(self.battery.percentage)
+        }
+        if self.animate {
+            self.progress = 0.0
+        }
     }
 
     private func updateProgress() {

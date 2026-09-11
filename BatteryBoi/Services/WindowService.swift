@@ -65,7 +65,12 @@ final class WindowService: WindowServiceProtocol {
 
     // MARK: - Observable Properties
 
-    var hover: Bool = false
+    var hover: Bool = false {
+        didSet {
+            handleHoverChange(hover)
+        }
+    }
+
     var state: HUDState = .hidden {
         didSet {
             handleStateChange(state)
@@ -97,6 +102,10 @@ final class WindowService: WindowServiceProtocol {
     private var lastMouseEventTime: Date = .distantPast
     private var lastOpenedTime: Date = .distantPast
     private var lastStateChangeTime: Date = .distantPast
+
+    private var dismissRemainingTime: Double?
+    private var dismissStartTime: ContinuousClock.Instant?
+    private var hoverStartTime: ContinuousClock.Instant?
 
     private var screen: CGSize {
         if let activeScreen = NSScreen.screens.first(where: {
@@ -130,6 +139,9 @@ final class WindowService: WindowServiceProtocol {
         stateTransitionTask?.cancel()
         debounceDeferralTask?.cancel()
         mouseEventTask?.cancel()
+        dismissRemainingTime = nil
+        dismissStartTime = nil
+        hoverStartTime = nil
     }
 
     func handleWake() {
@@ -192,12 +204,12 @@ final class WindowService: WindowServiceProtocol {
                     .map { NSMouseInRect(mouseLocation, $0.frame, false) } ?? false
 
                 if clickedInsideHUD {
-                    if self.state == .revealed || self.state == .progress {
-                        self.windowSetState(.detailed)
-                    }
+                    self.resetDismissTimer()
                 } else {
                     if self.settings.pinned == .disabled {
-                        if self.state.visible == true {
+                        if self.state == .detailed {
+                            self.windowSetState(.revealed)
+                        } else if self.state.visible {
                             self.windowSetState(.dismissed)
                         }
                     } else {
@@ -210,6 +222,7 @@ final class WindowService: WindowServiceProtocol {
 
     private func handleStateChange(_ state: HUDState) {
         stateTransitionTask?.cancel()
+        resizeWindow(for: state)
 
         if state == .dismissed {
             dismissalTask?.cancel()
@@ -227,27 +240,104 @@ final class WindowService: WindowServiceProtocol {
                 windowSetState(.revealed)
             }
         } else if state == .revealed {
-            stateTransitionTask = Task { [weak self] in
-                try? await Task.sleep(for: .seconds(Constants.Timers.hudRevealDelay))
-                guard let self, !Task.isCancelled else { return }
-                windowSetState(.detailed)
+            scheduleDismissal()
+        } else if state == .detailed {
+            dismissalTask?.cancel()
+            dismissalTask = nil
+        }
+    }
+
+    func toggleExpanded() {
+        if state == .revealed {
+            windowSetState(.detailed)
+        } else if state == .detailed {
+            windowSetState(.revealed)
+        }
+    }
+
+    private func resizeWindow(for state: HUDState) {
+        guard let window = NSApplication.shared.windows.first(where: {
+            $0.title == Constants.Window.modalWindowTitle
+        }) else { return }
+
+        let currentFrame = window.frame
+        let newSize: CGSize
+
+        switch state {
+        case .detailed:
+            newSize = CGSize(width: 520, height: 500)
+        case .revealed, .progress:
+            newSize = CGSize(width: 450, height: 250)
+        default:
+            return
+        }
+
+        let newY = currentFrame.maxY - newSize.height
+        let newX = currentFrame.midX - (newSize.width / 2)
+        let newFrame = NSRect(x: newX, y: newY, width: newSize.width, height: newSize.height)
+
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = state == .detailed
+                ? RevealTiming.expandDuration
+                : RevealTiming.collapseDuration
+            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            window.animator().setFrame(newFrame, display: true)
+        }
+    }
+
+    private func handleHoverChange(_ hovering: Bool) {
+        guard state == .revealed else { return }
+        guard settings.pinned != .enabled else { return }
+
+        if hovering {
+            if let start = dismissStartTime {
+                let elapsedSeconds = Double(
+                    (ContinuousClock.now - start).components.seconds
+                ) + Double((ContinuousClock.now - start).components.attoseconds) / 1e18
+                let remaining = dismissTimeout - elapsedSeconds
+                dismissRemainingTime = max(remaining, Constants.Timers.hoverMinResume)
             }
+            dismissalTask?.cancel()
+            dismissalTask = nil
+            hoverStartTime = .now
+        } else {
+            if let hoverStart = hoverStartTime {
+                let hoverComponents = (ContinuousClock.now - hoverStart).components
+                let hoverSeconds = Double(hoverComponents.seconds) + Double(hoverComponents.attoseconds) / 1e18
+                if hoverSeconds >= Constants.Timers.hoverMaxHold {
+                    dismissRemainingTime = Constants.Timers.hoverMinResume
+                }
+            }
+            hoverStartTime = nil
+            scheduleDismissal(remaining: dismissRemainingTime)
+            dismissRemainingTime = nil
+        }
+    }
+
+    private func resetDismissTimer() {
+        if state.visible, state != .detailed {
+            dismissRemainingTime = nil
             scheduleDismissal()
         }
     }
 
-    private func scheduleDismissal() {
+    private var dismissTimeout: Double {
+        currentAlert?.timeout == true
+            ? Constants.Timers.hudTimeoutShort
+            : Constants.Timers.hudTimeoutLong
+    }
+
+    private func scheduleDismissal(remaining: Double? = nil) {
         dismissalTask?.cancel()
 
         guard self.settings.pinned != .enabled else { return }
 
-        let timeout: Duration = currentAlert?.timeout == true
-            ? .seconds(Constants.Timers.hudTimeoutShort)
-            : .seconds(Constants.Timers.hudTimeoutLong)
+        let timeout = remaining ?? dismissTimeout
 
+        dismissStartTime = .now
         dismissalTask = Task { [weak self] in
             do {
-                try await Task.sleep(for: timeout)
+                try await Task.sleep(for: .seconds(timeout))
                 guard let self, !Task.isCancelled, state.visible else { return }
                 windowSetState(.dismissed)
             } catch {}
@@ -307,15 +397,15 @@ final class WindowService: WindowServiceProtocol {
                 }
             }
         }
-        window.contentView = hostingView
-        window.makeKeyAndOrderFront(nil)
-        window.alphaValue = 1.0
-
         if currentAlert == nil || currentAlert != type {
             if let sfx = type.sfx {
                 sfx.play()
             }
         }
+
+        window.contentView = hostingView
+        window.makeKeyAndOrderFront(nil)
+        window.alphaValue = 1.0
 
         currentDevice = device
         currentAlert = type
@@ -366,7 +456,7 @@ final class WindowService: WindowServiceProtocol {
         let windowHeight = screen.height / 2
         let windowMargin = Constants.Window.defaultMargin
 
-        let positionDefault = CGSize(width: 420, height: 220)
+        let positionDefault = CGSize(width: 450, height: 250)
 
         if let moved {
             if self.userHasMoved {

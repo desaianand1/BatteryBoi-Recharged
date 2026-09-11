@@ -62,4 +62,7 @@ protocol WindowServiceProtocol: AnyObject {
 
     /// Handle system wake — reset window state for clean restart
     func handleWake()
+
+    /// Toggle between .revealed and .detailed states
+    func toggleExpanded()
 }

@@ -71,13 +71,14 @@ struct HUDSummary: View {
             Spacer()
 
         }
+        .blur(radius: self.visible ? 0.0 : (window.state == .hidden ? 0.0 : 4.0))
         .opacity(visible ? 1.0 : 0.0)
-        .blur(radius: (visible || window.state == .hidden) ? 0.0 : 4.0)
         .onAppear {
             title = stats.title
             subtitle = stats.subtitle
-            visible = window.state.visible
-
+            if window.state == .revealed || window.state == .detailed {
+                visible = true
+            }
         }
         .onChange(of: stats.title) { _, newValue in
             title = newValue
@@ -87,13 +88,18 @@ struct HUDSummary: View {
             subtitle = newValue
 
         }
-        .onChange(of: window.state) { _, newValue in
+        .onChange(of: window.state) { oldValue, newValue in
+            if oldValue == .detailed, newValue == .revealed {
+                return
+            }
             if reduceMotion {
                 visible = newValue.visible
             } else {
-                withAnimation(Animation.easeOut(duration: 0.6)
-                    .delay(visible == false ? DesignAnimation.Delays.contentReveal : 0.0))
-                {
+                let duration = newValue.visible
+                    ? RevealTiming.contentFade
+                    : RevealTiming.dismissTextFade
+                let delay = visible == false ? RevealTiming.contentRevealDelay : 0.0
+                withAnimation(Animation.easeOut(duration: duration).delay(delay)) {
                     visible = newValue.visible
                 }
             }
@@ -122,52 +128,42 @@ struct HUDContainer: View {
     }
 
     @State private var timeline: AnimationObject
-    @State private var namespace: Namespace.ID
     @State private var animation: AnimationState = .waiting
+    @State private var ringSlideTask: Task<Void, Never>?
 
     @Binding private var progress: HUDProgressLayout
 
-    init(animation: Namespace.ID, progress: Binding<HUDProgressLayout>) {
-        _namespace = State(initialValue: animation)
+    init(progress: Binding<HUDProgressLayout>) {
         _timeline = State(initialValue: .init([]))
         _progress = progress
 
     }
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            HStack(alignment: .center) {
-                HUDSummary()
+        HStack(alignment: .center) {
+            HUDSummary()
 
-                if progress == .trailing {
-                    HUDProgress().matchedGeometryEffect(id: "progress", in: namespace)
-
-                }
-
-            }
-
-            // Settings button overlay
             if window.state == .detailed {
+                Spacer()
+
                 Button(
-                    action: { manager.appToggleMenu(true) },
+                    action: { window.toggleExpanded() },
                     label: {
-                        Image(systemName: self.manager.menu == .settings ? "rectangle.3.group" : "gearshape.fill")
-                            .applySymbolReplaceTransition()
+                        Image(systemName: "xmark")
                             .font(Typography.heading)
-                            .foregroundColor(Color("BatterySubtitle"))
+                            .foregroundStyle(Color("BatterySubtitle"))
                             .frame(width: 32, height: 32)
                             .background(Circle().fill(Color("BatteryButton")))
                     }
                 )
                 .buttonStyle(HoverButtonStyle())
-                .padding(.top, 8)
-                .padding(.trailing, 8)
-                .transition(.scale.combined(with: .opacity))
+                .transition(.blurFade)
             }
         }
         .timeline($timeline, state: $animation)
-        .padding(.leading, 20)
-        .padding(.trailing, 10)
+        .padding(.leading, Spacing.md + Spacing.xs)
+        .padding(.trailing, window.state == .detailed ? Spacing.lg : Spacing.sm + Spacing.xxs)
+        .padding(.vertical, window.state == .detailed ? Spacing.xs : 0)
         .onAppear {
             if let animation = window.state.container {
                 timeline = animation
@@ -175,20 +171,31 @@ struct HUDContainer: View {
             }
 
         }
-        .onChange(of: window.state) { _, newValue in
-            if let animation = newValue.container {
+        .onChange(of: window.state) { oldValue, newValue in
+            if let animation = HUDState.containerTransition(from: oldValue, to: newValue) {
                 timeline = animation
 
             }
 
-            if newValue == .revealed {
-                withAnimation(Animation.easeOut.delay(DesignAnimation.Delays.progressTrailing)) {
-                    progress = .trailing
-
+            if newValue == .revealed, oldValue != .detailed {
+                ringSlideTask?.cancel()
+                ringSlideTask = Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(RevealTiming.ringSlideDelay))
+                    guard !Task.isCancelled else { return }
+                    withAnimation(.easeOut(duration: RevealTiming.ringSlide)) {
+                        progress = .trailing
+                    }
                 }
 
             }
 
+            if !newValue.visible {
+                ringSlideTask?.cancel()
+            }
+
+        }
+        .onDisappear {
+            ringSlideTask?.cancel()
         }
 
     }
@@ -213,12 +220,13 @@ struct HUDMaskView: View {
     }
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .center) {
             RoundedRectangle(cornerRadius: 0, style: .continuous)
                 .timeline($timeline, state: $animation)
                 .frame(width: 20, height: 20)
 
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
             if let animation = window.state.mask {
                 timeline = animation
@@ -226,8 +234,8 @@ struct HUDMaskView: View {
             }
 
         }
-        .onChange(of: window.state) { _, newValue in
-            if let animation = newValue.mask {
+        .onChange(of: window.state) { oldValue, newValue in
+            if let animation = HUDState.maskTransition(from: oldValue, to: newValue) {
                 timeline = animation
 
             }
@@ -265,8 +273,8 @@ struct HUDGlow: View {
                 }
 
             }
-            .onChange(of: window.state) { _, newValue in
-                if let animation = newValue.glow {
+            .onChange(of: window.state) { oldValue, newValue in
+                if let animation = HUDState.glowTransition(from: oldValue, to: newValue) {
                     timeline = animation
 
                 }
@@ -302,8 +310,8 @@ struct HUDProgress: View {
                 }
 
             }
-            .onChange(of: window.state) { _, newValue in
-                if let animation = newValue.progress {
+            .onChange(of: window.state) { oldValue, newValue in
+                if let animation = HUDState.progressTransition(from: oldValue, to: newValue) {
                     timeline = animation
 
                 }
@@ -316,6 +324,7 @@ struct HUDProgress: View {
 
 struct HUDView: View {
     @Environment(AppEnvironment.self) private var env
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var window: any WindowServiceProtocol {
         env.window
@@ -336,27 +345,35 @@ struct HUDView: View {
         ZStack(alignment: .center) {
             VStack {
                 if window.state == .detailed {
-                    HUDContainer(animation: namespace, progress: $progress)
+                    HUDContainer(progress: $progress)
                         .matchedGeometryEffect(id: "hud", in: namespace)
 
                     NavigationContainer()
 
+                    Spacer(minLength: 0)
+
                 } else {
-                    HUDContainer(animation: namespace, progress: $progress)
+                    HUDContainer(progress: $progress)
                         .matchedGeometryEffect(id: "hud", in: namespace)
 
                 }
 
             }
 
-            if progress == .center {
-                HUDProgress().matchedGeometryEffect(id: "progress", in: namespace)
-
-            }
+            HUDProgress()
+                .opacity(window.state == .detailed ? 0.0 : 1.0)
+                .scaleEffect(window.state == .detailed ? 0.85 : 1.0)
+                .allowsHitTesting(window.state != .detailed)
+                .animation(
+                    reduceMotion ? nil : .easeOut(duration: RevealTiming.expandDuration),
+                    value: window.state == .detailed
+                )
+                .frame(maxWidth: .infinity, alignment: progress == .trailing ? .trailing : .center)
+                .padding(.trailing, progress == .trailing ? Spacing.sm + Spacing.xxs : 0)
 
         }
-        .frame(minWidth: 380, idealWidth: 440, maxWidth: 500)
-        .frame(minHeight: 200, idealHeight: 240, maxHeight: 280)
+        .frame(minWidth: 380, idealWidth: 450, maxWidth: 520)
+        .frame(minHeight: 200, idealHeight: 250, maxHeight: 500)
         .background(
             Color("BatteryBackground").opacity(window.opacity)
 
