@@ -1,3 +1,25 @@
+## [12.56.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.55.0...v12.56.0) (2026-09-12)
+
+### Features
+
+* **bluetooth:** wire BluetoothConnectionFailedView into device detail ([7efe83f](https://github.com/desaianand1/BatteryBoi-Recharged/commit/7efe83f4c015131a0a812c0d7ea59b92ad0955fa))
+* **onboarding:** wire OnboardingService into AppEnvironment ([54c2ceb](https://github.com/desaianand1/BatteryBoi-Recharged/commit/54c2ceb67c2dfc81231586417138258fc3d47395))
+
+### Bug Fixes
+
+* **battery:** decouple charge estimate from discharge data ([5ba11a6](https://github.com/desaianand1/BatteryBoi-Recharged/commit/5ba11a6ca5f7857ef355e669fe8dcfae82fc35be))
+* **ui:** remove stale @State in HUDSummary, fix icon cycling and event timer ([5924413](https://github.com/desaianand1/BatteryBoi-Recharged/commit/59244138aac9cd1f46fb5294fea50d455fd1869a))
+
+### Refactoring
+
+* **design:** rename color assets to BB prefix and add semantic status colors ([9f4889f](https://github.com/desaianand1/BatteryBoi-Recharged/commit/9f4889f765349bdd798fe876ee4025acbc740355))
+* **onboarding:** overhaul CompleteView with gradient CTA ([c8cf2af](https://github.com/desaianand1/BatteryBoi-Recharged/commit/c8cf2af7a266d0a34f2b9b49fcce9c658bc08d89))
+* **onboarding:** overhaul PermissionsView with design tokens ([42f1ae6](https://github.com/desaianand1/BatteryBoi-Recharged/commit/42f1ae6b02cb55ae5f0a87bfe9a17fbcb9c30a97))
+* **onboarding:** overhaul WelcomeView with feature cards ([3627829](https://github.com/desaianand1/BatteryBoi-Recharged/commit/3627829f70acae00de1f5d7876a53018bbe55a8d))
+* **onboarding:** replace segmented picker with 2x2 tile grid ([e75b07f](https://github.com/desaianand1/BatteryBoi-Recharged/commit/e75b07fb80cdd0488b1c56341c8a085129bc3699))
+* **onboarding:** replace TabView with manual step transitions ([cc8c4d6](https://github.com/desaianand1/BatteryBoi-Recharged/commit/cc8c4d66620d0ec927ad54a091b64d5b510d486a))
+* **ui:** rename ViewMarkdown to BoldStyledText ([5bfec07](https://github.com/desaianand1/BatteryBoi-Recharged/commit/5bfec0736807148b1f6964b99474e0a503e9bad5))
+
 ## [12.55.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.54.0...v12.55.0) (2026-09-11)
 
 ### Features
