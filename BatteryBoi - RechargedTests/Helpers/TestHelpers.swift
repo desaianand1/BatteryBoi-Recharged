@@ -45,14 +45,24 @@ import Foundation
             name: String = "Test Device",
             isConnected: Bool = true,
             batteryPercent: Int? = 75,
-            type: BluetoothDeviceType = .headphones
+            type: BluetoothDeviceType = .headphones,
+            batteryLeft: Int? = nil,
+            batteryRight: Int? = nil,
+            batteryCase: Int? = nil,
+            vendorID: Int? = nil,
+            productID: Int? = nil
         ) -> BluetoothObject {
             BluetoothObject(
                 address: address,
                 name: name,
                 isConnected: isConnected,
                 batteryPercent: batteryPercent,
-                deviceType: type.rawValue
+                deviceType: type.rawValue,
+                batteryLeft: batteryLeft,
+                batteryRight: batteryRight,
+                batteryCase: batteryCase,
+                vendorID: vendorID,
+                productID: productID
             )
         }
     }
@@ -67,11 +77,18 @@ import Foundation
     // MARK: - BluetoothBatteryObject Test Helpers
 
     @MainActor
-    func makeTestBattery(general: Double?, left: Double?, right: Double?) -> BluetoothBatteryObject {
-        var battery = BluetoothBatteryObject(percent: general.map { Int($0) })
-        battery.left = left
-        battery.right = right
-        battery.general = general
+    func makeTestBattery(
+        general: Double?,
+        left: Double?,
+        right: Double?,
+        chargingCase: Double? = nil
+    ) -> BluetoothBatteryObject {
+        var battery = BluetoothBatteryObject(
+            single: general.map { Int($0) },
+            left: left.map { Int($0) },
+            right: right.map { Int($0) },
+            chargingCase: chargingCase.map { Int($0) }
+        )
 
         if left == nil, right == nil, general == nil {
             battery.percent = nil

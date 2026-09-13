@@ -220,6 +220,18 @@ final class BluetoothModelsTests: XCTestCase {
         XCTAssertEqual(deviceObj.vendor, .apple)
     }
 
+    // MARK: - Vendor Display Name Tests
+
+    func testKnownVendorHasDisplayName() {
+        XCTAssertEqual(BluetoothVendor.apple.name, "Apple")
+        XCTAssertEqual(BluetoothVendor.sony.name, "Sony")
+        XCTAssertEqual(BluetoothVendor.bose.name, "Bose")
+    }
+
+    func testUnknownVendorHasNoDisplayName() {
+        XCTAssertNil(BluetoothVendor.unknown.name)
+    }
+
     // MARK: - BluetoothBatteryObject Tests
 
     @MainActor
@@ -236,6 +248,58 @@ final class BluetoothModelsTests: XCTestCase {
         let battery = BluetoothBatteryObject(percent: nil)
         XCTAssertNil(battery.general)
         XCTAssertNil(battery.percent)
+    }
+
+    // MARK: - Multi-Battery Behavior Tests
+
+    @MainActor
+    func testMultiBatteryPercentUsesMinimum() {
+        let battery = BluetoothBatteryObject(single: nil, left: 80, right: 60, chargingCase: 90)
+        XCTAssertEqual(battery.percent, 60.0)
+    }
+
+    @MainActor
+    func testSingleBatteryPercentUsesGeneral() {
+        let battery = BluetoothBatteryObject(single: 90, left: nil, right: nil, chargingCase: nil)
+        XCTAssertEqual(battery.percent, 90.0)
+    }
+
+    @MainActor
+    func testAllNilBatteryReturnsNilPercent() {
+        let battery = BluetoothBatteryObject(single: nil, left: nil, right: nil, chargingCase: nil)
+        XCTAssertNil(battery.percent)
+    }
+
+    @MainActor
+    func testChargingCaseDoesNotAffectPercent() {
+        let battery = BluetoothBatteryObject(single: 70, left: nil, right: nil, chargingCase: 45)
+        XCTAssertEqual(battery.percent, 70.0)
+        XCTAssertEqual(battery.chargingCase, 45.0)
+    }
+
+    @MainActor
+    func testLeftOnlyBatteryUsedAsPercent() {
+        let battery = BluetoothBatteryObject(single: nil, left: 70, right: nil, chargingCase: nil)
+        XCTAssertEqual(battery.percent, 70.0)
+    }
+
+    @MainActor
+    func testRightOnlyBatteryUsedAsPercent() {
+        let battery = BluetoothBatteryObject(single: nil, left: nil, right: 55, chargingCase: nil)
+        XCTAssertEqual(battery.percent, 55.0)
+    }
+
+    @MainActor
+    func testLeftRightAndSingleUsesOverallMinimum() {
+        let battery = BluetoothBatteryObject(single: 50, left: 80, right: 60, chargingCase: nil)
+        XCTAssertEqual(battery.percent, 50.0)
+    }
+
+    @MainActor
+    func testBatteryEqualityIncludesChargingCase() {
+        let a = BluetoothBatteryObject(single: 70, left: nil, right: nil, chargingCase: 90)
+        let b = BluetoothBatteryObject(single: 70, left: nil, right: nil, chargingCase: 50)
+        XCTAssertNotEqual(a, b)
     }
 
     // MARK: - BluetoothState Tests
@@ -372,5 +436,30 @@ final class BluetoothModelsTests: XCTestCase {
         XCTAssertEqual(device.connected, .disconnected)
         XCTAssertEqual(device.battery.percent, 25.0)
         XCTAssertEqual(device.type.type, .keyboard)
+    }
+
+    // MARK: - Device Enrichment Tests
+
+    @MainActor
+    func testObjectWithVendorPopulatesCorrectly() {
+        let device = BluetoothObject.testDevice(
+            vendorID: 0x004C,
+            productID: 0x200E
+        )
+        XCTAssertEqual(device.type.vendor, .apple)
+        XCTAssertEqual(device.type.subtype, .airpodsProVersionOne)
+    }
+
+    @MainActor
+    func testObjectWithNoBatteryIsValid() {
+        let device = BluetoothObject.testDevice(batteryPercent: nil)
+        XCTAssertNil(device.battery.percent)
+        XCTAssertNotNil(device.device)
+    }
+
+    @MainActor
+    func testObjectAddressUsesNormalizedExtension() {
+        let device = BluetoothObject.testDevice(address: "AA:BB:CC:DD:EE:FF")
+        XCTAssertEqual(device.address, "aa-bb-cc-dd-ee-ff")
     }
 }
