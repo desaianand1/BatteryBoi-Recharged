@@ -208,6 +208,8 @@
 "DeviceDetailACPowerLabel" = "AC Power";
 "DeviceDetailBatteryPowerLabel" = "Battery";
 "DeviceDetailNoOtherDevicesLabel" = "No other devices";
+"DeviceDetailBrandLabel" = "Brand";
+"DeviceDetailCaseLabel" = "Case";
 
 // Accessibility - Settings interaction
 "AccessibilityOpenSettings" = "Double tap to open settings";
