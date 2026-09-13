@@ -131,3 +131,7 @@
 "WindowPositionBottomLeft" = "左下";
 "WindowPositionBottomMiddle" = "下方置中";
 "WindowPositionBottomRight" = "右下";
+
+// Device Detail (Brand & Case)
+"DeviceDetailBrandLabel" = "Brand";
+"DeviceDetailCaseLabel" = "Case";

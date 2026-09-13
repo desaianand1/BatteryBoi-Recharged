@@ -138,3 +138,7 @@
 "WindowPositionBottomLeft" = "Снизу Слева";
 "WindowPositionBottomMiddle" = "Снизу По Центру";
 "WindowPositionBottomRight" = "Снизу Справа";
+
+// Device Detail (Brand & Case)
+"DeviceDetailBrandLabel" = "Brand";
+"DeviceDetailCaseLabel" = "Case";

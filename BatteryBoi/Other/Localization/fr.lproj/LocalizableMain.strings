@@ -131,3 +131,7 @@
 "WindowPositionBottomLeft" = "Bas Gauche";
 "WindowPositionBottomMiddle" = "Bas Centre";
 "WindowPositionBottomRight" = "Bas Droite";
+
+// Device Detail (Brand & Case)
+"DeviceDetailBrandLabel" = "Brand";
+"DeviceDetailCaseLabel" = "Case";

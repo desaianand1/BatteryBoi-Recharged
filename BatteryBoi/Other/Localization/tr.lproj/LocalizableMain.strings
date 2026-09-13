@@ -138,3 +138,7 @@
 "WindowPositionBottomLeft" = "Sol Alt";
 "WindowPositionBottomMiddle" = "Alt Orta";
 "WindowPositionBottomRight" = "Sağ Alt";
+
+// Device Detail (Brand & Case)
+"DeviceDetailBrandLabel" = "Brand";
+"DeviceDetailCaseLabel" = "Case";

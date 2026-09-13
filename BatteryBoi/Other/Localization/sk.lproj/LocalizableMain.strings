@@ -138,3 +138,7 @@
 "WindowPositionBottomLeft" = "Vľavo Dole";
 "WindowPositionBottomMiddle" = "Dole Stred";
 "WindowPositionBottomRight" = "Vpravo Dole";
+
+// Device Detail (Brand & Case)
+"DeviceDetailBrandLabel" = "Brand";
+"DeviceDetailCaseLabel" = "Case";

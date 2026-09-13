@@ -133,3 +133,7 @@
 "WindowPositionBottomLeft" = "Unten Links";
 "WindowPositionBottomMiddle" = "Unten Mitte";
 "WindowPositionBottomRight" = "Unten Rechts";
+
+// Device Detail (Brand & Case)
+"DeviceDetailBrandLabel" = "Brand";
+"DeviceDetailCaseLabel" = "Case";

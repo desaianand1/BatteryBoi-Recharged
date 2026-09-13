@@ -131,3 +131,7 @@
 "WindowPositionBottomLeft" = "Spodaj Levo";
 "WindowPositionBottomMiddle" = "Spodaj Sredina";
 "WindowPositionBottomRight" = "Spodaj Desno";
+
+// Device Detail (Brand & Case)
+"DeviceDetailBrandLabel" = "Brand";
+"DeviceDetailCaseLabel" = "Case";
