@@ -185,8 +185,16 @@ final class BluetoothService: BluetoothServiceProtocol {
                 updated.connected = deviceInfo.isConnected ? .connected : .disconnected
 
                 // Update battery if we have new data
-                if let percent = deviceInfo.batteryPercent {
-                    updated.battery = BluetoothBatteryObject(percent: percent)
+                let hasNewBattery = deviceInfo.batteryPercent != nil
+                    || deviceInfo.batteryLeft != nil
+                    || deviceInfo.batteryRight != nil
+                if hasNewBattery {
+                    updated.battery = BluetoothBatteryObject(
+                        single: deviceInfo.batteryPercent,
+                        left: deviceInfo.batteryLeft,
+                        right: deviceInfo.batteryRight,
+                        chargingCase: deviceInfo.batteryCase
+                    )
                 }
 
                 updated.updated = Date()
@@ -198,7 +206,12 @@ final class BluetoothService: BluetoothServiceProtocol {
                     name: deviceInfo.name,
                     isConnected: deviceInfo.isConnected,
                     batteryPercent: deviceInfo.batteryPercent,
-                    deviceType: deviceInfo.deviceType
+                    deviceType: deviceInfo.deviceType,
+                    batteryLeft: deviceInfo.batteryLeft,
+                    batteryRight: deviceInfo.batteryRight,
+                    batteryCase: deviceInfo.batteryCase,
+                    vendorID: deviceInfo.vendorID,
+                    productID: deviceInfo.productID
                 )
 
                 list.append(newDevice)
