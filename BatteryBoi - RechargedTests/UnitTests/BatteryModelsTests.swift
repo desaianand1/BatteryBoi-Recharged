@@ -257,4 +257,57 @@ final class BatteryModelsTests: XCTestCase {
         XCTAssertGreaterThan(progress, 0)
         XCTAssertLessThanOrEqual(progress, width)
     }
+
+    // MARK: - BatteryRemaining Tests
+
+    @MainActor
+    func testRemainingHoursAndMinutes() throws {
+        let remaining = BatteryRemaining(hour: 4, minute: 30)
+        XCTAssertEqual(remaining.hours, 4)
+        XCTAssertEqual(remaining.minutes, 30)
+        let formatted = try XCTUnwrap(remaining.formatted)
+        XCTAssertTrue(formatted.contains("4"))
+        XCTAssertTrue(formatted.contains("30"))
+    }
+
+    @MainActor
+    func testRemainingHoursOnly() throws {
+        let remaining = BatteryRemaining(hour: 2, minute: 0)
+        XCTAssertEqual(remaining.hours, 2)
+        XCTAssertEqual(remaining.minutes, 0)
+        let formatted = try XCTUnwrap(remaining.formatted)
+        XCTAssertTrue(formatted.contains("2"))
+    }
+
+    @MainActor
+    func testRemainingMinutesOnly() throws {
+        let remaining = BatteryRemaining(hour: 0, minute: 45)
+        XCTAssertEqual(remaining.hours, 0)
+        XCTAssertEqual(remaining.minutes, 45)
+        let formatted = try XCTUnwrap(remaining.formatted)
+        XCTAssertTrue(formatted.contains("45"))
+    }
+
+    @MainActor
+    func testRemainingZeroZeroFormattedIsNil() {
+        let remaining = BatteryRemaining(hour: 0, minute: 0)
+        XCTAssertNil(remaining.formatted)
+    }
+
+    @MainActor
+    func testRemainingEqualityByHoursAndMinutes() {
+        let a = BatteryRemaining(hour: 2, minute: 30)
+        let b = BatteryRemaining(hour: 2, minute: 30)
+        let c = BatteryRemaining(hour: 3, minute: 30)
+        XCTAssertEqual(a, b)
+        XCTAssertNotEqual(a, c)
+    }
+
+    @MainActor
+    func testRemainingEqualityIgnoresDate() {
+        let a = BatteryRemaining(hour: 1, minute: 0)
+        // Creating another instance a moment later — dates differ but hours/minutes match
+        let b = BatteryRemaining(hour: 1, minute: 0)
+        XCTAssertEqual(a, b)
+    }
 }

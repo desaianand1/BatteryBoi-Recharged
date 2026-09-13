@@ -57,7 +57,7 @@ struct HUDSummary: View {
                     .foregroundColor(.white)
                     .lineLimit(2)
 
-                BoldStyledText(.constant(stats.subtitle))
+                BoldStyledText(stats.subtitle)
 
                 if updates.available != nil {
                     UpdatePromptView()

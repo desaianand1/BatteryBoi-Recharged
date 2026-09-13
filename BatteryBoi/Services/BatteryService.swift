@@ -134,18 +134,34 @@ final class BatteryService: BatteryServiceProtocol {
         self.persistDepletionRate(totalMinutes: info.timeRemaining, charging: newCharging, percentage: newPercentage)
     }
 
-    private func buildRemaining(fromMinutes totalMinutes: Int?) -> BatteryRemaining {
+    private func buildRemaining(fromMinutes totalMinutes: Int?) -> BatteryRemaining? {
+        Self.buildRemaining(
+            fromMinutes: totalMinutes,
+            depletionAverage: self.depletionAverage,
+            percentage: self.percentage
+        )
+    }
+
+    static func buildRemaining(
+        fromMinutes totalMinutes: Int?,
+        depletionAverage: Double?,
+        percentage: Double
+    ) -> BatteryRemaining? {
         if let totalMinutes, totalMinutes > 0 {
             let hours = totalMinutes / Constants.Battery.minutesPerHour
             let minutes = totalMinutes % Constants.Battery.minutesPerHour
+            guard hours > 0 || minutes > 0 else { return nil }
             return BatteryRemaining(hour: hours, minute: minutes)
         }
-        if let rate = self.depletionAverage {
-            let date = Date().addingTimeInterval(rate * self.percentage)
+        if let rate = depletionAverage {
+            let date = Date().addingTimeInterval(rate * percentage)
             let components = Calendar.current.dateComponents([.hour, .minute], from: Date(), to: date)
-            return BatteryRemaining(hour: components.hour ?? 0, minute: components.minute ?? 0)
+            let h = components.hour ?? 0
+            let m = components.minute ?? 0
+            guard h > 0 || m > 0 else { return nil }
+            return BatteryRemaining(hour: h, minute: m)
         }
-        return BatteryRemaining(hour: 0, minute: 0)
+        return nil
     }
 
     var powerUntilFull: Date? {

@@ -161,9 +161,10 @@ final class StatsService: StatsServiceProtocol {
             guard let self else { return }
             var prevChargingState = self.battery.charging.state.charging
             var prevPercentage = self.battery.percentage
+            var prevRemaining = self.battery.remaining
 
-            for await (currentCharging, currentPercentage) in ObservationStream.changes({
-                (self.battery.charging.state.charging, self.battery.percentage)
+            for await (currentCharging, currentPercentage, currentRemaining) in ObservationStream.changes({
+                (self.battery.charging.state.charging, self.battery.percentage, self.battery.remaining)
             }) {
                 guard !Task.isCancelled else { break }
 
@@ -191,6 +192,11 @@ final class StatsService: StatsServiceProtocol {
                     }
 
                     prevPercentage = currentPercentage
+                }
+
+                if currentRemaining != prevRemaining {
+                    needsUpdate = true
+                    prevRemaining = currentRemaining
                 }
 
                 if needsUpdate {
@@ -228,61 +234,25 @@ final class StatsService: StatsServiceProtocol {
         }
     }
 
-    // MARK: - Computed Properties
+    // MARK: - Computed Properties (delegate to static pure functions)
 
     private var statsDisplay: String? {
-        let displayType = self.settings.enabledDisplay(false)
-        let state = self.battery.charging.state
-
-        if displayType == .hidden || displayType == .empty {
-            return nil
-        }
-
-        if state != .charging {
-            if displayType == .countdown {
-                return statsCountdown
-            } else if displayType == .cycle {
-                if let cycle = self.battery.metrics?.cycles.formatted {
-                    return cycle
-                }
-            }
-        }
-
-        return "\(Int(self.battery.percentage))"
+        Self.computeDisplay(
+            displayType: self.settings.enabledDisplay(false),
+            chargingState: self.battery.charging.state,
+            percentage: self.battery.percentage,
+            countdown: Self.computeCountdown(remaining: self.battery.remaining),
+            cycleFormatted: self.battery.metrics?.cycles.formatted
+        )
     }
 
     private var statsOverlay: String? {
-        let displayType = self.settings.enabledDisplay(false)
-        let state = self.battery.charging.state
-
-        if displayType == .hidden || state == .charging {
-            return nil
-        }
-
-        if displayType == .countdown || displayType == .empty {
-            return "\(Int(self.battery.percentage))"
-        }
-
-        return statsCountdown
-    }
-
-    private var statsCountdown: String? {
-        guard let remaining = self.battery.remaining,
-              let hour = remaining.hours,
-              let minute = remaining.minutes
-        else {
-            return nil
-        }
-
-        if hour > 0, minute > 0 {
-            return "+\(hour)\("TimestampHourAbbriviatedLabel".localise())"
-        } else if hour > 0, minute == 0 {
-            return "\(hour)\("TimestampHourAbbriviatedLabel".localise())"
-        } else if hour == 0, minute > 0 {
-            return "\(minute)\("TimestampMinuteAbbriviatedLabel".localise())"
-        }
-
-        return remaining.formatted
+        Self.computeOverlay(
+            displayType: self.settings.enabledDisplay(false),
+            chargingState: self.battery.charging.state,
+            percentage: self.battery.percentage,
+            countdown: Self.computeCountdown(remaining: self.battery.remaining)
+        )
     }
 
     private var statsTitle: String {
@@ -292,35 +262,13 @@ final class StatsService: StatsServiceProtocol {
             case .deviceRemoved: return "AlertDeviceDisconnectedTitle".localise()
             default: return device.device ?? device.type.type.name
             }
-        } else {
-            let percent = Int(self.battery.percentage)
-            let state = self.battery.charging.state
-
-            switch self.window.currentAlert {
-            case .chargingComplete: return "AlertChargingCompleteTitle".localise()
-            case .chargingBegan: return "AlertChargingTitle".localise()
-            case .chargingStopped: return "AlertChargingStoppedTitle".localise()
-            case .percentFive: return "AlertSomePercentTitle".localise([percent])
-            case .percentTen: return "AlertSomePercentTitle".localise([percent])
-            case .percentTwentyFive: return "AlertSomePercentTitle".localise([percent])
-            case .percentOne: return "AlertOnePercentTitle".localise()
-            case .deviceConnected: return "AlertDeviceConnectedTitle".localise()
-            case .deviceRemoved: return "AlertDeviceDisconnectedTitle".localise()
-            case .deviceOverheating: return "AlertOverheatingTitle".localise()
-            case .userEvent: return "AlertLimitedTitle".localise()
-            default: break
-            }
-
-            if state == .charging, percent >= 100 {
-                return "AlertChargingCompleteTitle".localise()
-            }
-
-            if state == .battery {
-                return "AlertSomePercentTitle".localise([percent])
-            }
-
-            return "AlertChargingTitle".localise()
         }
+
+        return Self.computeTitle(
+            alert: self.window.currentAlert,
+            chargingState: self.battery.charging.state,
+            percentage: self.battery.percentage
+        )
     }
 
     private var statsSubtitle: String {
@@ -336,38 +284,148 @@ final class StatsService: StatsServiceProtocol {
             }
 
             return "BluetoothInvalidLabel".localise()
-        } else {
-            let state = self.battery.charging.state
-            let percent = Int(self.battery.percentage)
-            let remaining = self.battery.remaining
-            let full = self.battery.untilFull
-            let event = self.events.events.max(by: { $0.start < $1.start })
+        }
 
-            switch self.window.currentAlert {
-            case .chargingComplete: return "AlertChargedSummary".localise()
-            case .chargingBegan: return "AlertStartedChargeSummary"
-                .localise([full?.time ?? "AlertDeviceCalculatingTitle".localise()])
-            case .chargingStopped: return "AlertEstimateSummary"
-                .localise([remaining?.formatted ?? "AlertDeviceCalculatingTitle".localise()])
-            case .percentFive: return "AlertPercentSummary".localise()
-            case .percentTen: return "AlertPercentSummary".localise()
-            case .percentTwentyFive: return "AlertPercentSummary".localise()
-            case .percentOne: return "AlertPercentSummary".localise()
-            case .userEvent: return "AlertLimitedSummary".localise([event?.name ?? "Unknown Event"])
-            case .deviceOverheating: return "AlertOverheatingSummary".localise()
-            default: break
+        return Self.computeSubtitle(
+            alert: self.window.currentAlert,
+            chargingState: self.battery.charging.state,
+            percentage: self.battery.percentage,
+            remaining: self.battery.remaining,
+            untilFull: self.battery.untilFull,
+            latestEventName: self.events.events.max(by: { $0.start < $1.start })?.name
+        )
+    }
+
+    // MARK: - Pure Static Computations
+
+    static func computeCountdown(remaining: BatteryRemaining?) -> String? {
+        guard let remaining,
+              let hour = remaining.hours,
+              let minute = remaining.minutes
+        else {
+            return nil
+        }
+
+        if hour > 0, minute > 0 {
+            return "+\(hour)\("TimestampHourAbbriviatedLabel".localise())"
+        } else if hour > 0, minute == 0 {
+            return "\(hour)\("TimestampHourAbbriviatedLabel".localise())"
+        } else if hour == 0, minute > 0 {
+            return "\(minute)\("TimestampMinuteAbbriviatedLabel".localise())"
+        }
+
+        return nil
+    }
+
+    static func computeTitle(
+        alert: HUDAlertTypes?,
+        chargingState: BatteryChargingState,
+        percentage: Double
+    ) -> String {
+        let percent = Int(percentage)
+
+        switch alert {
+        case .chargingComplete: return "AlertChargingCompleteTitle".localise()
+        case .chargingBegan: return "AlertChargingTitle".localise()
+        case .chargingStopped: return "AlertChargingStoppedTitle".localise()
+        case .percentFive: return "AlertSomePercentTitle".localise([percent])
+        case .percentTen: return "AlertSomePercentTitle".localise([percent])
+        case .percentTwentyFive: return "AlertSomePercentTitle".localise([percent])
+        case .percentOne: return "AlertOnePercentTitle".localise()
+        case .deviceConnected: return "AlertDeviceConnectedTitle".localise()
+        case .deviceRemoved: return "AlertDeviceDisconnectedTitle".localise()
+        case .deviceOverheating: return "AlertOverheatingTitle".localise()
+        case .userEvent: return "AlertLimitedTitle".localise()
+        default: break
+        }
+
+        if chargingState == .charging, percent >= 100 {
+            return "AlertChargingCompleteTitle".localise()
+        }
+
+        if chargingState == .battery {
+            return "AlertSomePercentTitle".localise([percent])
+        }
+
+        return "AlertChargingTitle".localise()
+    }
+
+    // swiftlint:disable:next function_parameter_count
+    static func computeSubtitle(
+        alert: HUDAlertTypes?,
+        chargingState: BatteryChargingState,
+        percentage: Double,
+        remaining: BatteryRemaining?,
+        untilFull: Date?,
+        latestEventName: String?
+    ) -> String {
+        let percent = Int(percentage)
+
+        switch alert {
+        case .chargingComplete: return "AlertChargedSummary".localise()
+        case .chargingBegan: return "AlertStartedChargeSummary"
+            .localise([untilFull?.time ?? "AlertDeviceCalculatingTitle".localise()])
+        case .chargingStopped: return "AlertEstimateSummary"
+            .localise([remaining?.formatted ?? "AlertDeviceCalculatingTitle".localise()])
+        case .percentFive: return "AlertPercentSummary".localise()
+        case .percentTen: return "AlertPercentSummary".localise()
+        case .percentTwentyFive: return "AlertPercentSummary".localise()
+        case .percentOne: return "AlertPercentSummary".localise()
+        case .userEvent: return "AlertLimitedSummary".localise([latestEventName ?? "Unknown Event"])
+        case .deviceOverheating: return "AlertOverheatingSummary".localise()
+        default: break
+        }
+
+        if chargingState == .charging {
+            switch percent {
+            case 100: return "AlertChargedSummary".localise()
+            default: return "AlertStartedChargeSummary"
+                .localise([untilFull?.time ?? "AlertDeviceCalculatingTitle".localise()])
             }
+        }
 
-            if state == .charging {
-                switch percent {
-                case 100: return "AlertChargedSummary".localise()
-                default: return "AlertStartedChargeSummary"
-                    .localise([full?.time ?? "AlertDeviceCalculatingTitle".localise()])
+        return "AlertEstimateSummary".localise([remaining?.formatted ?? "AlertDeviceCalculatingTitle".localise()])
+    }
+
+    static func computeDisplay(
+        displayType: SettingsDisplayType,
+        chargingState: BatteryChargingState,
+        percentage: Double,
+        countdown: String?,
+        cycleFormatted: String?
+    ) -> String? {
+        if displayType == .hidden || displayType == .empty {
+            return nil
+        }
+
+        if chargingState != .charging {
+            if displayType == .countdown {
+                return countdown ?? "\(Int(percentage))"
+            } else if displayType == .cycle {
+                if let cycle = cycleFormatted {
+                    return cycle
                 }
             }
-
-            return "AlertEstimateSummary".localise([remaining?.formatted ?? "AlertDeviceCalculatingTitle".localise()])
         }
+
+        return "\(Int(percentage))"
+    }
+
+    static func computeOverlay(
+        displayType: SettingsDisplayType,
+        chargingState: BatteryChargingState,
+        percentage: Double,
+        countdown: String?
+    ) -> String? {
+        if displayType == .hidden || chargingState == .charging {
+            return nil
+        }
+
+        if displayType == .countdown || displayType == .empty {
+            return "\(Int(percentage))"
+        }
+
+        return countdown
     }
 
     var statsIcon: StatsIcon {

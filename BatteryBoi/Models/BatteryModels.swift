@@ -126,9 +126,9 @@ struct BatteryCharging: Equatable {
 
 // MARK: - Battery Remaining Time
 
-struct BatteryRemaining: Equatable {
+struct BatteryRemaining: Equatable, Sendable {
     static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.date == rhs.date
+        lhs.hours == rhs.hours && lhs.minutes == rhs.minutes
     }
 
     var date: Date
@@ -143,14 +143,14 @@ struct BatteryRemaining: Equatable {
             .date = Date(timeIntervalSinceNow: Double(hour) * Constants.Battery
                 .secondsPerHour + Double(minute) * Constants.Battery.secondsPerMinute)
 
-        if hour == 0, minute == 0 {
-            formatted = "AlertDeviceCalculatingTitle".localise()
-        } else if hour > 0, minute > 0 {
+        if hour > 0, minute > 0 {
             formatted = "\("TimestampHourFullLabel".localise([hour]))  \("TimestampMinuteFullLabel".localise([minute]))"
-        } else if hour == 0 {
+        } else if hour == 0, minute > 0 {
             formatted = "TimestampMinuteFullLabel".localise([minute])
-        } else {
+        } else if hour > 0 {
             formatted = "TimestampHourFullLabel".localise([hour])
+        } else {
+            formatted = nil
         }
     }
 }

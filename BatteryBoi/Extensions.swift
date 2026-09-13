@@ -46,13 +46,14 @@ struct ViewScrollMask: ViewModifier {
 }
 
 struct BoldStyledText: View {
-    @Binding var text: String
+    let text: String
 
-    @State private var components = [String]()
+    private var components: [String] {
+        text.components(separatedBy: "**")
+    }
 
-    init(_ content: Binding<String>) {
-        _text = content
-
+    init(_ text: String) {
+        self.text = text
     }
 
     var body: some View {
@@ -82,10 +83,6 @@ struct BoldStyledText: View {
                 }
 
             }
-
-        }
-        .onChange(of: text) { _, newValue in
-            components = newValue.components(separatedBy: "**")
 
         }
 
