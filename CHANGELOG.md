@@ -1,3 +1,9 @@
+## [12.57.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.56.1...v12.57.0) (2026-09-13)
+
+### Features
+
+* **window:** overhaul HUD positioning with snap-to-anchor and position selector ([26610c5](https://github.com/desaianand1/BatteryBoi-Recharged/commit/26610c5b1e1265a2868a52f61a82ea9ca5701c35))
+
 ## [12.56.1](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.56.0...v12.56.1) (2026-09-13)
 
 ### Refactoring
