@@ -35,7 +35,7 @@ platform :mac do
       destination: "platform=macOS",
       clean: true,
       code_coverage: true,
-      xcargs: "CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO SWIFT_STRICT_CONCURRENCY=complete OTHER_SWIFT_FLAGS='-DMACOS_13_AND_ABOVE'"
+      xcargs: "CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO SWIFT_STRICT_CONCURRENCY=complete OTHER_SWIFT_FLAGS='-DMACOS_13_AND_ABOVE -DDIRECT_DISTRIBUTION'"
     )
   end
 
@@ -64,7 +64,8 @@ platform :mac do
       configuration: "Release",
       output_directory: "./build",
       export_method: "developer-id",
-      skip_package_pkg: true
+      skip_package_pkg: true,
+      xcargs: "SWIFT_ACTIVE_COMPILATION_CONDITIONS='DIRECT_DISTRIBUTION'"
     )
 
     # Re-enable automatic code signing
@@ -114,7 +115,7 @@ platform :mac do
       output_directory: "./build",
       export_method: "developer-id",
       skip_package_pkg: true,
-      xcargs: "OTHER_CODE_SIGN_FLAGS='--timestamp --options runtime'"
+      xcargs: "OTHER_CODE_SIGN_FLAGS='--timestamp --options runtime' SWIFT_ACTIVE_COMPILATION_CONDITIONS='DIRECT_DISTRIBUTION'"
     )
 
     # Post-build: Re-sign all code with Developer ID for notarization
