@@ -100,7 +100,7 @@ struct BluetoothItem: View {
             } else if let percent = item.battery.percent {
                 return "AlertSomePercentTitle".localise([Int(percent)])
             } else {
-                return "BluetoothInvalidLabel".localise()
+                return "DeviceDetailConnectedLabel".localise()
             }
         }
         return "AlertSomePercentTitle".localise([Int(battery.percentage)])
@@ -164,7 +164,7 @@ struct BluetoothItem: View {
                                     } else if let percent = item.battery.percent {
                                         Text("AlertSomePercentTitle".localise([Int(percent)]))
                                     } else {
-                                        Text("BluetoothInvalidLabel".localise())
+                                        Text("DeviceDetailConnectedLabel".localise())
                                     }
                                 }
 
@@ -272,7 +272,7 @@ struct DeviceRow: View {
             } else if let percent = device.battery.percent {
                 return "AlertSomePercentTitle".localise([Int(percent)])
             } else {
-                return "BatteryUnavailableLabel".localise()
+                return "DeviceDetailConnectedLabel".localise()
             }
         }
         return "AlertSomePercentTitle".localise([Int(self.battery.percentage)])
@@ -542,11 +542,21 @@ struct DeviceDetailView: View {
                         "DeviceDetailBatteryLabel".localise(),
                         "AlertSomePercentTitle".localise([Int(percent)])
                     )
-                } else {
+                }
+
+                if let caseBattery = device.battery.chargingCase {
                     self.detailRow(
-                        "battery.75percent",
-                        "DeviceDetailBatteryLabel".localise(),
-                        "BluetoothInvalidLabel".localise()
+                        "case.fill",
+                        "DeviceDetailCaseLabel".localise(),
+                        "AlertSomePercentTitle".localise([Int(caseBattery)])
+                    )
+                }
+
+                if let vendorName = device.type.vendor?.name {
+                    self.detailRow(
+                        "building.2",
+                        "DeviceDetailBrandLabel".localise(),
+                        vendorName
                     )
                 }
             }
