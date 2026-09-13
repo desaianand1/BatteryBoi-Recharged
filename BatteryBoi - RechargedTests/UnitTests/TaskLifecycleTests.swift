@@ -27,13 +27,45 @@ final class TaskLifecycleTests: XCTestCase {
         weak var weakService: SettingsService?
 
         do {
-            let service = SettingsService()
+            let service = SettingsService(
+                window: { MockWindowService() },
+                battery: MockBatteryService(),
+                update: MockUpdateManager()
+            )
             weakService = service
             XCTAssertNotNil(weakService)
         }
 
         try? await Task.sleep(for: .milliseconds(100))
         XCTAssertNil(weakService, "SettingsService should deallocate — tasks must use [weak self]")
+    }
+
+    @MainActor
+    func testOnboardingServiceDeinit_noRetainCycle() async {
+        weak var weakService: OnboardingService?
+
+        do {
+            let service = OnboardingService()
+            weakService = service
+            XCTAssertNotNil(weakService)
+        }
+
+        try? await Task.sleep(for: .milliseconds(100))
+        XCTAssertNil(weakService, "OnboardingService should deallocate — no tasks to retain self")
+    }
+
+    @MainActor
+    func testBluetoothServiceDeinit_noRetainCycle() async {
+        weak var weakService: BluetoothService?
+
+        do {
+            let service = BluetoothService()
+            weakService = service
+            XCTAssertNotNil(weakService)
+        }
+
+        try? await Task.sleep(for: .milliseconds(100))
+        XCTAssertNil(weakService, "BluetoothService should deallocate — tasks must use [weak self]")
     }
 
     @MainActor

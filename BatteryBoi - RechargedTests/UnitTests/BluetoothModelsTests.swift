@@ -326,6 +326,27 @@ final class BluetoothModelsTests: XCTestCase {
         XCTAssertEqual(device.address, "aa-bb-cc-dd-ee-ff")
     }
 
+    // MARK: - BluetoothDeviceType Computed Property Tests
+
+    @MainActor
+    func testAllDeviceTypeNamesAreNonEmpty() {
+        for type in BluetoothDeviceType.allCases {
+            XCTAssertFalse(type.name.isEmpty, "\(type) should have a non-empty name")
+        }
+    }
+
+    @MainActor
+    func testOtherDeviceTypeHasEmptyIcon() {
+        XCTAssertEqual(BluetoothDeviceType.other.icon, "")
+    }
+
+    @MainActor
+    func testKnownDeviceTypesHaveNonEmptyIcons() {
+        for type in BluetoothDeviceType.allCases where type != .other {
+            XCTAssertFalse(type.icon.isEmpty, "\(type) should have a non-empty icon")
+        }
+    }
+
     // MARK: - Test Helpers Tests
 
     @MainActor

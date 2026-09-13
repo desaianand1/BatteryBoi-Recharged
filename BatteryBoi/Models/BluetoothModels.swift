@@ -105,7 +105,7 @@ enum BluetoothDeviceSubtype: String {
 
 // MARK: - Device Type
 
-enum BluetoothDeviceType: String, Decodable {
+enum BluetoothDeviceType: String, CaseIterable, Decodable {
     case mouse
     case headphones
     case gamepad

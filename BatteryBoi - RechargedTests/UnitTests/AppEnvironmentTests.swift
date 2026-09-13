@@ -8,23 +8,6 @@
 
 final class AppEnvironmentTests: XCTestCase {
 
-    // MARK: - Default Init Tests
-
-    @MainActor
-    func testDefaultInitCreatesAllServices() {
-        let env = AppEnvironment()
-
-        XCTAssertNotNil(env.battery)
-        XCTAssertNotNil(env.bluetooth)
-        XCTAssertNotNil(env.settings)
-        XCTAssertNotNil(env.window)
-        XCTAssertNotNil(env.stats)
-        XCTAssertNotNil(env.event)
-        XCTAssertNotNil(env.app)
-        XCTAssertNotNil(env.update)
-        XCTAssertNotNil(env.coordinator)
-    }
-
     // MARK: - Testing Init Tests
 
     @MainActor
@@ -35,6 +18,8 @@ final class AppEnvironmentTests: XCTestCase {
         let mockWindow = MockWindowService()
         let mockStats = MockStatsService()
         let mockEvents = MockEventService()
+        let mockApp = MockAppManager()
+        let mockUpdate = MockUpdateManager()
 
         let env = AppEnvironment(
             battery: mockBattery,
@@ -43,8 +28,8 @@ final class AppEnvironmentTests: XCTestCase {
             window: mockWindow,
             stats: mockStats,
             event: mockEvents,
-            app: AppManager.shared,
-            update: UpdateManager.shared
+            app: mockApp,
+            update: mockUpdate
         )
 
         XCTAssertTrue(env.battery is MockBatteryService)
@@ -53,15 +38,77 @@ final class AppEnvironmentTests: XCTestCase {
         XCTAssertTrue(env.window is MockWindowService)
         XCTAssertTrue(env.stats is MockStatsService)
         XCTAssertTrue(env.event is MockEventService)
+        XCTAssertTrue(env.app is MockAppManager)
+        XCTAssertTrue(env.update is MockUpdateManager)
     }
 
     // MARK: - Start Tests
 
     @MainActor
-    func testStartSetsMenuAndStartsObserving() {
-        let env = AppEnvironment()
+    func testStartSetsMenuToSettingsWhenNoDevices() {
+        let mockBluetooth = MockBluetoothService()
+        mockBluetooth.connected = []
+
+        let env = AppEnvironment(
+            battery: MockBatteryService(),
+            bluetooth: mockBluetooth,
+            settings: MockSettingsService(),
+            window: MockWindowService(),
+            stats: MockStatsService(),
+            event: MockEventService(),
+            app: MockAppManager(),
+            update: MockUpdateManager()
+        )
+
         env.start()
 
-        XCTAssertNotNil(env.coordinator)
+        XCTAssertEqual(env.app.menu, .settings)
+    }
+
+    // MARK: - Ownership Tests
+
+    @MainActor
+    func testEnvironmentDeallocatesWhenUnreferenced() async {
+        weak var weakEnv: AppEnvironment?
+
+        do {
+            let env = makeTestEnvironment()
+            weakEnv = env
+            XCTAssertNotNil(weakEnv)
+        }
+
+        try? await Task.sleep(for: .milliseconds(100))
+        XCTAssertNil(weakEnv, "AppEnvironment should deallocate when no strong references remain")
+    }
+
+    @MainActor
+    func testEnvironmentAcceptsMockOnboarding() {
+        let mockOnboarding = MockOnboardingService()
+        let env = makeTestEnvironment(onboarding: mockOnboarding)
+
+        XCTAssertTrue(env.onboarding is MockOnboardingService)
+    }
+
+    // MARK: - Start Tests (Devices)
+
+    @MainActor
+    func testStartSetsMenuToDevicesWhenDevicesConnected() {
+        let mockBluetooth = MockBluetoothService()
+        mockBluetooth.connected = [BluetoothObject.testDevice()]
+
+        let env = AppEnvironment(
+            battery: MockBatteryService(),
+            bluetooth: mockBluetooth,
+            settings: MockSettingsService(),
+            window: MockWindowService(),
+            stats: MockStatsService(),
+            event: MockEventService(),
+            app: MockAppManager(),
+            update: MockUpdateManager()
+        )
+
+        env.start()
+
+        XCTAssertEqual(env.app.menu, .devices)
     }
 }
