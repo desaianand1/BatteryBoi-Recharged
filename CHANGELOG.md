@@ -1,3 +1,12 @@
+## [12.56.1](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.56.0...v12.56.1) (2026-09-13)
+
+### Refactoring
+
+* **bluetooth:** migrate BluetoothView to design tokens ([ab9f85f](https://github.com/desaianand1/BatteryBoi-Recharged/commit/ab9f85ff8488b8fb0f85121fb3151e3d96039dbd))
+* **concurrency:** adopt Swift 6.2 default MainActor isolation ([a1684da](https://github.com/desaianand1/BatteryBoi-Recharged/commit/a1684dac3fbe2f92c9563832fff6c3f24205fdac))
+* **di:** remove AppEnvironment singleton, wire OnboardingService DI ([cec8b2b](https://github.com/desaianand1/BatteryBoi-Recharged/commit/cec8b2b558bf2884f5eab8c0a4c5b81834db810d))
+* split BatteryBoiApp.swift into dedicated files ([f9e6d49](https://github.com/desaianand1/BatteryBoi-Recharged/commit/f9e6d495452465e426954abb5792b8b380bdddda))
+
 ## [12.56.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.55.0...v12.56.0) (2026-09-12)
 
 ### Features
