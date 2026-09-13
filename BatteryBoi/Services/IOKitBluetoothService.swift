@@ -12,11 +12,14 @@ import Foundation
 
 /// Bluetooth device information from IOKit/IOBluetooth
 struct IOKitBluetoothDeviceInfo {
-    let address: String // Normalized to lowercase with dashes (xx-xx-xx-xx-xx-xx)
+    let address: String
     let name: String?
     let isConnected: Bool
     let batteryPercent: Int?
-    let deviceType: String // "keyboard", "mouse", "headphones", "speaker", "gamepad", "other"
+    let batteryLeft: Int?
+    let batteryRight: Int?
+    let batteryCase: Int?
+    let deviceType: String
     let vendorID: Int?
     let productID: Int?
 }
@@ -24,38 +27,45 @@ struct IOKitBluetoothDeviceInfo {
 actor IOKitBluetoothService {
     static let shared = IOKitBluetoothService()
 
-    // MARK: - Apple Peripheral Battery via IORegistry (§2.2)
+    // MARK: - IORegistry Battery Scan (§2.2)
 
-    /// Gets battery levels for Apple peripherals (Magic Keyboard, Mouse, Trackpad)
-    /// from the AppleDeviceManagementHIDEventService IORegistry entries.
+    /// Gets battery levels from IORegistry by scanning both AppleDeviceManagementHIDEventService
+    /// (Apple peripherals) and IOHIDDevice (broader coverage for third-party HID devices).
     func getDeviceBatteries() -> [String: Int] {
         var batteries: [String: Int] = [:]
-        var iterator: io_iterator_t = 0
+        let serviceClasses = [
+            Constants.Bluetooth.appleHIDServiceClass,
+            Constants.Bluetooth.hidDeviceServiceClass,
+        ]
 
-        let matching = IOServiceMatching("AppleDeviceManagementHIDEventService")
-        guard IOServiceGetMatchingServices(kIOMainPortDefault, matching, &iterator) == KERN_SUCCESS else {
-            return batteries
-        }
-        defer { IOObjectRelease(iterator) }
-
-        var service = IOIteratorNext(iterator)
-        while service != IO_OBJECT_NULL {
-            defer {
-                IOObjectRelease(service)
-                service = IOIteratorNext(iterator)
+        for serviceClass in serviceClasses {
+            var iterator: io_iterator_t = 0
+            let matching = IOServiceMatching(serviceClass)
+            guard IOServiceGetMatchingServices(kIOMainPortDefault, matching, &iterator) == KERN_SUCCESS else {
+                continue
             }
+            defer { IOObjectRelease(iterator) }
 
-            // Get device address
-            guard let addressRef = IORegistryEntryCreateCFProperty(
-                service, "DeviceAddress" as CFString, kCFAllocatorDefault, 0
-            ), let address = addressRef.takeRetainedValue() as? String else { continue }
+            var service = IOIteratorNext(iterator)
+            while service != IO_OBJECT_NULL {
+                defer {
+                    IOObjectRelease(service)
+                    service = IOIteratorNext(iterator)
+                }
 
-            // Get battery percentage
-            if let batteryRef = IORegistryEntryCreateCFProperty(
-                service, "BatteryPercent" as CFString, kCFAllocatorDefault, 0
-            ), let battery = batteryRef.takeRetainedValue() as? Int {
-                let normalizedAddress = address.lowercased().replacingOccurrences(of: ":", with: "-")
-                batteries[normalizedAddress] = battery
+                guard let addressRef = IORegistryEntryCreateCFProperty(
+                    service, Constants.Bluetooth.ioregDeviceAddress as CFString, kCFAllocatorDefault, 0
+                ), let address = addressRef.takeRetainedValue() as? String else { continue }
+
+                if let batteryRef = IORegistryEntryCreateCFProperty(
+                    service, Constants.Bluetooth.ioregBatteryPercent as CFString, kCFAllocatorDefault, 0
+                ), let battery = batteryRef.takeRetainedValue() as? Int,
+                Constants.Bluetooth.validBatteryRange.contains(battery) {
+                    let normalizedAddress = address.normalizedBluetoothAddress
+                    if batteries[normalizedAddress] == nil {
+                        batteries[normalizedAddress] = battery
+                    }
+                }
             }
         }
 
@@ -65,8 +75,9 @@ actor IOKitBluetoothService {
     // MARK: - Enumerate Paired Devices via IOBluetooth (§2.1)
 
     /// Gets all paired Bluetooth devices with their connection status and battery levels.
+    /// Uses two-layer battery reading: KVC (direct distribution) then IORegistry fallback.
     func getConnectedDevices() -> [IOKitBluetoothDeviceInfo] {
-        let batteryLevels = getDeviceBatteries()
+        let ioregBatteries = getDeviceBatteries()
 
         guard let pairedDevices = IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice] else {
             return []
@@ -74,17 +85,42 @@ actor IOKitBluetoothService {
 
         return pairedDevices.compactMap { device -> IOKitBluetoothDeviceInfo? in
             guard let addressString = device.addressString else { return nil }
+            let address = addressString.normalizedBluetoothAddress
 
-            let address = addressString.lowercased().replacingOccurrences(of: ":", with: "-")
+            var single: Int?
+            var left: Int?
+            var right: Int?
+            var chargingCase: Int?
+            var vendorID: Int?
+            var productID: Int?
+
+            #if DIRECT_DISTRIBUTION
+                let kvc = self.readKVCBattery(from: device)
+                single = kvc.single
+                left = kvc.left
+                right = kvc.right
+                chargingCase = kvc.chargingCase
+                let ids = self.readKVCVendorProduct(from: device)
+                vendorID = ids.vendorID
+                productID = ids.productID
+            #endif
+
+            // IORegistry fallback when KVC yielded nothing
+            if single == nil, left == nil, right == nil {
+                single = ioregBatteries[address]
+            }
 
             return IOKitBluetoothDeviceInfo(
                 address: address,
                 name: device.name,
                 isConnected: device.isConnected(),
-                batteryPercent: batteryLevels[address],
+                batteryPercent: single,
+                batteryLeft: left,
+                batteryRight: right,
+                batteryCase: chargingCase,
                 deviceType: classifyDevice(device),
-                vendorID: nil, // Can be obtained from device properties if needed
-                productID: nil
+                vendorID: vendorID,
+                productID: productID
             )
         }
     }
@@ -161,40 +197,38 @@ actor IOKitBluetoothService {
         return "other"
     }
 
-    // MARK: - AirPods Battery (§2.3 - Bluetooth Preferences Plist)
+    // MARK: - KVC Battery Reader (Direct Distribution Only)
 
-    /// Gets AirPods battery levels from the Bluetooth preferences plist.
-    /// Note: This may not work in sandboxed apps without appropriate exceptions.
-    func getAirPodsBattery() -> (left: Int?, right: Int?, chargingCase: Int?)? {
-        guard let btPlist = NSDictionary(
-            contentsOfFile: "/Library/Preferences/com.apple.Bluetooth.plist"
-        ),
-            let deviceCache = btPlist["DeviceCache"] as? [String: Any]
-        else { return nil }
-
-        // Find the device entry with AirPods battery keys
-        for (_, deviceInfo) in deviceCache {
-            guard let info = deviceInfo as? [String: Any] else { continue }
-
-            // Check for AirPods-specific battery keys
-            if info["BatteryPercentLeft"] != nil || info["BatteryPercentRight"] != nil {
-                return (
-                    left: info["BatteryPercentLeft"] as? Int,
-                    right: info["BatteryPercentRight"] as? Int,
-                    chargingCase: info["BatteryPercentCase"] as? Int
-                )
+    #if DIRECT_DISTRIBUTION
+        private func readKVCBattery(
+            from device: IOBluetoothDevice
+        ) -> (single: Int?, left: Int?, right: Int?, chargingCase: Int?) {
+            func readKey(_ key: String) -> Int? {
+                guard device.responds(to: NSSelectorFromString(key)),
+                      let value = device.value(forKey: key) as? Int,
+                      Constants.Bluetooth.validBatteryRange.contains(value)
+                else { return nil }
+                return value
             }
+
+            return (
+                single: readKey(Constants.Bluetooth.kvcBatterySingle),
+                left: readKey(Constants.Bluetooth.kvcBatteryLeft),
+                right: readKey(Constants.Bluetooth.kvcBatteryRight),
+                chargingCase: readKey(Constants.Bluetooth.kvcBatteryCase)
+            )
         }
 
-        return nil
-    }
+        private func readKVCVendorProduct(from device: IOBluetoothDevice) -> (vendorID: Int?, productID: Int?) {
+            func readKey(_ key: String) -> Int? {
+                guard device.responds(to: NSSelectorFromString(key)) else { return nil }
+                return device.value(forKey: key) as? Int
+            }
 
-    // MARK: - Device Battery by Address
-
-    /// Gets battery level for a specific device by address.
-    func getBatteryLevel(forAddress address: String) -> Int? {
-        let normalizedAddress = address.lowercased().replacingOccurrences(of: ":", with: "-")
-        let batteries = getDeviceBatteries()
-        return batteries[normalizedAddress]
-    }
+            return (
+                vendorID: readKey(Constants.Bluetooth.kvcVendorID),
+                productID: readKey(Constants.Bluetooth.kvcProductID)
+            )
+        }
+    #endif
 }
