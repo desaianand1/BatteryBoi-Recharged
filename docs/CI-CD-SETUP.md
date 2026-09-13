@@ -532,6 +532,30 @@ gh release upload latest "fastlane/build/appcast.xml" --clobber
   spctl -a -vv "App.app"
   ```
 
+## Compile Flags
+
+### `DIRECT_DISTRIBUTION`
+
+This flag gates undocumented KVC battery APIs that require direct/notarized distribution (not
+Mac App Store safe). When defined, the app can read battery levels for **all** Bluetooth
+devices (including third-party headphones, earbuds, and speakers) using the same data source
+as macOS System Settings.
+
+**Where it's set:**
+
+| Build Path | Location | How |
+|------------|----------|-----|
+| Xcode project (Debug) | `project.pbxproj` | `SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG DIRECT_DISTRIBUTION"` |
+| Xcode project (Release) | `project.pbxproj` | `SWIFT_ACTIVE_COMPILATION_CONDITIONS = DIRECT_DISTRIBUTION` |
+| Fastlane test lane | `fastlane/Fastfile` | `OTHER_SWIFT_FLAGS` includes `-DDIRECT_DISTRIBUTION` |
+| Fastlane build lane | `fastlane/Fastfile` | `SWIFT_ACTIVE_COMPILATION_CONDITIONS='DIRECT_DISTRIBUTION'` |
+| Fastlane release lane | `fastlane/Fastfile` | `SWIFT_ACTIVE_COMPILATION_CONDITIONS='DIRECT_DISTRIBUTION'` |
+| Taskfile dev task | `Taskfile.yml` | `SWIFT_ACTIVE_COMPILATION_CONDITIONS="DEBUG DIRECT_DISTRIBUTION"` |
+
+**App Store builds:** To create an App Store build, omit this flag from all build paths. The
+KVC battery code will not be compiled, and the app will use only the IORegistry path for
+Bluetooth battery data (covers Apple peripherals and some third-party HID devices).
+
 ## Resources
 
 - [Doppler Documentation](https://docs.doppler.com/)
