@@ -143,6 +143,30 @@ nonisolated enum Constants {
 
         /// Time interval before pruning disconnected devices from the list.
         static let staleDeviceTimeout: TimeInterval = 300
+
+        // IORegistry service class names
+        static let appleHIDServiceClass = "AppleDeviceManagementHIDEventService"
+        static let hidDeviceServiceClass = "IOHIDDevice"
+
+        // IORegistry property keys
+        static let ioregBatteryPercent = "BatteryPercent"
+        static let ioregDeviceAddress = "DeviceAddress"
+        static let ioregProduct = "Product"
+        static let ioregTransport = "Transport"
+
+        // IOBluetoothDevice KVC keys (undocumented, stable since macOS 11+)
+        static let kvcBatterySingle = "batteryPercentSingle"
+        static let kvcBatteryLeft = "batteryPercentLeft"
+        static let kvcBatteryRight = "batteryPercentRight"
+        static let kvcBatteryCase = "batteryPercentCase"
+        static let kvcBatteryCombined = "batteryPercentCombined"
+        static let kvcIsMultiBattery = "isMultiBatteryDevice"
+        static let kvcIsAppleDevice = "isAppleDevice"
+        static let kvcVendorID = "vendorID"
+        static let kvcProductID = "productID"
+
+        /// Valid battery percentage range — 0 and >100 are sentinels for "no data".
+        static let validBatteryRange = 1 ... 100
     }
 
     /// Corner radius constants for UI elements.
