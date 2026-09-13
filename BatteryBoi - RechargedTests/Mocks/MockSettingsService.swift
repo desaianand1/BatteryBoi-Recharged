@@ -97,6 +97,10 @@ import Foundation
             return display
         }
 
+        func setDisplay(_ type: SettingsDisplayType) {
+            display = type
+        }
+
         func performAction(_ action: SettingsActionObject) {
             performActionCallCount += 1
             lastPerformedAction = action

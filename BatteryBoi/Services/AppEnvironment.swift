@@ -6,13 +6,8 @@
 import Foundation
 import SwiftUI
 
-@MainActor
-@Observable
+@Observable @MainActor
 final class AppEnvironment {
-
-    // MARK: - Shared Instance
-
-    static let shared = AppEnvironment()
 
     // MARK: - Coordinator
 
@@ -27,31 +22,69 @@ final class AppEnvironment {
     let stats: any StatsServiceProtocol
     let event: any EventServiceProtocol
 
-    // MARK: - Concrete-Typed (No Protocol Yet)
+    let onboarding: any OnboardingServiceProtocol
 
-    let app: AppManager
-    let update: UpdateManager
-    let onboarding: OnboardingService
+    // MARK: - Services (Protocol Types)
+
+    let app: any AppManagerProtocol
+    let update: any UpdateManagerProtocol
 
     // MARK: - Production Init
 
+    private final class Ref {
+        unowned var env: AppEnvironment!
+    }
+
     init() {
-        self.battery = BatteryService.shared
-        self.bluetooth = BluetoothService.shared
-        self.settings = SettingsService.shared
-        self.window = WindowService.shared
-        self.stats = StatsService.shared
-        self.app = AppManager.shared
-        self.update = UpdateManager.shared
-        self.event = EventService.shared
-        self.onboarding = OnboardingService.shared
-        self.coordinator = ServiceCoordinator(
-            battery: BatteryService.shared,
-            bluetooth: BluetoothService.shared,
-            settings: SettingsService.shared,
-            window: WindowService.shared,
-            events: EventService.shared
+        let ref = Ref()
+
+        let battery = BatteryService()
+        let bluetooth = BluetoothService()
+        let event = EventService()
+        let app = AppManager()
+        let update = UpdateManager()
+        let onboarding = OnboardingService()
+
+        let settings = SettingsService(
+            window: { ref.env.window },
+            battery: battery,
+            update: update
         )
+
+        let window = WindowService(
+            settings: settings,
+            environment: { ref.env }
+        )
+
+        let stats = StatsService(
+            battery: battery,
+            bluetooth: bluetooth,
+            settings: settings,
+            window: window,
+            events: event,
+            app: app
+        )
+
+        let coordinator = ServiceCoordinator(
+            battery: battery,
+            bluetooth: bluetooth,
+            settings: settings,
+            window: window,
+            events: event
+        )
+
+        self.battery = battery
+        self.bluetooth = bluetooth
+        self.settings = settings
+        self.window = window
+        self.stats = stats
+        self.event = event
+        self.app = app
+        self.update = update
+        self.onboarding = onboarding
+        self.coordinator = coordinator
+
+        ref.env = self
     }
 
     // MARK: - Testing Init
@@ -63,9 +96,9 @@ final class AppEnvironment {
         window: any WindowServiceProtocol,
         stats: any StatsServiceProtocol,
         event: any EventServiceProtocol,
-        app: AppManager,
-        update: UpdateManager,
-        onboarding: OnboardingService = .shared,
+        app: any AppManagerProtocol,
+        update: any UpdateManagerProtocol,
+        onboarding: any OnboardingServiceProtocol = OnboardingService(),
         coordinator: ServiceCoordinator? = nil
     ) {
         self.battery = battery

@@ -18,7 +18,10 @@ import Foundation
         settings: MockSettingsService = MockSettingsService(),
         window: MockWindowService = MockWindowService(),
         stats: MockStatsService = MockStatsService(),
-        events: MockEventService = MockEventService()
+        events: MockEventService = MockEventService(),
+        app: MockAppManager = MockAppManager(),
+        update: MockUpdateManager = MockUpdateManager(),
+        onboarding: MockOnboardingService = MockOnboardingService()
     ) -> AppEnvironment {
         AppEnvironment(
             battery: battery,
@@ -27,8 +30,9 @@ import Foundation
             window: window,
             stats: stats,
             event: events,
-            app: AppManager.shared,
-            update: UpdateManager.shared
+            app: app,
+            update: update,
+            onboarding: onboarding
         )
     }
 
