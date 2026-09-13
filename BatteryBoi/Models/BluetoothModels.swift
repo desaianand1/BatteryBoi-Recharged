@@ -53,6 +53,35 @@ enum BluetoothVendor: String {
     case steelseries = "0x1038"
     case hyperx = "0x0951"
     case unknown = ""
+
+    var name: String? {
+        switch self {
+        case .apple: "Apple"
+        case .samsung: "Samsung"
+        case .microsoft: "Microsoft"
+        case .bose: "Bose"
+        case .sennheiser: "Sennheiser"
+        case .sony: "Sony"
+        case .jbl: "JBL"
+        case .skullcandy: "Skullcandy"
+        case .beats: "Beats"
+        case .jabra: "Jabra"
+        case .audioTechnica: "Audio-Technica"
+        case .earfun: "EarFun"
+        case .akg: "AKG"
+        case .plantronics: "Plantronics"
+        case .logitech: "Logitech"
+        case .corsair: "Corsair"
+        case .anker: "Anker"
+        case .bangOlufsen: "Bang & Olufsen"
+        case .shure: "Shure"
+        case .beyerdynamic: "Beyerdynamic"
+        case .razer: "Razer"
+        case .steelseries: "SteelSeries"
+        case .hyperx: "HyperX"
+        case .unknown: nil
+        }
+    }
 }
 
 // MARK: - Distance Type
@@ -142,6 +171,7 @@ struct BluetoothBatteryObject: Decodable, Equatable {
     var general: Double?
     var left: Double?
     var right: Double?
+    var chargingCase: Double?
     var percent: Double?
 
     private static let numericRegex: NSRegularExpression = // swiftlint:disable:next force_try
@@ -159,6 +189,7 @@ struct BluetoothBatteryObject: Decodable, Equatable {
         general = nil
         left = nil
         right = nil
+        chargingCase = nil
         percent = nil
 
         if let value = try? values.decode(String.self, forKey: .general) {
@@ -189,10 +220,21 @@ struct BluetoothBatteryObject: Decodable, Equatable {
 
     /// Initializer for creating from native IOKit battery percent
     init(percent: Int?) {
-        general = percent.map { Double($0) }
-        left = nil
-        right = nil
-        self.percent = general
+        self.general = percent.map { Double($0) }
+        self.left = nil
+        self.right = nil
+        self.chargingCase = nil
+        self.percent = self.general
+    }
+
+    /// Initializer for multi-battery devices (TWS earbuds, AirPods with case)
+    init(single: Int?, left: Int?, right: Int?, chargingCase: Int?) {
+        self.general = single.map { Double($0) }
+        self.left = left.map { Double($0) }
+        self.right = right.map { Double($0) }
+        self.chargingCase = chargingCase.map { Double($0) }
+        let values = [self.general, self.left, self.right].compactMap(\.self)
+        self.percent = values.min()
     }
 }
 
@@ -218,10 +260,7 @@ struct BluetoothObject: Decodable, Equatable {
         let values = try decoder.container(keyedBy: CodingKeys.self)
 
         battery = try BluetoothBatteryObject(from: decoder)
-        address = try values.decode(String.self, forKey: .address).lowercased().replacingOccurrences(
-            of: ":",
-            with: "-"
-        )
+        address = try values.decode(String.self, forKey: .address).normalizedBluetoothAddress
         firmware = try? values.decode(String.self, forKey: .firmware)
         connected = .disconnected
         device = nil
@@ -272,16 +311,30 @@ struct BluetoothObject: Decodable, Equatable {
         name: String?,
         isConnected: Bool,
         batteryPercent: Int?,
-        deviceType: String
+        deviceType: String,
+        batteryLeft: Int? = nil,
+        batteryRight: Int? = nil,
+        batteryCase: Int? = nil,
+        vendorID: Int? = nil,
+        productID: Int? = nil
     ) {
-        self.address = address.lowercased().replacingOccurrences(of: ":", with: "-")
-        firmware = nil
-        battery = BluetoothBatteryObject(percent: batteryPercent)
-        type = BluetoothDeviceObject(deviceType)
-        distance = .unknown
-        updated = Date()
-        device = name
-        connected = isConnected ? .connected : .disconnected
+        self.address = address.normalizedBluetoothAddress
+        self.firmware = nil
+        self.battery = BluetoothBatteryObject(
+            single: batteryPercent,
+            left: batteryLeft,
+            right: batteryRight,
+            chargingCase: batteryCase
+        )
+        self.type = BluetoothDeviceObject(
+            deviceType,
+            subtype: productID.map { String(format: "0x%04X", $0) },
+            vendor: vendorID.map { String(format: "0x%04X", $0) }
+        )
+        self.distance = .unknown
+        self.updated = Date()
+        self.device = name
+        self.connected = isConnected ? .connected : .disconnected
     }
 }
 
