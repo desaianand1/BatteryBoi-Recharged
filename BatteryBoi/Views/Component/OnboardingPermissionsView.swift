@@ -13,7 +13,7 @@ struct OnboardingPermissionsView: View {
     @Environment(AppEnvironment.self) private var env
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private var onboarding: OnboardingService {
+    private var onboarding: any OnboardingServiceProtocol {
         self.env.onboarding
     }
 

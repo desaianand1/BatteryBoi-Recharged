@@ -50,7 +50,7 @@ public struct BatteryPulsatingIcon: View {
                 guard !reduceMotion else { return }
 
                 pulsatingTask?.cancel()
-                pulsatingTask = Task { @MainActor in
+                pulsatingTask = Task {
                     do {
                         try await Task.sleep(for: .seconds(newVisible ? 2.0 : 0.8))
                         guard !Task.isCancelled else { return }
@@ -313,7 +313,7 @@ struct BatteryContainer: View {
         env.battery
     }
 
-    private var updates: UpdateManager {
+    private var updates: any UpdateManagerProtocol {
         env.update
     }
 

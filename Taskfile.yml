@@ -74,10 +74,11 @@ tasks:
       - xcodebuild clean -project {{.PROJECT}} -scheme '{{.SCHEME}}' || true
 
   check:
-    desc: Run all checks (lint strict + format, matches CI)
+    desc: Run all checks (format + lint strict, matches CI)
     cmds:
-      - task: lint:strict
       - task: format:check
+      - task: lint:strict
+
 
   dev:
     desc: Build and run in debug mode (ad-hoc signing, no secrets required)

@@ -11,7 +11,7 @@ struct OnboardingPreferencesView: View {
     @Environment(AppEnvironment.self) private var env
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private var onboarding: OnboardingService {
+    private var onboarding: any OnboardingServiceProtocol {
         self.env.onboarding
     }
 
@@ -97,9 +97,7 @@ struct OnboardingPreferencesView: View {
     }
 
     private func saveAndAdvance() {
-        while self.settings.display != self.selectedDisplay {
-            self.settings.toggleDisplay()
-        }
+        self.settings.setDisplay(self.selectedDisplay)
         self.settings.soundEffects = self.soundEffectsEnabled ? .enabled : .disabled
         self.settings.autoLaunch = self.launchAtLoginEnabled ? .enabled : .disabled
         self.onboarding.advance()

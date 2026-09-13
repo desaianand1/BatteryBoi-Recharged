@@ -37,7 +37,7 @@ struct HUDSummary: View {
         env.stats
     }
 
-    private var updates: UpdateManager {
+    private var updates: any UpdateManagerProtocol {
         env.update
     }
 
@@ -111,7 +111,7 @@ struct HUDContainer: View {
         env.window
     }
 
-    private var manager: AppManager {
+    private var manager: any AppManagerProtocol {
         env.app
     }
 
@@ -167,7 +167,7 @@ struct HUDContainer: View {
 
             if newValue == .revealed, oldValue != .detailed {
                 ringSlideTask?.cancel()
-                ringSlideTask = Task { @MainActor in
+                ringSlideTask = Task {
                     try? await Task.sleep(for: .seconds(RevealTiming.ringSlideDelay))
                     guard !Task.isCancelled else { return }
                     withAnimation(.easeOut(duration: RevealTiming.ringSlide)) {

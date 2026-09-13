@@ -15,13 +15,8 @@ import SwiftUI
     import Sentry
 #endif
 
-@Observable
-@MainActor
+@Observable @MainActor
 final class StatsService: StatsServiceProtocol {
-
-    // MARK: - Static Instance
-
-    static let shared = StatsService()
 
     // MARK: - Dependencies
 
@@ -52,20 +47,20 @@ final class StatsService: StatsServiceProtocol {
 
     // MARK: - Observation Tasks
 
-    nonisolated(unsafe) private var userDefaultsTask: Task<Void, Never>?
-    nonisolated(unsafe) private var batteryObserverTask: Task<Void, Never>?
-    nonisolated(unsafe) private var bluetoothObserverTask: Task<Void, Never>?
-    nonisolated(unsafe) private var wattageTimerTask: Task<Void, Never>?
+    private var userDefaultsTask: Task<Void, Never>?
+    private var batteryObserverTask: Task<Void, Never>?
+    private var bluetoothObserverTask: Task<Void, Never>?
+    private var wattageTimerTask: Task<Void, Never>?
 
     // MARK: - Initialization
 
     init(
-        battery: any BatteryServiceProtocol = BatteryService.shared,
-        bluetooth: any BluetoothServiceProtocol = BluetoothService.shared,
-        settings: any SettingsServiceProtocol = SettingsService.shared,
-        window: any WindowServiceProtocol = WindowService.shared,
-        events: any EventServiceProtocol = EventService.shared,
-        app: any AppManagerProtocol = AppManager.shared
+        battery: any BatteryServiceProtocol,
+        bluetooth: any BluetoothServiceProtocol,
+        settings: any SettingsServiceProtocol,
+        window: any WindowServiceProtocol,
+        events: any EventServiceProtocol,
+        app: any AppManagerProtocol
     ) {
         self.battery = battery
         self.bluetooth = bluetooth
@@ -138,7 +133,7 @@ final class StatsService: StatsServiceProtocol {
         startObservations()
     }
 
-    deinit {
+    isolated deinit {
         userDefaultsTask?.cancel()
         batteryObserverTask?.cancel()
         bluetoothObserverTask?.cancel()
@@ -272,16 +267,22 @@ final class StatsService: StatsServiceProtocol {
     }
 
     private var statsCountdown: String? {
-        if let remaining = self.battery.remaining, let hour = remaining.hours, let minute = remaining.minutes {
-            if hour > 0, minute > 0 {
-                return "+\(hour)\("TimestampHourAbbriviatedLabel".localise())"
-            } else if hour > 0, minute == 0 {
-                return "\(hour)\("TimestampHourAbbriviatedLabel".localise())"
-            } else if hour == 0, minute > 0 {
-                return "\(minute)\("TimestampMinuteAbbriviatedLabel".localise())"
-            }
+        guard let remaining = self.battery.remaining,
+              let hour = remaining.hours,
+              let minute = remaining.minutes
+        else {
+            return nil
         }
-        return nil
+
+        if hour > 0, minute > 0 {
+            return "+\(hour)\("TimestampHourAbbriviatedLabel".localise())"
+        } else if hour > 0, minute == 0 {
+            return "\(hour)\("TimestampHourAbbriviatedLabel".localise())"
+        } else if hour == 0, minute > 0 {
+            return "\(minute)\("TimestampMinuteAbbriviatedLabel".localise())"
+        }
+
+        return remaining.formatted
     }
 
     private var statsTitle: String {

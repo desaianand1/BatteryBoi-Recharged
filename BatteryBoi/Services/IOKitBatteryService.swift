@@ -146,7 +146,16 @@ actor IOKitBatteryService {
     /// Stores the run loop source to keep it alive
     private var runLoopSource: CFRunLoopSource?
 
-    /// Static callback storage for C function pointer compatibility
+    // SAFETY: nonisolated(unsafe) required because IOPSNotificationCreateRunLoopSource takes a
+    // C function pointer that cannot capture context. The callback must read this static var to
+    // invoke the Swift closure. The var is written once in startPowerSourceNotifications() (actor-
+    // isolated) and read from the C callback on the main run loop. Thread safety is guaranteed
+    // by CFRunLoopAddSource targeting CFRunLoopGetMain() — both write and read happen on main.
+    // REMOVAL: Cannot be removed. C function pointer interop fundamentally requires static storage
+    // for context that the callback needs to access. This is an inherent limitation of the
+    // IOKit/CoreFoundation C API bridge.
+    // BLAST RADIUS: Removing breaks power source change notifications entirely. BatteryService
+    // would stop receiving charging state and battery level updates from the system.
     nonisolated(unsafe) private static var powerSourceCallback: (@Sendable () -> Void)?
 
     /// Starts monitoring for power source changes (AC/battery, charge level).

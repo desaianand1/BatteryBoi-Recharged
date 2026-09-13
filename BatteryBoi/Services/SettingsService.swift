@@ -12,13 +12,8 @@ import SwiftUI
 
 /// Service for managing user settings and preferences.
 /// MainActor isolated for Swift 6.2 strict concurrency compliance.
-@Observable
-@MainActor
+@Observable @MainActor
 final class SettingsService: SettingsServiceProtocol {
-
-    // MARK: - Static Instance
-
-    static let shared = SettingsService()
 
     // MARK: - Observable Properties
 
@@ -39,10 +34,10 @@ final class SettingsService: SettingsServiceProtocol {
     }
 
     private let batteryService: any BatteryServiceProtocol
-    private let updateManager: UpdateManager
+    private let updateManager: any UpdateManagerProtocol
 
-    nonisolated(unsafe) private var settingsTask: Task<Void, Never>?
-    nonisolated(unsafe) private var quitTask: Task<Void, Never>?
+    private var settingsTask: Task<Void, Never>?
+    private var quitTask: Task<Void, Never>?
 
     // MARK: - SettingsServiceProtocol Computed Properties
 
@@ -79,9 +74,9 @@ final class SettingsService: SettingsServiceProtocol {
     // MARK: - Initialization
 
     init(
-        window: @MainActor @escaping () -> any WindowServiceProtocol = { WindowService.shared },
-        battery: any BatteryServiceProtocol = BatteryService.shared,
-        update: UpdateManager = UpdateManager.shared
+        window: @MainActor @escaping () -> any WindowServiceProtocol,
+        battery: any BatteryServiceProtocol,
+        update: any UpdateManagerProtocol
     ) {
         self.windowServiceProvider = window
         self.batteryService = battery
@@ -99,7 +94,7 @@ final class SettingsService: SettingsServiceProtocol {
         startObserving()
     }
 
-    deinit {
+    isolated deinit {
         settingsTask?.cancel()
         quitTask?.cancel()
     }
@@ -111,6 +106,16 @@ final class SettingsService: SettingsServiceProtocol {
         let newDisplay = enabledDisplay()
         display = newDisplay
         return newDisplay
+    }
+
+    func setDisplay(_ type: SettingsDisplayType) {
+        UserDefaults.save(.enabledDisplay, value: type.rawValue)
+        display = type
+
+        switch type {
+        case .hidden: NSApp.setActivationPolicy(.regular)
+        default: NSApp.setActivationPolicy(.accessory)
+        }
     }
 
     func performAction(_ action: SettingsActionObject) {

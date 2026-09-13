@@ -40,7 +40,7 @@ enum SemanticColor {
     static let info = Color("BBStatusInfo")
 }
 
-enum RevealTiming {
+nonisolated enum RevealTiming {
 
     // MARK: Atomic — tweak only these; everything else derives
 
@@ -79,7 +79,7 @@ enum RevealTiming {
     static let collapseDuration: Double = 0.3
 }
 
-enum ChargingAnimation {
+nonisolated enum ChargingAnimation {
     static let glowPeriod: Double = 1.0
     static let shimmerPeriod: Double = 3.0
     static let dotPulsePeriod: Double = 2.0

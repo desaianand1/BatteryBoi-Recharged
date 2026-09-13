@@ -17,13 +17,8 @@ import IOKit.ps
 
 /// Service for monitoring Bluetooth devices.
 /// MainActor isolated for Swift 6.2 strict concurrency compliance.
-@Observable
-@MainActor
+@Observable @MainActor
 final class BluetoothService: BluetoothServiceProtocol {
-
-    // MARK: - Static Instance
-
-    static let shared = BluetoothService()
 
     // MARK: - Observable Properties
 
@@ -37,12 +32,10 @@ final class BluetoothService: BluetoothServiceProtocol {
     /// Bridge for @objc callbacks
     private let bridge = BluetoothBridge()
 
-    /// Scan timer task (nonisolated(unsafe) for deinit access per SE-0371)
-    nonisolated(unsafe) private var scanTimerTask: Task<Void, Never>?
-
-    nonisolated(unsafe) private var bluetoothUpdateDebounceTask: Task<Void, Never>?
-    nonisolated(unsafe) private var initialScanTask: Task<Void, Never>?
-    nonisolated(unsafe) private var forceRefreshTask: Task<Void, Never>?
+    private var scanTimerTask: Task<Void, Never>?
+    private var bluetoothUpdateDebounceTask: Task<Void, Never>?
+    private var initialScanTask: Task<Void, Never>?
+    private var forceRefreshTask: Task<Void, Never>?
 
     // MARK: - BluetoothServiceProtocol Methods
 
@@ -75,9 +68,7 @@ final class BluetoothService: BluetoothServiceProtocol {
         }
     }
 
-    deinit {
-        // Note: bridge cleanup is handled by BluetoothBridge's own deinit
-        // since calling MainActor-isolated methods from deinit is not allowed
+    isolated deinit {
         scanTimerTask?.cancel()
         bluetoothUpdateDebounceTask?.cancel()
         initialScanTask?.cancel()

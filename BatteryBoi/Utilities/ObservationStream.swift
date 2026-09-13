@@ -10,7 +10,6 @@ import Observation
 
 enum ObservationStream {
 
-    @MainActor
     static func changes<Value: Sendable>(
         _ observe: @escaping @MainActor () -> Value
     ) -> AsyncStream<Value> {
@@ -32,12 +31,11 @@ enum ObservationStream {
     // MARK: - macOS 26+ (Observations API)
 
     @available(macOS 26, *)
-    @MainActor
     private static func macOS26Stream<Value: Sendable>(
         _ observe: @escaping @MainActor () -> Value
     ) -> AsyncStream<Value> {
         AsyncStream { continuation in
-            let task = Task {
+            let task = Task { @MainActor in
                 let observations = Observations { observe() }
                 for await value in observations {
                     guard !Task.isCancelled else { break }
@@ -51,7 +49,6 @@ enum ObservationStream {
 
     // MARK: - Pre-macOS 26 (withObservationTracking re-registration)
 
-    @MainActor
     private static func legacyStream<Value: Sendable>(
         _ observe: @escaping @MainActor () -> Value
     ) -> AsyncStream<Value> {
@@ -83,6 +80,6 @@ enum ObservationStream {
     }
 }
 
-final class TerminationFlag: @unchecked Sendable {
+nonisolated final class TerminationFlag: @unchecked Sendable {
     var isTerminated = false
 }

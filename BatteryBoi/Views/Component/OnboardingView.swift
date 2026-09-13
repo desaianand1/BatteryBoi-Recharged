@@ -11,7 +11,7 @@ struct OnboardingView: View {
     @Environment(AppEnvironment.self) private var env
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private var onboarding: OnboardingService {
+    private var onboarding: any OnboardingServiceProtocol {
         self.env.onboarding
     }
 
@@ -41,7 +41,7 @@ struct OnboardingView: View {
             )
 
             HStack(spacing: Spacing.sm) {
-                ForEach(OnboardingService.Step.allCases, id: \.self) { step in
+                ForEach(OnboardingStep.allCases, id: \.self) { step in
                     Circle()
                         .fill(
                             step == self.onboarding.currentStep

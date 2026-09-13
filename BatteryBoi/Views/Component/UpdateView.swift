@@ -3,7 +3,7 @@ import SwiftUI
 struct UpdatePromptView: View {
     @Environment(AppEnvironment.self) private var env
 
-    private var updates: UpdateManager {
+    private var updates: any UpdateManagerProtocol {
         env.update
     }
 

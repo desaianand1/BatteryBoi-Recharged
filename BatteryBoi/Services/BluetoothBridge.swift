@@ -11,8 +11,6 @@ import Foundation
 import IOBluetooth
 
 /// Bridge object for handling IOBluetooth Objective-C callbacks.
-/// MainActor isolated for Swift 6.2 strict concurrency compliance.
-@MainActor
 final class BluetoothBridge: NSObject {
 
     // MARK: - Callbacks
@@ -23,12 +21,22 @@ final class BluetoothBridge: NSObject {
     /// Called when a device disconnects
     var onDeviceDisconnected: (() -> Void)?
 
-    // MARK: - Notification Storage (nonisolated for deinit access)
+    // MARK: - Notification Storage
 
-    /// Connection notification (global)
+    // SAFETY: nonisolated(unsafe) required because IOBluetoothUserNotification is a non-Sendable
+    // Objective-C type that must be unregistered in deinit. BluetoothBridge is an NSObject subclass
+    // (required for @objc selectors), so `isolated deinit` is not applicable — NSObject deinit
+    // runs in a nonisolated context. These properties are only mutated on @MainActor (via
+    // startListening/registerForDisconnect/unregisterAll, all MainActor-isolated under
+    // -default-isolation MainActor). The deinit access is safe because NSObject deallocation
+    // is deterministic and single-threaded.
+    // REMOVAL: Cannot be removed while using IOBluetooth's @objc callback API. Would require
+    // Apple to make IOBluetoothUserNotification Sendable, or a redesign to move notification
+    // storage to a Swift actor (breaking the @objc bridge pattern — see architecture-decisions.md).
+    // BLAST RADIUS: Removing causes compiler error in deinit. Moving to a different pattern risks
+    // IOBluetooth crashes — the @objc bridge exists specifically because IOBluetooth callbacks
+    // are incompatible with actor isolation (see architecture-decisions.md, @objc Bridge Pattern).
     nonisolated(unsafe) private(set) var connectionNotification: IOBluetoothUserNotification?
-
-    /// Per-device disconnection notifications
     nonisolated(unsafe) private(set) var disconnectionNotifications: [String: IOBluetoothUserNotification] = [:]
 
     // MARK: - Lifecycle
@@ -38,7 +46,6 @@ final class BluetoothBridge: NSObject {
     }
 
     deinit {
-        // Direct access to nonisolated(unsafe) properties
         connectionNotification?.unregister()
         connectionNotification = nil
         for (_, notification) in disconnectionNotifications {

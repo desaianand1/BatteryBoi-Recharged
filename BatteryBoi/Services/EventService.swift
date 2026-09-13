@@ -11,13 +11,8 @@ import Logging
 
 /// Service for monitoring calendar events.
 /// MainActor isolated for Swift 6.2 strict concurrency compliance.
-@Observable
-@MainActor
+@Observable @MainActor
 final class EventService: EventServiceProtocol {
-
-    // MARK: - Static Instance
-
-    static let shared = EventService()
 
     // MARK: - Properties
 
@@ -25,12 +20,11 @@ final class EventService: EventServiceProtocol {
     var events = [EventObject]()
 
     /// Single shared EKEventStore - creating multiple instances is expensive
-    /// Thread-safe per Apple documentation, marked nonisolated for Swift 6.1 compatibility
-    nonisolated(unsafe) private let eventStore = EKEventStore()
+    private let eventStore = EKEventStore()
 
-    nonisolated(unsafe) private var timerTask: Task<Void, Never>?
-    nonisolated(unsafe) private var initialCheckTask: Task<Void, Never>?
-    nonisolated(unsafe) private var authorizationTask: Task<Void, Never>?
+    private var timerTask: Task<Void, Never>?
+    private var initialCheckTask: Task<Void, Never>?
+    private var authorizationTask: Task<Void, Never>?
 
     // MARK: - Initialization
 
@@ -38,7 +32,7 @@ final class EventService: EventServiceProtocol {
         startMonitoring()
     }
 
-    deinit {
+    isolated deinit {
         timerTask?.cancel()
         initialCheckTask?.cancel()
         authorizationTask?.cancel()
@@ -76,7 +70,7 @@ final class EventService: EventServiceProtocol {
 
         switch status {
         case .notDetermined:
-            authorizationTask = Task { @MainActor [weak self] in
+            authorizationTask = Task { [weak self] in
                 guard let self else { return }
 
                 let granted: Bool = if #available(macOS 14.0, *) {

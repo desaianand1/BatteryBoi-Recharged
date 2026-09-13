@@ -1,4 +1,3 @@
-import Combine
 import Foundation
 import Logging
 import SwiftUI
@@ -235,23 +234,25 @@ extension View {
 }
 
 extension UserDefaults {
-    /// Legacy Combine publisher for settings changes. Use `changedAsync()` for new code.
-    /// Note: nonisolated(unsafe) is justified here because PassthroughSubject is
-    /// thread-safe and used for cross-isolation communication per SE-0371.
-    nonisolated(unsafe) static let changed = PassthroughSubject<SystemDefaultsKeys, Never>()
+    @MainActor private static var _changeContinuations: [UUID: AsyncStream<SystemDefaultsKeys>.Continuation] = [:]
 
-    /// Async stream for observing UserDefaults changes.
+    @MainActor
     static func changedAsync() -> AsyncStream<SystemDefaultsKeys> {
-        AsyncStream { continuation in
-            // Note: nonisolated(unsafe) justified for Combine subscription in async context
-            nonisolated(unsafe) let cancellable = changed.sink { key in
-                continuation.yield(key)
-            }
-
+        let id = UUID()
+        return AsyncStream { continuation in
+            _changeContinuations[id] = continuation
             continuation.onTermination = { @Sendable _ in
-                // Hold reference to prevent deallocation
-                cancellable.cancel()
+                Task { @MainActor in
+                    _changeContinuations.removeValue(forKey: id)
+                }
             }
+        }
+    }
+
+    @MainActor
+    static func notifyChanged(_ key: SystemDefaultsKeys) {
+        for continuation in _changeContinuations.values {
+            continuation.yield(key)
         }
     }
 
@@ -276,8 +277,7 @@ extension UserDefaults {
             main.synchronize()
 
             if let system = SystemDefaultsKeys(rawValue: key) {
-                changed.send(system)
-
+                Task { @MainActor in notifyChanged(system) }
             }
 
             BLogger.settings.debug("Saved \(String(describing: value)) to '\(key)'")
@@ -287,8 +287,7 @@ extension UserDefaults {
             main.synchronize()
 
             if let system = SystemDefaultsKeys(rawValue: key) {
-                changed.send(system)
-
+                Task { @MainActor in notifyChanged(system) }
             }
 
         }

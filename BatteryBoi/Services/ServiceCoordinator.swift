@@ -21,6 +21,15 @@ final class ServiceCoordinator {
 
     // MARK: - Properties
 
+    // SAFETY: nonisolated(unsafe) required because `isolated deinit` triggers a heap corruption
+    // crash (StopLookupScope) on macOS 15.0–15.3 when back-deploying Swift 6.2 runtime features.
+    // These properties are only accessed on @MainActor (read/written in startObserving/stopObserving/
+    // deinit, all MainActor-isolated). The annotation bypasses the compiler's isolation check for
+    // deinit access — the actual thread safety is guaranteed by MainActor serialization.
+    // REMOVAL: Switch to `isolated deinit` when deployment target ≥ macOS 15.4.
+    // BLAST RADIUS: Removing this without switching to `isolated deinit` causes a compiler error
+    // (nonisolated deinit cannot access MainActor-isolated stored properties). Switching to
+    // `isolated deinit` while min target < 15.4 risks the heap corruption crash at app teardown.
     nonisolated(unsafe) private var observationTasks: [Task<Void, Never>] = []
     private var notifiedBatteryThresholds: Set<Int> = []
     private var notifiedBluetoothThresholds: [String: Set<Int>] = [:]
@@ -31,11 +40,11 @@ final class ServiceCoordinator {
     // MARK: - Initialization
 
     init(
-        battery: any BatteryServiceProtocol = BatteryService.shared,
-        bluetooth: any BluetoothServiceProtocol = BluetoothService.shared,
-        settings: any SettingsServiceProtocol = SettingsService.shared,
-        window: any WindowServiceProtocol = WindowService.shared,
-        events: any EventServiceProtocol = EventService.shared
+        battery: any BatteryServiceProtocol,
+        bluetooth: any BluetoothServiceProtocol,
+        settings: any SettingsServiceProtocol,
+        window: any WindowServiceProtocol,
+        events: any EventServiceProtocol
     ) {
         self.battery = battery
         self.bluetooth = bluetooth

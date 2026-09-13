@@ -156,7 +156,7 @@ struct AnimationModifier: ViewModifier {
     /// Starts the animation sequence using a cancellable Task
     private func startAnimation(index: Int) {
         animationTask?.cancel()
-        animationTask = Task { @MainActor in
+        animationTask = Task {
             await animateAsync(index: index)
         }
     }

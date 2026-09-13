@@ -7,19 +7,11 @@
 
 import SwiftUI
 
-@Observable
-@MainActor
-final class OnboardingService {
-    static let shared = OnboardingService()
+@Observable @MainActor
+final class OnboardingService: OnboardingServiceProtocol {
+    typealias Step = OnboardingStep
 
-    enum Step: Int, CaseIterable {
-        case welcome = 0
-        case permissions = 1
-        case preferences = 2
-        case complete = 3
-    }
-
-    var currentStep: Step = .welcome
+    var currentStep: OnboardingStep = .welcome
 
     var isCompleted: Bool {
         get { UserDefaults.main.bool(forKey: SystemDefaultsKeys.onboardingCompleted.rawValue) }
@@ -31,7 +23,7 @@ final class OnboardingService {
     }
 
     func advance() {
-        if let nextStep = Step(rawValue: currentStep.rawValue + 1) {
+        if let nextStep = OnboardingStep(rawValue: currentStep.rawValue + 1) {
             currentStep = nextStep
         }
     }

@@ -3,22 +3,18 @@ import Logging
 import Sparkle
 import SwiftUI
 
-@Observable
-@MainActor
+@Observable @MainActor
 final class AppManager: AppManagerProtocol {
-    static let shared = AppManager()
-
     /// App counter for tracking uptime (seconds since app launch)
     var counter = 0
 
     var menu: SystemMenuView = .settings
 
-    /// Task for the uptime counter (nonisolated for deinit access per SE-0371)
-    nonisolated(unsafe) private var counterTask: Task<Void, Never>?
+    private var counterTask: Task<Void, Never>?
 
     init() {
         // Start the uptime counter
-        counterTask = Task { @MainActor [weak self] in
+        counterTask = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(1))
                 guard let self, !Task.isCancelled else { break }
@@ -32,7 +28,7 @@ final class AppManager: AppManagerProtocol {
         }
     }
 
-    deinit {
+    isolated deinit {
         counterTask?.cancel()
     }
 

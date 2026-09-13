@@ -55,13 +55,8 @@ class WindowHostingView<Content: View>: NSHostingView<Content> {
     }
 }
 
-@Observable
-@MainActor
+@Observable @MainActor
 final class WindowService: WindowServiceProtocol {
-
-    // MARK: - Static Instance
-
-    static let shared = WindowService()
 
     // MARK: - Observable Properties
 
@@ -93,11 +88,11 @@ final class WindowService: WindowServiceProtocol {
     // MARK: - Private Properties
 
     private var userHasMoved: Bool = false
-    nonisolated(unsafe) private var globalMouseMonitor: Any?
-    nonisolated(unsafe) private var dismissalTask: Task<Void, Never>?
-    nonisolated(unsafe) private var stateTransitionTask: Task<Void, Never>?
-    nonisolated(unsafe) private var debounceDeferralTask: Task<Void, Never>?
-    nonisolated(unsafe) private var mouseEventTask: Task<Void, Never>?
+    private var globalMouseMonitor: Any?
+    private var dismissalTask: Task<Void, Never>?
+    private var stateTransitionTask: Task<Void, Never>?
+    private var debounceDeferralTask: Task<Void, Never>?
+    private var mouseEventTask: Task<Void, Never>?
 
     private var lastMouseEventTime: Date = .distantPast
     private var lastOpenedTime: Date = .distantPast
@@ -161,8 +156,8 @@ final class WindowService: WindowServiceProtocol {
     // MARK: - Initialization
 
     init(
-        settings: any SettingsServiceProtocol = SettingsService.shared,
-        environment: @MainActor @escaping () -> AppEnvironment = { AppEnvironment.shared }
+        settings: any SettingsServiceProtocol,
+        environment: @MainActor @escaping () -> AppEnvironment
     ) {
         self.settings = settings
         self.environmentProvider = environment
@@ -170,7 +165,7 @@ final class WindowService: WindowServiceProtocol {
         self.position = loadSavedPosition()
     }
 
-    deinit {
+    isolated deinit {
         if let monitor = globalMouseMonitor {
             NSEvent.removeMonitor(monitor)
         }
@@ -399,7 +394,7 @@ final class WindowService: WindowServiceProtocol {
         }
         if currentAlert == nil || currentAlert != type {
             if let sfx = type.sfx {
-                sfx.play()
+                sfx.play(soundEffects: settings.soundEffects)
             }
         }
 

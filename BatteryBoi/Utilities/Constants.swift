@@ -2,7 +2,7 @@ import Foundation
 
 /// Centralized constants for BatteryBoi application.
 /// Consolidates hardcoded values for easier maintenance and configuration.
-enum Constants {
+nonisolated enum Constants {
     /// Timer intervals used throughout the app.
     enum Timers {
 

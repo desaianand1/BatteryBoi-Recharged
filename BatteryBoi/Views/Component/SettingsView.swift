@@ -1,6 +1,15 @@
 import SwiftUI
 
 struct SettingsScrollOffsetKey: PreferenceKey {
+    // SAFETY: nonisolated(unsafe) required by SwiftUI's PreferenceKey protocol — `defaultValue`
+    // must be a nonisolated static property, but under -default-isolation MainActor all statics
+    // are MainActor-isolated by default. The value is a constant `.zero` never mutated at runtime;
+    // SwiftUI reads it from its own internal context which may not be on MainActor.
+    // REMOVAL: Cannot be removed while conforming to PreferenceKey under -default-isolation
+    // MainActor. SwiftUI requires nonisolated access to this static.
+    // BLAST RADIUS: Removing causes a compiler error (PreferenceKey.defaultValue must be accessible
+    // from nonisolated contexts). This only affects the scroll offset tracking preference in
+    // SettingsView — no other code reads SettingsScrollOffsetKey.
     nonisolated(unsafe) static var defaultValue: CGPoint = .zero
 
     static func reduce(value _: inout CGPoint, nextValue _: () -> CGPoint) {}
@@ -168,11 +177,11 @@ struct SettingsItem: View {
     @Environment(AppEnvironment.self) private var env
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private var manager: AppManager {
+    private var manager: any AppManagerProtocol {
         env.app
     }
 
-    private var updates: UpdateManager {
+    private var updates: any UpdateManagerProtocol {
         env.update
     }
 
@@ -335,7 +344,7 @@ struct SettingsOverlayItem: View {
         env.bluetooth
     }
 
-    private var manager: AppManager {
+    private var manager: any AppManagerProtocol {
         env.app
     }
 

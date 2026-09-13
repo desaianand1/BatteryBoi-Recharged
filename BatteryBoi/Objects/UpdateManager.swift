@@ -47,21 +47,18 @@ enum UpdateStateType {
 
 }
 
-@Observable
-@MainActor
+@Observable @MainActor
 final class UpdateManager: NSObject, SPUUpdaterDelegate, UpdateManagerProtocol {
-    static let shared = UpdateManager()
-
     /// Task for resetting state to idle after completion/failure.
     /// Cancels previous task to prevent race conditions.
-    nonisolated(unsafe) private var stateResetTask: Task<Void, Never>?
+    private var stateResetTask: Task<Void, Never>?
 
     var state: UpdateStateType = .completed {
         didSet {
             if state == .completed || state == .failed {
                 // Cancel any existing reset task to prevent race conditions
                 stateResetTask?.cancel()
-                stateResetTask = Task { @MainActor [weak self] in
+                stateResetTask = Task { [weak self] in
                     do {
                         try await Task.sleep(for: .seconds(5))
                         self?.state = .idle
@@ -139,7 +136,7 @@ final class UpdateManager: NSObject, SPUUpdaterDelegate, UpdateManagerProtocol {
 
     }
 
-    deinit {
+    isolated deinit {
         stateResetTask?.cancel()
     }
 

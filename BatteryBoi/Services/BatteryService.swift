@@ -15,13 +15,8 @@ import IOKit.pwr_mgt
 
 /// Service for monitoring battery status.
 /// MainActor isolated for Swift 6.2 strict concurrency compliance.
-@Observable
-@MainActor
+@Observable @MainActor
 final class BatteryService: BatteryServiceProtocol {
-
-    // MARK: - Static Instance
-
-    static let shared = BatteryService()
 
     // MARK: - Observable Properties
 
@@ -39,13 +34,10 @@ final class BatteryService: BatteryServiceProtocol {
 
     // MARK: - Private Properties
 
-    // Note: nonisolated(unsafe) is justified for task properties that are only
-    // accessed in deinit (which is always nonisolated) per SE-0371.
-
-    nonisolated(unsafe) private var metricsTask: Task<Void, Never>?
-    nonisolated(unsafe) private var thermalTask: Task<Void, Never>?
-    nonisolated(unsafe) private var forceRefreshTask: Task<Void, Never>?
-    nonisolated(unsafe) private var saveModeFetchTask: Task<Void, Never>?
+    private var metricsTask: Task<Void, Never>?
+    private var thermalTask: Task<Void, Never>?
+    private var forceRefreshTask: Task<Void, Never>?
+    private var saveModeFetchTask: Task<Void, Never>?
 
     // MARK: - BatteryServiceProtocol Methods
 
@@ -75,7 +67,7 @@ final class BatteryService: BatteryServiceProtocol {
         startMonitoring()
     }
 
-    deinit {
+    isolated deinit {
         metricsTask?.cancel()
         thermalTask?.cancel()
         forceRefreshTask?.cancel()

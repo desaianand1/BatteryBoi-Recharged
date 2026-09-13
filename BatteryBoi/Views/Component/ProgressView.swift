@@ -359,7 +359,7 @@ struct RadialProgressContainer: View {
         }
         .onChange(of: self.window.state) { _, newValue in
             if newValue == .revealed, self.animate {
-                Task { @MainActor in
+                Task {
                     try? await Task.sleep(for: .milliseconds(Int(RevealTiming.arcSweepDelay * 1000)))
                     self.updateProgress()
                     if self.reduceMotion {
