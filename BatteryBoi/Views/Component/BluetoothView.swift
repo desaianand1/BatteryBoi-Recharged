@@ -9,7 +9,7 @@ struct BluetoothIcon: View {
 
     private let isSelected: Bool
 
-    private var manager: AppManager {
+    private var manager: any AppManagerProtocol {
         self.env.app
     }
 
@@ -56,7 +56,7 @@ struct BluetoothItem: View {
     @Environment(AppEnvironment.self) private var env
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private var manager: AppManager {
+    private var manager: any AppManagerProtocol {
         env.app
     }
 
@@ -171,8 +171,10 @@ struct BluetoothItem: View {
                                 Circle()
                                     .fill(
                                         self.isConnecting
-                                            ? Color.orange
-                                            : (item.connected == .connected ? Color.green : Color.gray)
+                                            ? SemanticColor.warning
+                                            :
+                                            (item.connected == .connected ? SemanticColor.success : SemanticColor
+                                                .info)
                                     )
                                     .frame(width: 6, height: 6)
                                     .opacity(self.isConnecting ? self.connectionDotOpacity : 1.0)
@@ -247,7 +249,7 @@ struct DeviceRow: View {
         self.env.battery
     }
 
-    private var manager: AppManager {
+    private var manager: any AppManagerProtocol {
         self.env.app
     }
 
@@ -295,7 +297,7 @@ struct DeviceRow: View {
 
                         if let device = self.device {
                             Circle()
-                                .fill(device.connected == .connected ? Color.green : Color.gray)
+                                .fill(device.connected == .connected ? SemanticColor.success : SemanticColor.info)
                                 .frame(width: 5, height: 5)
                         }
                     }
@@ -358,7 +360,7 @@ struct DeviceDetailView: View {
         self.env.battery
     }
 
-    private var manager: AppManager {
+    private var manager: any AppManagerProtocol {
         self.env.app
     }
 
@@ -623,12 +625,12 @@ struct DeviceDetailView: View {
 
 struct BluetoothEmptyStateView: View {
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
+        HStack(alignment: .center, spacing: Spacing.smd) {
             Image(systemName: "airpodspro")
-                .font(.system(size: 24))
+                .font(Typography.icon)
                 .foregroundColor(Color("BBSubtitle").opacity(0.6))
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text("BluetoothNoDevicesTitle".localise())
                     .font(Typography.headingLarge)
                     .foregroundColor(Color("BBTitle"))
@@ -639,8 +641,8 @@ struct BluetoothEmptyStateView: View {
                     .lineLimit(2)
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
         .background(
             RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
                 .fill(Color("BBSurface"))
@@ -651,19 +653,19 @@ struct BluetoothEmptyStateView: View {
 
 struct BluetoothPermissionDeniedView: View {
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Spacing.md) {
             ZStack {
                 Image(systemName: "antenna.radiowaves.left.and.right")
                     .font(.system(size: 32))
                     .foregroundColor(Color("BBSubtitle").opacity(0.4))
 
                 Image(systemName: "exclamationmark.circle.fill")
-                    .font(.system(size: 14))
-                    .foregroundColor(.orange)
+                    .font(Typography.heading)
+                    .foregroundStyle(SemanticColor.warning)
                     .offset(x: 16, y: 12)
             }
 
-            VStack(spacing: 6) {
+            VStack(spacing: Spacing.xsm) {
                 Text("BluetoothPermissionDeniedTitle".localise())
                     .font(Typography.headingLarge)
                     .foregroundColor(Color("BBTitle"))
@@ -676,23 +678,23 @@ struct BluetoothPermissionDeniedView: View {
             }
 
             Button(action: openSystemPreferences) {
-                HStack(spacing: 6) {
+                HStack(spacing: Spacing.xsm) {
                     Image(systemName: "gear")
                     Text("BluetoothOpenSettingsButton".localise())
                 }
                 .font(Typography.heading)
                 .foregroundColor(Color("BBSurface"))
-                .padding(.horizontal, 20)
-                .padding(.vertical, 10)
+                .padding(.horizontal, Spacing.lg)
+                .padding(.vertical, Spacing.sm)
                 .background(
                     RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
                         .fill(Color("BBTitle"))
                 )
             }
-            .buttonStyle(.plain)
+            .buttonStyle(HoverButtonStyle())
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 20)
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.lg)
         .background(
             RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
                 .fill(Color("BBSurface"))
