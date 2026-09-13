@@ -1,3 +1,9 @@
+## [12.57.1](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.57.0...v12.57.1) (2026-09-13)
+
+### Bug Fixes
+
+* **hud:** resolve subtitle not rendering on first appearance and reopen ([873248b](https://github.com/desaianand1/BatteryBoi-Recharged/commit/873248bca21f3609afde144a1d2197a218c0ce0b))
+
 ## [12.57.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.56.1...v12.57.0) (2026-09-13)
 
 ### Features
