@@ -153,12 +153,12 @@ final class WindowServiceTests: XCTestCase {
     // MARK: - Positioning Tests
 
     @MainActor
-    func testPositionCenter() {
-        // Given center position
-        mockWindowService.position = .center
+    func testPositionBottomMiddle() {
+        // Given bottom middle position
+        mockWindowService.position = .bottomMiddle
 
         // Then alignment should be correct
-        XCTAssertEqual(mockWindowService.position.alignment, .center)
+        XCTAssertEqual(mockWindowService.position.alignment, .bottom)
     }
 
     @MainActor
@@ -326,5 +326,96 @@ final class WindowServiceTests: XCTestCase {
 
         // Then device should be nil
         XCTAssertNil(mockWindowService.lastOpenDevice)
+    }
+
+    // MARK: - Nearest Anchor Tests
+
+    @MainActor
+    func testNearestAnchorSnapsToNearbyCorner() {
+        let result = WindowPosition.nearest(to: CGPoint(x: 0.1, y: 0.9))
+
+        XCTAssertEqual(result, .topLeft)
+    }
+
+    @MainActor
+    func testNearestAnchorSnapsToTopCenter() {
+        let result = WindowPosition.nearest(to: CGPoint(x: 0.5, y: 0.95))
+
+        XCTAssertEqual(result, .topMiddle)
+    }
+
+    @MainActor
+    func testNearestAnchorEquidistantReturnsDeterministicResult() {
+        let result1 = WindowPosition.nearest(to: CGPoint(x: 0.5, y: 0.5))
+        let result2 = WindowPosition.nearest(to: CGPoint(x: 0.5, y: 0.5))
+
+        XCTAssertEqual(result1, result2)
+    }
+
+    @MainActor
+    func testNearestAnchorExcludesStartPosition() {
+        let result = WindowPosition.nearest(
+            to: CGPoint(x: 0.5, y: 0.95),
+            excluding: .topMiddle
+        )
+
+        XCTAssertNotEqual(result, .topMiddle)
+    }
+
+    @MainActor
+    func testNearestAnchorExclusionIsNoOpWhenNotNearest() {
+        let result = WindowPosition.nearest(
+            to: CGPoint(x: 0.95, y: 0.05),
+            excluding: .topLeft
+        )
+
+        XCTAssertEqual(result, .bottomRight)
+    }
+
+    // MARK: - WindowPosition Properties Tests
+
+    @MainActor
+    func testIsTopForTopPositions() {
+        XCTAssertTrue(WindowPosition.topLeft.isTop)
+        XCTAssertTrue(WindowPosition.topMiddle.isTop)
+        XCTAssertTrue(WindowPosition.topRight.isTop)
+    }
+
+    @MainActor
+    func testIsTopForBottomPositions() {
+        XCTAssertFalse(WindowPosition.bottomLeft.isTop)
+        XCTAssertFalse(WindowPosition.bottomMiddle.isTop)
+        XCTAssertFalse(WindowPosition.bottomRight.isTop)
+    }
+
+    @MainActor
+    func testNormalizedPointValues() {
+        XCTAssertEqual(WindowPosition.topLeft.normalizedPoint, CGPoint(x: 0.0, y: 1.0))
+        XCTAssertEqual(WindowPosition.topMiddle.normalizedPoint, CGPoint(x: 0.5, y: 1.0))
+        XCTAssertEqual(WindowPosition.bottomRight.normalizedPoint, CGPoint(x: 1.0, y: 0.0))
+    }
+
+    @MainActor
+    func testIconNames() {
+        XCTAssertEqual(WindowPosition.topLeft.iconName, "arrow.up.left")
+        XCTAssertEqual(WindowPosition.topMiddle.iconName, "arrow.up")
+        XCTAssertEqual(WindowPosition.bottomMiddle.iconName, "arrow.down")
+        XCTAssertEqual(WindowPosition.bottomRight.iconName, "arrow.down.right")
+    }
+
+    @MainActor
+    func testAllCasesCount() {
+        XCTAssertEqual(WindowPosition.allCases.count, 6)
+    }
+
+    // MARK: - Set Position Tests
+
+    @MainActor
+    func testSetPositionUpdatesPosition() {
+        mockWindowService.setPosition(.bottomRight)
+
+        XCTAssertEqual(mockWindowService.position, .bottomRight)
+        XCTAssertEqual(mockWindowService.setPositionCallCount, 1)
+        XCTAssertEqual(mockWindowService.lastSetPosition, .bottomRight)
     }
 }

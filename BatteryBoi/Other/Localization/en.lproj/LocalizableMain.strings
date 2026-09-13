@@ -185,6 +185,13 @@
 "SettingsTilePinLabel" = "Pin";
 "SettingsTileOnLabel" = "On";
 "SettingsTileOffLabel" = "Off";
+"SettingsTilePositionLabel" = "Position";
+"WindowPositionTopLeft" = "Top Left";
+"WindowPositionTopMiddle" = "Top Middle";
+"WindowPositionTopRight" = "Top Right";
+"WindowPositionBottomLeft" = "Bottom Left";
+"WindowPositionBottomMiddle" = "Bottom Middle";
+"WindowPositionBottomRight" = "Bottom Right";
 
 // Device Detail
 "DeviceDetailBackLabel" = "Back";

@@ -97,6 +97,15 @@ import Foundation
             openHistory.removeAll()
         }
 
+        var setPositionCallCount = 0
+        var lastSetPosition: WindowPosition?
+
+        func setPosition(_ position: WindowPosition) {
+            setPositionCallCount += 1
+            lastSetPosition = position
+            self.position = position
+        }
+
         var toggleExpandedCallCount = 0
 
         func toggleExpanded() {

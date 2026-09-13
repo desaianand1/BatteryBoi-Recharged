@@ -6,6 +6,7 @@
 //
 
 @testable import BatteryBoi___Recharged
+import SwiftUI
 @preconcurrency import XCTest
 
 final class WindowServiceBehaviorTests: XCTestCase {
@@ -252,5 +253,70 @@ final class WindowServiceBehaviorTests: XCTestCase {
     @MainActor
     func testUserInitiatedHasNoTimeout() {
         XCTAssertFalse(HUDAlertTypes.userInitiated.timeout)
+    }
+
+    // MARK: - Drag Position Tests
+
+    @MainActor
+    func testSetPositionUpdatesPosition() {
+        mockWindowService.position = .topMiddle
+
+        mockWindowService.setPosition(.bottomRight)
+
+        XCTAssertEqual(mockWindowService.position, .bottomRight)
+    }
+
+    @MainActor
+    func testWakeResetsToHidden() {
+        mockWindowService.state = .revealed
+        mockWindowService.position = .bottomRight
+
+        mockWindowService.handleWake()
+
+        XCTAssertEqual(mockWindowService.state, .hidden)
+        XCTAssertNil(mockWindowService.currentAlert)
+    }
+
+    @MainActor
+    func testDefaultPositionIsTopMiddle() {
+        let service = MockWindowService()
+
+        XCTAssertEqual(service.position, .topMiddle)
+    }
+
+    // MARK: - Position Placement Tests
+
+    @MainActor
+    func testTopPositionAlignment() {
+        XCTAssertEqual(WindowPosition.topLeft.alignment, .topLeading)
+        XCTAssertEqual(WindowPosition.topMiddle.alignment, .top)
+        XCTAssertEqual(WindowPosition.topRight.alignment, .topTrailing)
+    }
+
+    @MainActor
+    func testBottomPositionAlignment() {
+        XCTAssertEqual(WindowPosition.bottomLeft.alignment, .bottomLeading)
+        XCTAssertEqual(WindowPosition.bottomMiddle.alignment, .bottom)
+        XCTAssertEqual(WindowPosition.bottomRight.alignment, .bottomTrailing)
+    }
+
+    // MARK: - Toggle Expanded Tests
+
+    @MainActor
+    func testToggleExpandedFromRevealed() {
+        mockWindowService.state = .revealed
+
+        mockWindowService.toggleExpanded()
+
+        XCTAssertEqual(mockWindowService.state, .detailed)
+    }
+
+    @MainActor
+    func testToggleExpandedFromDetailed() {
+        mockWindowService.state = .detailed
+
+        mockWindowService.toggleExpanded()
+
+        XCTAssertEqual(mockWindowService.state, .revealed)
     }
 }

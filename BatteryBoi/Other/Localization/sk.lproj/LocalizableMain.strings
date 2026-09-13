@@ -129,3 +129,12 @@
 "SettingsStateDisabled" = "Disabled";
 "SettingsStateNotSet" = "Not Set";
 "SettingsStateRestricted" = "Restricted";
+
+// Window Position
+"SettingsTilePositionLabel" = "Pozícia";
+"WindowPositionTopLeft" = "Vľavo Hore";
+"WindowPositionTopMiddle" = "Hore Stred";
+"WindowPositionTopRight" = "Vpravo Hore";
+"WindowPositionBottomLeft" = "Vľavo Dole";
+"WindowPositionBottomMiddle" = "Dole Stred";
+"WindowPositionBottomRight" = "Vpravo Dole";

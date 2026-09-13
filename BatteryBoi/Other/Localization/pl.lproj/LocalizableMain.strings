@@ -112,3 +112,12 @@
 "SettingsStateDisabled" = "Disabled";
 "SettingsStateNotSet" = "Not Set";
 "SettingsStateRestricted" = "Restricted";
+
+// Window Position
+"SettingsTilePositionLabel" = "Pozycja";
+"WindowPositionTopLeft" = "Góra Lewo";
+"WindowPositionTopMiddle" = "Góra Środek";
+"WindowPositionTopRight" = "Góra Prawo";
+"WindowPositionBottomLeft" = "Dół Lewo";
+"WindowPositionBottomMiddle" = "Dół Środek";
+"WindowPositionBottomRight" = "Dół Prawo";

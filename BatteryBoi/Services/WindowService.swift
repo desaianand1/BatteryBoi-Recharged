@@ -88,6 +88,10 @@ final class WindowService: WindowServiceProtocol {
     // MARK: - Private Properties
 
     private var userHasMoved: Bool = false
+    private var isSnapping: Bool = false
+    private var dragStartPosition: WindowPosition?
+    private var dragStartFrame: NSRect?
+    private var localDragMonitor: Any?
     private var globalMouseMonitor: Any?
     private var dismissalTask: Task<Void, Never>?
     private var stateTransitionTask: Task<Void, Never>?
@@ -102,13 +106,11 @@ final class WindowService: WindowServiceProtocol {
     private var dismissStartTime: ContinuousClock.Instant?
     private var hoverStartTime: ContinuousClock.Instant?
 
-    private var screen: CGSize {
-        if let activeScreen = NSScreen.screens.first(where: {
+    private var screenRect: NSRect {
+        (NSScreen.screens.first(where: {
             NSMouseInRect(NSEvent.mouseLocation, $0.frame, false)
-        }) ?? NSScreen.main {
-            return activeScreen.frame.size
-        }
-        return CGSize(width: 1920, height: 1080)
+        }) ?? NSScreen.main)?.visibleFrame
+            ?? NSRect(x: 0, y: 0, width: 1920, height: 1080)
     }
 
     // MARK: - WindowServiceProtocol Methods
@@ -129,11 +131,36 @@ final class WindowService: WindowServiceProtocol {
         windowHandleFrame(moved: moved)
     }
 
+    func setPosition(_ position: WindowPosition) {
+        self.position = position
+        savePosition(position)
+
+        guard let window = NSApplication.shared.windows.first(where: {
+            $0.title == Constants.Window.modalWindowTitle
+        }), window.alphaValue > 0 else { return }
+
+        let snapFrame = calculateInitialPosition(
+            mode: position,
+            defaultSize: window.frame.size,
+            windowMargin: Constants.Window.defaultMargin
+        )
+
+        self.isSnapping = true
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.25
+            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            window.animator().setFrame(snapFrame, display: true)
+        } completionHandler: { [weak self] in
+            self?.isSnapping = false
+        }
+    }
+
     func handleSleep() {
         dismissalTask?.cancel()
         stateTransitionTask?.cancel()
         debounceDeferralTask?.cancel()
         mouseEventTask?.cancel()
+        tearDownDragState()
         dismissRemainingTime = nil
         dismissStartTime = nil
         hoverStartTime = nil
@@ -150,7 +177,18 @@ final class WindowService: WindowServiceProtocol {
         }
         currentAlert = nil
         currentDevice = nil
+        tearDownDragState()
+    }
+
+    private func tearDownDragState() {
         userHasMoved = false
+        isSnapping = false
+        dragStartPosition = nil
+        dragStartFrame = nil
+        if let monitor = localDragMonitor {
+            NSEvent.removeMonitor(monitor)
+            localDragMonitor = nil
+        }
     }
 
     // MARK: - Initialization
@@ -167,6 +205,9 @@ final class WindowService: WindowServiceProtocol {
 
     isolated deinit {
         if let monitor = globalMouseMonitor {
+            NSEvent.removeMonitor(monitor)
+        }
+        if let monitor = localDragMonitor {
             NSEvent.removeMonitor(monitor)
         }
         dismissalTask?.cancel()
@@ -447,24 +488,22 @@ final class WindowService: WindowServiceProtocol {
     }
 
     func windowHandleFrame(moved: NSRect? = nil) -> NSRect {
-        let windowWidth = screen.width / 3
-        let windowHeight = screen.height / 2
         let windowMargin = Constants.Window.defaultMargin
-
         let positionDefault = CGSize(width: 450, height: 250)
 
         if let moved {
-            if self.userHasMoved {
-                _ = calculateWindowLastPosition(
-                    moved: moved,
-                    windowHeight: windowHeight,
-                    windowWidth: windowWidth,
-                    windowMargin: windowMargin
-                )
-                return NSRect(x: moved.origin.x, y: moved.origin.y, width: moved.width, height: moved.height)
-            } else {
-                self.userHasMoved = true
+            if self.isSnapping {
+                return moved
             }
+
+            if !self.userHasMoved {
+                self.userHasMoved = true
+                self.dragStartPosition = self.position
+                self.dragStartFrame = moved
+                startDragMonitor()
+            }
+
+            return moved
         }
 
         return calculateInitialPosition(
@@ -474,72 +513,119 @@ final class WindowService: WindowServiceProtocol {
         )
     }
 
-    private func loadSavedPosition() -> WindowPosition {
-        if let positionString = UserDefaults.main
-            .object(forKey: SystemDefaultsKeys.batteryWindowPosition.rawValue) as? String
-        {
-            return WindowPosition(rawValue: positionString) ?? .topMiddle
+    private func startDragMonitor() {
+        localDragMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseUp) { [weak self] event in
+            guard let self else { return event }
+            if let window = NSApplication.shared.windows.first(where: {
+                $0.title == Constants.Window.modalWindowTitle
+            }) {
+                self.handleDragEnd(at: window.frame)
+            }
+            return event
         }
-        return self.position
+    }
+
+    private func handleDragEnd(at finalFrame: NSRect) {
+        if let monitor = self.localDragMonitor {
+            NSEvent.removeMonitor(monitor)
+            self.localDragMonitor = nil
+        }
+
+        let screen = self.screenRect
+        let windowMargin = Constants.Window.defaultMargin
+
+        let dragDistance: CGFloat
+        if let startFrame = self.dragStartFrame {
+            let dx = finalFrame.midX - startFrame.midX
+            let dy = finalFrame.midY - startFrame.midY
+            dragDistance = sqrt(dx * dx + dy * dy)
+        } else {
+            dragDistance = Constants.Window.minimumDragDistance
+        }
+
+        let targetPosition: WindowPosition
+        if dragDistance < Constants.Window.minimumDragDistance, let startPos = self.dragStartPosition {
+            targetPosition = startPos
+        } else {
+            let normalizedX = (finalFrame.midX - screen.minX) / screen.width
+            let normalizedY = (finalFrame.midY - screen.minY) / screen.height
+            targetPosition = WindowPosition.nearest(
+                to: CGPoint(x: normalizedX, y: normalizedY),
+                excluding: self.dragStartPosition
+            )
+        }
+
+        self.position = targetPosition
+        savePosition(targetPosition)
+
+        let snapFrame = calculateInitialPosition(
+            mode: targetPosition,
+            defaultSize: finalFrame.size,
+            windowMargin: windowMargin
+        )
+
+        if let window = NSApplication.shared.windows.first(where: {
+            $0.title == Constants.Window.modalWindowTitle
+        }) {
+            self.isSnapping = true
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 0.25
+                context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                window.animator().setFrame(snapFrame, display: true)
+            } completionHandler: { [weak self] in
+                self?.isSnapping = false
+            }
+        }
+
+        self.userHasMoved = false
+        self.dragStartPosition = nil
+        self.dragStartFrame = nil
+    }
+
+    private func loadSavedPosition() -> WindowPosition {
+        guard let positionString = UserDefaults.main
+            .object(forKey: SystemDefaultsKeys.batteryWindowPosition.rawValue) as? String
+        else {
+            return .topMiddle
+        }
+        if positionString == "center" {
+            let migrated = WindowPosition.bottomMiddle
+            savePosition(migrated)
+            return migrated
+        }
+        return WindowPosition(rawValue: positionString) ?? .topMiddle
     }
 
     private func savePosition(_ position: WindowPosition) {
         UserDefaults.save(.batteryWindowPosition, value: position.rawValue)
     }
 
-    private func calculateWindowLastPosition(
-        moved: NSRect,
-        windowHeight: CGFloat,
-        windowWidth: CGFloat,
-        windowMargin: CGFloat
-    ) -> WindowPosition {
-        var positionTop: CGFloat
-        var positionMode: WindowPosition
-
-        if moved.midY > windowHeight {
-            positionTop = screen.height - windowMargin
-        } else {
-            positionTop = windowMargin
-        }
-
-        if moved.midX < windowWidth {
-            positionMode = (positionTop == windowMargin) ? .bottomLeft : .topLeft
-        } else if moved.midX > windowWidth, moved.midX < (windowWidth * 2) {
-            positionMode = (positionTop == windowMargin) ? .center : .topMiddle
-        } else if moved.midX > (windowWidth * 2) {
-            positionMode = (positionTop == windowMargin) ? .bottomRight : .topRight
-        } else {
-            positionMode = .center
-        }
-
-        self.position = positionMode
-        savePosition(positionMode)
-
-        return positionMode
-    }
-
     private func calculateInitialPosition(mode: WindowPosition, defaultSize: CGSize, windowMargin: CGFloat) -> NSRect {
-        var positionLeft: CGFloat = windowMargin
-        var positionTop: CGFloat = windowMargin
+        let screen = self.screenRect
+        let x: CGFloat
+        let y: CGFloat
 
         switch mode {
-        case .center:
-            positionLeft = (screen.width / 2) - (defaultSize.width / 2)
-            positionTop = (screen.height / 2) - (defaultSize.height / 2)
-
-        case .topLeft, .bottomLeft:
-            positionLeft = windowMargin
-            positionTop = (mode == .topLeft) ? screen.height - (defaultSize.height + windowMargin) : windowMargin
-
+        case .topLeft:
+            x = screen.minX + windowMargin
+            y = screen.maxY - defaultSize.height - windowMargin
         case .topMiddle:
-            positionLeft = (screen.width / 2) - (defaultSize.width / 2)
-            positionTop = screen.height - (defaultSize.height + windowMargin)
-
-        case .topRight, .bottomRight:
-            positionLeft = screen.width - (defaultSize.width + windowMargin)
-            positionTop = (mode == .topRight) ? screen.height - (defaultSize.height + windowMargin) : windowMargin
+            x = screen.midX - (defaultSize.width / 2)
+            y = screen.maxY - defaultSize.height - windowMargin
+        case .topRight:
+            x = screen.maxX - defaultSize.width - windowMargin
+            y = screen.maxY - defaultSize.height - windowMargin
+        case .bottomLeft:
+            x = screen.minX + windowMargin
+            y = screen.minY + windowMargin
+        case .bottomMiddle:
+            x = screen.midX - (defaultSize.width / 2)
+            y = screen.minY + windowMargin
+        case .bottomRight:
+            x = screen.maxX - defaultSize.width - windowMargin
+            y = screen.minY + windowMargin
         }
 
-        return NSRect(x: positionLeft, y: positionTop, width: defaultSize.width, height: defaultSize.height)
+        return NSRect(x: x, y: y, width: defaultSize.width, height: defaultSize.height)
     }
 }

@@ -125,3 +125,12 @@
 "SettingsStateDisabled" = "Disabled";
 "SettingsStateNotSet" = "Not Set";
 "SettingsStateRestricted" = "Restricted";
+
+// Window Position
+"SettingsTilePositionLabel" = "位置";
+"WindowPositionTopLeft" = "左上";
+"WindowPositionTopMiddle" = "上中央";
+"WindowPositionTopRight" = "右上";
+"WindowPositionBottomLeft" = "左下";
+"WindowPositionBottomMiddle" = "下中央";
+"WindowPositionBottomRight" = "右下";

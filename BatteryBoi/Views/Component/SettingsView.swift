@@ -34,6 +34,7 @@ enum SettingsTileType {
     case sound
     case alerts
     case pin
+    case position
 
     var label: String {
         switch self {
@@ -41,6 +42,7 @@ enum SettingsTileType {
         case .sound: "SettingsTileSoundLabel".localise()
         case .alerts: "SettingsTileAlertsLabel".localise()
         case .pin: "SettingsTilePinLabel".localise()
+        case .position: "SettingsTilePositionLabel".localise()
         }
     }
 }
@@ -65,6 +67,7 @@ struct SettingsTile: View {
         case .sound: self.settings.sfx.icon
         case .alerts: self.settings.charge.icon
         case .pin: self.settings.pinned.icon
+        case .position: "mappin.and.ellipse"
         }
     }
 
@@ -78,6 +81,8 @@ struct SettingsTile: View {
             self.subtitleForToggle(self.settings.charge == .enabled)
         case .pin:
             self.subtitleForToggle(self.settings.pinned == .enabled)
+        case .position:
+            self.env.window.position.displayName
         }
     }
 
@@ -91,6 +96,7 @@ struct SettingsTile: View {
         case .sound: self.settings.performAction(.init(.customiseSoundEffects))
         case .alerts: self.settings.performAction(.init(.customiseCharge))
         case .pin: self.settings.performAction(.init(.appPinned))
+        case .position: break
         }
     }
 
@@ -126,6 +132,54 @@ struct SettingsTile: View {
     }
 }
 
+// MARK: - Settings Position Tile
+
+struct SettingsPositionTile: View {
+    @Environment(AppEnvironment.self) private var env
+
+    private var window: any WindowServiceProtocol {
+        self.env.window
+    }
+
+    var body: some View {
+        Menu {
+            ForEach(WindowPosition.allCases, id: \.self) { position in
+                Button {
+                    self.window.setPosition(position)
+                } label: {
+                    Label(position.displayName, systemImage: position.iconName)
+                }
+            }
+        } label: {
+            VStack(spacing: Spacing.xsm) {
+                Image(systemName: "mappin.and.ellipse")
+                    .font(Typography.icon)
+                    .foregroundStyle(Color("BBSubtitle"))
+                    .frame(height: 28)
+
+                Text("SettingsTilePositionLabel".localise())
+                    .font(Typography.heading)
+                    .foregroundStyle(Color("BBTitle"))
+                    .lineLimit(1)
+
+                Text(self.window.position.displayName)
+                    .font(Typography.caption)
+                    .foregroundStyle(Color("BBSubtitle"))
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, minHeight: 80)
+            .background(
+                RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
+                    .fill(Color("BBSurface"))
+            )
+        }
+        .buttonStyle(HoverButtonStyle())
+        .accessibilityLabel("SettingsTilePositionLabel".localise())
+        .accessibilityValue(self.window.position.displayName)
+        .accessibilityHint("AccessibilityDoubleTapActivate".localise())
+    }
+}
+
 // MARK: - Settings Tile Grid
 
 struct SettingsTileGrid: View {
@@ -147,26 +201,34 @@ struct SettingsTileGrid: View {
                 SettingsTile(.pin)
             }
 
-            Button(
-                action: { self.settings.performAction(.init(.appQuit)) },
-                label: {
-                    HStack(spacing: Spacing.xsm) {
-                        Image(systemName: "power")
-                            .font(Typography.heading)
-                        Text("SettingsQuitLabel".localise())
-                            .font(Typography.heading)
+            HStack(spacing: Spacing.sm) {
+                SettingsPositionTile()
+
+                Button(
+                    action: { self.settings.performAction(.init(.appQuit)) },
+                    label: {
+                        VStack(spacing: Spacing.xsm) {
+                            Image(systemName: "power")
+                                .font(Typography.icon)
+                                .foregroundStyle(Color("BBSubtitle"))
+                                .frame(height: 28)
+
+                            Text("SettingsQuitLabel".localise())
+                                .font(Typography.heading)
+                                .foregroundStyle(Color("BBTitle"))
+                                .lineLimit(1)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 80)
+                        .background(
+                            RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
+                                .fill(Color("BBSurface"))
+                        )
                     }
-                    .foregroundStyle(Color("BBSubtitle"))
-                    .frame(maxWidth: .infinity, minHeight: 36)
-                    .background(
-                        RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
-                            .fill(Color("BBSurface"))
-                    )
-                }
-            )
-            .buttonStyle(HoverButtonStyle())
-            .modifier(QuitKeyboardShortcutModifier(isQuitButton: true))
-            .accessibilityLabel("AccessibilityQuitApplication".localise())
+                )
+                .buttonStyle(HoverButtonStyle())
+                .modifier(QuitKeyboardShortcutModifier(isQuitButton: true))
+                .accessibilityLabel("AccessibilityQuitApplication".localise())
+            }
         }
     }
 }

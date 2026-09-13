@@ -125,6 +125,9 @@ nonisolated enum Constants {
 
         /// Default window margin from screen edges.
         static let defaultMargin: CGFloat = 40
+
+        /// Minimum drag distance (points) before snapping to a non-start anchor.
+        static let minimumDragDistance: CGFloat = 60.0
     }
 
     /// Bluetooth-related constants.

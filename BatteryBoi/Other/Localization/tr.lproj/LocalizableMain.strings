@@ -129,3 +129,12 @@
 "SettingsStateDisabled" = "Disabled";
 "SettingsStateNotSet" = "Not Set";
 "SettingsStateRestricted" = "Restricted";
+
+// Window Position
+"SettingsTilePositionLabel" = "Konum";
+"WindowPositionTopLeft" = "Sol Üst";
+"WindowPositionTopMiddle" = "Üst Orta";
+"WindowPositionTopRight" = "Sağ Üst";
+"WindowPositionBottomLeft" = "Sol Alt";
+"WindowPositionBottomMiddle" = "Alt Orta";
+"WindowPositionBottomRight" = "Sağ Alt";

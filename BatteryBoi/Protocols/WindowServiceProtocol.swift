@@ -22,7 +22,7 @@ protocol WindowServiceProtocol: AnyObject {
     var state: HUDState { get }
 
     /// Current window position
-    var position: WindowPosition { get }
+    var position: WindowPosition { get set }
 
     /// Current window opacity
     var opacity: CGFloat { get set }
@@ -65,4 +65,7 @@ protocol WindowServiceProtocol: AnyObject {
 
     /// Toggle between .revealed and .detailed states
     func toggleExpanded()
+
+    /// Set the window anchor position, persist it, and animate the window if visible
+    func setPosition(_ position: WindowPosition)
 }

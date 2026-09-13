@@ -213,23 +213,83 @@ enum HUDAlertTypes: Equatable {
 
 // MARK: - Window Position
 
-enum WindowPosition: String {
-    case center
+enum WindowPosition: String, CaseIterable {
     case topLeft
     case topMiddle
     case topRight
     case bottomLeft
+    case bottomMiddle
     case bottomRight
 
     var alignment: Alignment {
         switch self {
-        case .center: .center
         case .topLeft: .topLeading
         case .topMiddle: .top
         case .topRight: .topTrailing
         case .bottomLeft: .bottomLeading
+        case .bottomMiddle: .bottom
         case .bottomRight: .bottomTrailing
         }
+    }
+
+    var isTop: Bool {
+        switch self {
+        case .topLeft, .topMiddle, .topRight: true
+        case .bottomLeft, .bottomMiddle, .bottomRight: false
+        }
+    }
+
+    var normalizedPoint: CGPoint {
+        let x: CGFloat
+        let y: CGFloat
+        switch self {
+        case .topLeft, .bottomLeft: x = 0.0
+        case .topMiddle, .bottomMiddle: x = 0.5
+        case .topRight, .bottomRight: x = 1.0
+        }
+        switch self {
+        case .topLeft, .topMiddle, .topRight: y = 1.0
+        case .bottomLeft, .bottomMiddle, .bottomRight: y = 0.0
+        }
+        return CGPoint(x: x, y: y)
+    }
+
+    var displayName: String {
+        switch self {
+        case .topLeft: "WindowPositionTopLeft".localise()
+        case .topMiddle: "WindowPositionTopMiddle".localise()
+        case .topRight: "WindowPositionTopRight".localise()
+        case .bottomLeft: "WindowPositionBottomLeft".localise()
+        case .bottomMiddle: "WindowPositionBottomMiddle".localise()
+        case .bottomRight: "WindowPositionBottomRight".localise()
+        }
+    }
+
+    var iconName: String {
+        switch self {
+        case .topLeft: "arrow.up.left"
+        case .topMiddle: "arrow.up"
+        case .topRight: "arrow.up.right"
+        case .bottomLeft: "arrow.down.left"
+        case .bottomMiddle: "arrow.down"
+        case .bottomRight: "arrow.down.right"
+        }
+    }
+
+    static func nearest(to point: CGPoint, excluding: Self? = nil) -> Self {
+        let sorted = allCases.sorted { a, b in
+            distance(from: point, to: a.normalizedPoint) < distance(from: point, to: b.normalizedPoint)
+        }
+        if let excluding, sorted.first == excluding {
+            return sorted.dropFirst().first ?? .topMiddle
+        }
+        return sorted.first ?? .topMiddle
+    }
+
+    private static func distance(from a: CGPoint, to b: CGPoint) -> CGFloat {
+        let dx = a.x - b.x
+        let dy = a.y - b.y
+        return (dx * dx) + (dy * dy)
     }
 }
 
