@@ -89,6 +89,26 @@ tasks:
         APP=$(find DerivedData/Build/Products/Debug -name "*.app" -maxdepth 1 | head -1)
         open "$APP"
 
+  appstore:
+    desc: Build and submit to Mac App Store (requires Doppler prd secrets)
+    cmds:
+      - doppler run --config prd -- bundle exec fastlane appstore_submit
+
+  testflight:
+    desc: Build and upload to TestFlight (requires Doppler prd secrets)
+    cmds:
+      - doppler run --config prd -- bundle exec fastlane testflight_upload
+
+  certs:sync:appstore:
+    desc: Sync App Store Match certificates (requires Doppler prd secrets)
+    cmds:
+      - doppler run --config prd -- bundle exec fastlane sync_certs type:appstore
+
+  setup:appstore:
+    desc: One-time App Store Connect app creation (requires Doppler prd secrets)
+    cmds:
+      - doppler run --config prd -- bundle exec fastlane setup_appstore
+
   ci:
     desc: Run full CI pipeline locally (lint strict + format + test, no secrets required)
     cmds:
