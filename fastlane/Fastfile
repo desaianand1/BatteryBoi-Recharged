@@ -20,11 +20,24 @@ platform :mac do
     type = options[:type] || "developer_id"
     readonly = options[:readonly].nil? ? is_ci : options[:readonly]
 
-    match(
+    # App Store types need API Key auth for Developer Portal verification
+    match_params = {
       type: type,
       readonly: readonly,
       git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"]
-    )
+    }
+
+    if type == "appstore" && ENV["ASC_KEY_ID"] && ENV["ASC_ISSUER_ID"] && ENV["ASC_KEY_CONTENT"]
+      match_params[:api_key] = app_store_connect_api_key(
+        key_id: ENV["ASC_KEY_ID"],
+        issuer_id: ENV["ASC_ISSUER_ID"],
+        key_content: ENV["ASC_KEY_CONTENT"],
+        is_key_content_base64: true,
+        in_house: false
+      )
+    end
+
+    match(match_params)
   end
 
   desc "Run tests"
@@ -285,5 +298,146 @@ platform :mac do
     end
 
     UI.success("Release complete: #{dmg_path}")
+  end
+
+  # --- App Store Distribution ---
+
+  desc "One-time: Create app on App Store Connect and Dev Portal"
+  lane :setup_appstore do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_content: ENV["ASC_KEY_CONTENT"],
+      is_key_content_base64: true,
+      in_house: false
+    )
+
+    create_app_online(
+      app_identifier: BUNDLE_ID,
+      app_name: SCHEME,
+      language: "English",
+      platform: "osx",
+      sku: ENV["APP_SKU"] || BUNDLE_ID,
+      team_id: ENV["APPLE_TEAM_ID"],
+      enable_services: {
+        icloud: "xcode6_compatible",
+        push_notification: "on"
+      }
+    )
+
+    UI.success("App created. Set APP_APPLE_ID in Doppler from App Store Connect > App > General > Apple ID")
+  end
+
+  private_lane :strip_sparkle do
+    app_path = File.join("./build", "#{SCHEME}.app")
+    sparkle_fw = File.join(app_path, "Contents", "Frameworks", "Sparkle.framework")
+    stripped = false
+    if Dir.exist?(sparkle_fw)
+      FileUtils.rm_rf(sparkle_fw)
+      UI.message("Stripped Sparkle.framework from App Store build")
+      stripped = true
+    end
+    Dir.glob(File.join(app_path, "Contents", "XPCServices", "org.sparkle-project.*")).each do |f|
+      FileUtils.rm_rf(f)
+      UI.message("Stripped Sparkle XPC service: #{File.basename(f)}")
+      stripped = true
+    end
+
+    if stripped
+      pkg_path = File.join("./build", "#{SCHEME}.pkg")
+      if File.exist?(pkg_path)
+        sh("productbuild --component '#{app_path}' /Applications '#{pkg_path}'")
+        UI.message("Rebuilt pkg after stripping Sparkle")
+      end
+    end
+  end
+
+  private_lane :build_appstore do
+    setup_ci if ENV["CI"]
+
+    ensure_env_vars(
+      env_vars: %w[ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_CONTENT APPLE_TEAM_ID]
+    )
+
+    api_key = app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_content: ENV["ASC_KEY_CONTENT"],
+      is_key_content_base64: true,
+      in_house: false
+    )
+
+    sync_certs(type: "appstore", readonly: true)
+
+    version = get_version_number(xcodeproj: PROJECT, target: SCHEME)
+
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: PROJECT,
+      team_id: ENV["APPLE_TEAM_ID"],
+      code_sign_identity: "Apple Distribution",
+      profile_name: "match AppStore #{BUNDLE_ID} macos",
+      targets: [SCHEME]
+    )
+
+    build_mac_app(
+      scheme: SCHEME,
+      configuration: "Release - AppStore",
+      output_directory: "./build",
+      export_method: "app-store",
+      skip_package_pkg: false,
+      xcargs: "SWIFT_ACTIVE_COMPILATION_CONDITIONS=''"
+    )
+
+    strip_sparkle
+
+    # Restore automatic signing so Xcode works normally
+    update_code_signing_settings(
+      use_automatic_signing: true,
+      path: PROJECT
+    )
+
+    { api_key: api_key, version: version }
+  end
+
+  desc "Build and upload to TestFlight for beta testing"
+  lane :testflight_upload do
+    result = build_appstore
+
+    changelog = changelog_from_git_commits(
+      commits_count: 10,
+      merge_commit_filtering: "exclude_merges"
+    )
+
+    upload_to_testflight(
+      api_key: result[:api_key],
+      skip_waiting_for_build_processing: true,
+      changelog: changelog
+    )
+
+    UI.success("TestFlight upload complete for v#{result[:version]}")
+  end
+
+  desc "Build and submit to Mac App Store for review"
+  lane :appstore_submit do
+    result = build_appstore
+
+    check_app_store_metadata(
+      api_key: result[:api_key],
+      default_rule_level: :error
+    )
+
+    upload_to_app_store(
+      api_key: result[:api_key],
+      platform: "osx",
+      skip_metadata: true,
+      skip_screenshots: true,
+      force: true,
+      precheck_include_in_app_purchases: false,
+      submit_for_review: true,
+      automatic_release: false
+    )
+
+    UI.success("App Store submission complete for v#{result[:version]}")
   end
 end

@@ -47,6 +47,30 @@ Build release app with signing
 
 Build, sign, notarize and create DMG for release
 
+### mac setup_appstore
+
+```sh
+[bundle exec] fastlane mac setup_appstore
+```
+
+One-time: Create app on App Store Connect and Dev Portal
+
+### mac testflight_upload
+
+```sh
+[bundle exec] fastlane mac testflight_upload
+```
+
+Build and upload to TestFlight for beta testing
+
+### mac appstore_submit
+
+```sh
+[bundle exec] fastlane mac appstore_submit
+```
+
+Build and submit to Mac App Store for review
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.
