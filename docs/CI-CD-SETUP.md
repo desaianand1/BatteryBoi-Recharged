@@ -10,6 +10,7 @@ Complete guide for setting up automated build, sign, test, and release pipeline 
 - [Doppler Setup](#doppler-setup)
 - [GitHub Secrets](#github-secrets)
 - [Fastlane Match Setup](#fastlane-match-setup)
+- [App Store Setup](#app-store-setup)
 - [Testing the Pipeline](#testing-the-pipeline)
 - [Workflow Details](#workflow-details)
 - [Troubleshooting](#troubleshooting)
@@ -24,8 +25,10 @@ This project uses:
 - **Match** for code signing certificate management
 - **GitHub Actions** for CI/CD
 - **Semantic Release** for versioning
-- **Sparkle** for in-app auto-updates
-- **Apple Notarization** for Gatekeeper approval
+- **Sparkle** for in-app auto-updates (direct distribution)
+- **Apple Notarization** for Gatekeeper approval (direct distribution)
+- **TestFlight** for beta testing (App Store distribution)
+- **App Store Connect API** for App Store submissions
 
 ## Architecture
 
@@ -36,6 +39,7 @@ Doppler (secrets source of truth)
   ├── dev config  → Developer machine (doppler run --)
   ├── ci config   → GitHub Actions CI (dopplerhq/secrets-fetch-action)
   └── prd config  → GitHub Actions Release (dopplerhq/secrets-fetch-action)
+                    + Local App Store tasks (doppler run --config prd --)
 ```
 
 ### Build & Sign Flow
@@ -59,6 +63,23 @@ Sparkle Signing (EdDSA for auto-updates)
     ↓
 Upload to GitHub Releases
 ```
+
+### App Store Pipeline
+
+```
+Doppler (prd) → Match (appstore type) → Build (Release - AppStore) → Strip Sparkle → Rebuild pkg → Upload
+  ├── TestFlight (automated on every GitHub Release, parallel with DMG)
+  └── App Store (manual via workflow_dispatch)
+```
+
+### Build Configuration Matrix
+
+| Build Path | DIRECT_DISTRIBUTION | Entitlements | Sparkle | pmset | KVC | Trigger |
+|---|---|---|---|---|---|---|
+| Debug (Xcode) | Yes | BatteryBoi.entitlements | Linked | Available | Available | Local |
+| Release (direct) | Yes | BatteryBoi.entitlements | Linked + Signed | Available | Available | GitHub Release |
+| Release - AppStore | No | BatteryBoi.AppStore.entitlements | Stripped | No-op | Not compiled | Release (TF) / Manual (AS) |
+| Test (Fastlane) | Yes | N/A | N/A | N/A | Compiled | CI / Local |
 
 ### Code Signing vs Sparkle Signing
 
@@ -148,6 +169,14 @@ CI uses pre-installed tools from the `macos-15` runner image. Expected versions 
 | `APPLE_ID` | Apple Developer account email | Your App Store Connect login email |
 | `APPLE_APP_PASSWORD` | App-specific password for notarization | See [Creating an App-Specific Password](#creating-an-app-specific-password) |
 | `SPARKLE_PRIVATE_KEY` | EdDSA private key for signing DMGs | See [Sparkle Key Management](#sparkle-key-management) |
+| `ASC_KEY_ID` | App Store Connect API Key ID | App Store Connect → Users and Access → Integrations → App Store Connect API → **Team Key** |
+| `ASC_ISSUER_ID` | Issuer ID (shown at top of API keys page) | Same page as above |
+| `ASC_KEY_CONTENT` | Base64-encoded `.p8` API key file | `base64 -i AuthKey_XXXXXXXX.p8` (file only downloadable once!) |
+| `APP_APPLE_ID` | Numeric Apple ID for the app | App Store Connect → App → General → Apple ID |
+
+**API Key requirements:**
+- Must be a **Team Key** (not Individual Key — Individual keys lack provisioning and notaryTool access)
+- Role: **"App Manager"** or **"Admin"** (not "Developer" — Developer can upload but cannot manage testers or submit for review)
 
 #### CI and production secrets (`ci`, `prd`)
 
@@ -268,6 +297,77 @@ doppler run -- bundle exec fastlane match nuke developer_id
 doppler run -- bundle exec fastlane sync_certs readonly:false
 ```
 
+## App Store Setup
+
+One-time setup for Mac App Store and TestFlight distribution.
+
+### 1. Create App Store Connect API Key
+
+1. Go to App Store Connect → Users and Access → Integrations → App Store Connect API
+2. Click `+` to generate a **Team Key** (not Individual Key)
+3. Role: **"App Manager"** or **"Admin"**
+4. Note the **Key ID** and **Issuer ID** (shown at top of page)
+5. **Download the `.p8` file immediately** — Apple only allows ONE download
+
+### 2. Add Secrets to Doppler `prd`
+
+```bash
+# Base64-encode the .p8 key
+base64 -i AuthKey_XXXXXXXX.p8
+```
+
+Add to Doppler `prd` config:
+- `ASC_KEY_ID` — Key ID from step 1
+- `ASC_ISSUER_ID` — Issuer ID from step 1
+- `ASC_KEY_CONTENT` — base64 output from above
+
+### 3. Create App on App Store Connect
+
+```bash
+task setup:appstore   # uses Doppler prd config automatically
+```
+
+**Caveat:** `produce` (create_app_online) has only partial API Key support. If it fails, fall back to Apple ID auth:
+1. Set `FASTLANE_USER` env var to your Apple ID email
+2. Run `fastlane spaceauth -u <email>` to generate a session cookie
+3. Store the output as `FASTLANE_SESSION` in Doppler `prd`
+4. Re-run `task setup:appstore`
+
+### 4. Set APP_APPLE_ID
+
+After the app is created in App Store Connect:
+1. Find the numeric Apple ID: App Store Connect → App → General → Apple ID
+2. Set `APP_APPLE_ID` in Doppler `prd` config
+3. Set `APP_APPLE_ID` in `BatteryBoi/Environments.xcconfig`
+
+### 5. Sync App Store Certificates
+
+```bash
+# First run (creates new certs):
+doppler run --config prd -- bundle exec fastlane sync_certs type:appstore readonly:false
+
+# Subsequent runs:
+task certs:sync:appstore   # uses Doppler prd config automatically
+```
+
+### 6. Fill Out App Store Connect Metadata
+
+Manually configure in App Store Connect (required before first submission):
+- App name, subtitle, description, keywords, categories
+- macOS screenshots (at least one set)
+- Pricing and availability
+- Age rating questionnaire
+- Copyright, support URL, marketing URL
+- App privacy questionnaire (crash data via Sentry — "Data Not Linked to You")
+
+### 7. First Test
+
+```bash
+task testflight   # uses Doppler prd config automatically
+```
+
+Verify the binary appears in TestFlight within App Store Connect.
+
 ## Testing the Pipeline
 
 ### Test Locally
@@ -284,6 +384,12 @@ task build
 
 # Full release pipeline — build, sign, notarize, DMG (requires Doppler)
 task release
+
+# Upload to TestFlight (uses Doppler prd config — requires ASC secrets)
+task testflight
+
+# Submit to Mac App Store (uses Doppler prd config — requires ASC secrets + metadata)
+task appstore
 ```
 
 ### Test on GitHub Actions
@@ -339,12 +445,26 @@ task release
 
 **Triggers:** Published releases
 
-**Jobs:**
+**Jobs (parallel unless noted):**
 
-1. **build-release** — Full pipeline (Doppler `prd` config):
+1. **build-release** — Direct distribution pipeline (Doppler `prd` config):
    - Match cert sync → Xcode build → Code sign → Notarize → Staple → DMG → Sparkle sign → Upload
    - Generates and uploads `appcast.xml` for Sparkle auto-updates
-2. **create-sentry-release** — Sentry production release (Doppler `prd` config)
+2. **testflight** — App Store distribution (Doppler `prd` config):
+   - Match cert sync (appstore) → Xcode build (Release - AppStore) → Strip Sparkle → Rebuild pkg → Upload to TestFlight
+   - Runs in parallel with `build-release` (no dependency)
+3. **create-sentry-release** — Sentry production release (needs `build-release`; Doppler `prd` config)
+
+### App Store Release Workflow (`.github/workflows/appstore-release.yml`)
+
+**Triggers:** Manual (`workflow_dispatch`)
+
+**Jobs:**
+
+1. **submit-appstore** — Build and submit to Mac App Store for review (Doppler `prd` config)
+   - Uses `appstore_submit` Fastlane lane
+   - Runs `precheck` (metadata validation) before upload
+   - `submit_for_review: true` with `automatic_release: false` (manual release after approval)
 
 ### Homebrew Workflow (`.github/workflows/homebrew-bump.yml`)
 
@@ -551,10 +671,22 @@ as macOS System Settings.
 | Fastlane build lane | `fastlane/Fastfile` | `SWIFT_ACTIVE_COMPILATION_CONDITIONS='DIRECT_DISTRIBUTION'` |
 | Fastlane release lane | `fastlane/Fastfile` | `SWIFT_ACTIVE_COMPILATION_CONDITIONS='DIRECT_DISTRIBUTION'` |
 | Taskfile dev task | `Taskfile.yml` | `SWIFT_ACTIVE_COMPILATION_CONDITIONS="DEBUG DIRECT_DISTRIBUTION"` |
+| Xcode project (Release - AppStore) | `project.pbxproj` (target) | `SWIFT_ACTIVE_COMPILATION_CONDITIONS = ""` (empty — flag stripped) |
+| Fastlane build_appstore lane | `fastlane/Fastfile` | `SWIFT_ACTIVE_COMPILATION_CONDITIONS=''` |
 
-**App Store builds:** To create an App Store build, omit this flag from all build paths. The
-KVC battery code will not be compiled, and the app will use only the IORegistry path for
-Bluetooth battery data (covers Apple peripherals and some third-party HID devices).
+**App Store builds:** The `Release - AppStore` build configuration sets
+`SWIFT_ACTIVE_COMPILATION_CONDITIONS` to empty at the target level, stripping this flag. The
+`build_appstore` Fastlane lane also passes `SWIFT_ACTIVE_COMPILATION_CONDITIONS=''` as an
+explicit xcarg. Without this flag:
+
+- KVC battery code is not compiled (IORegistry-only path for Bluetooth battery data)
+- Sparkle `UpdateManager` is replaced with a no-op stub
+- `appDistribution()` returns `.appstore` directly (no ProcessRunner/codesign shell-out)
+- `powerSaveMode()` is a no-op (NSAppleScript/pmset is sandbox-incompatible)
+- `appRate` opens the Mac App Store review page instead of GitHub
+
+The `strip_sparkle` private lane also removes `Sparkle.framework` from the built `.app` bundle
+post-build, since SPM links it unconditionally.
 
 ## Resources
 
@@ -568,5 +700,5 @@ Bluetooth battery data (covers Apple peripherals and some third-party HID device
 
 ---
 
-**Last Updated:** 2026-09-09
+**Last Updated:** 2026-09-14
 **Maintainer:** @desaianand1
