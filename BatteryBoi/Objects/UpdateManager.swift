@@ -1,6 +1,9 @@
 import AppKit
 import Foundation
-import Sparkle
+
+#if DIRECT_DISTRIBUTION
+    import Sparkle
+#endif
 
 #if canImport(Sentry)
     import Sentry
@@ -47,216 +50,254 @@ enum UpdateStateType {
 
 }
 
-@Observable @MainActor
-final class UpdateManager: NSObject, SPUUpdaterDelegate, UpdateManagerProtocol {
-    /// Task for resetting state to idle after completion/failure.
-    /// Cancels previous task to prevent race conditions.
-    private var stateResetTask: Task<Void, Never>?
+#if DIRECT_DISTRIBUTION
 
-    var state: UpdateStateType = .completed {
-        didSet {
-            if state == .completed || state == .failed {
-                // Cancel any existing reset task to prevent race conditions
-                stateResetTask?.cancel()
-                stateResetTask = Task { [weak self] in
-                    do {
-                        try await Task.sleep(for: .seconds(5))
-                        self?.state = .idle
-                    } catch {
-                        // Task was cancelled, don't update state
+    @Observable @MainActor
+    final class UpdateManager: NSObject, SPUUpdaterDelegate, UpdateManagerProtocol {
+        /// Task for resetting state to idle after completion/failure.
+        /// Cancels previous task to prevent race conditions.
+        private var stateResetTask: Task<Void, Never>?
+
+        var state: UpdateStateType = .completed {
+            didSet {
+                if state == .completed || state == .failed {
+                    // Cancel any existing reset task to prevent race conditions
+                    stateResetTask?.cancel()
+                    stateResetTask = Task { [weak self] in
+                        do {
+                            try await Task.sleep(for: .seconds(5))
+                            self?.state = .idle
+                        } catch {
+                            // Task was cancelled, don't update state
+                        }
                     }
                 }
             }
         }
-    }
 
-    var available: UpdatePayloadObject?
-    var checked: Date?
+        var available: UpdatePayloadObject?
+        var checked: Date?
 
-    /// Single toggle for automatic updates (combines check + download).
-    var automaticUpdates: Bool {
-        get { updater?.automaticallyChecksForUpdates ?? true }
-        set {
-            updater?.automaticallyChecksForUpdates = newValue
-            updater?.automaticallyDownloadsUpdates = newValue
-        }
-    }
-
-    /// Current app version string (e.g., "3.0.0").
-    var currentVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
-    }
-
-    /// Current app build number (e.g., "30000").
-    var currentBuild: String {
-        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
-    }
-
-    /// Formatted version string for display (e.g., "v3.0.0 (30000)").
-    var versionDisplay: String {
-        "v\(currentVersion) (\(currentBuild))"
-    }
-
-    private let driver = SPUStandardUserDriver(hostBundle: Bundle.main, delegate: nil)
-
-    private var updater: SPUUpdater?
-
-    override init() {
-        super.init()
-
-        updater = SPUUpdater(
-            hostBundle: Bundle.main,
-            applicationBundle: Bundle.main,
-            userDriver: driver,
-            delegate: self
-        )
-        updater?.automaticallyChecksForUpdates = true
-        updater?.automaticallyDownloadsUpdates = true
-        updater?.updateCheckInterval = 60.0 * 60.0 * 12
-
-        // Verify feed URL is accessible before starting
-        guard let feedURL = Bundle.main.infoDictionary?["SUFeedURL"] as? String,
-              !feedURL.isEmpty,
-              URL(string: feedURL) != nil
-        else {
-            BLogger.updates.warning("Sparkle feed URL not configured - auto-updates disabled")
-            return
+        /// Single toggle for automatic updates (combines check + download).
+        var automaticUpdates: Bool {
+            get { updater?.automaticallyChecksForUpdates ?? true }
+            set {
+                updater?.automaticallyChecksForUpdates = newValue
+                updater?.automaticallyDownloadsUpdates = newValue
+            }
         }
 
-        do {
-            try updater?.start()
-        } catch {
-            BLogger.updates.error("Failed to start Sparkle updater: \(error)")
+        /// Current app version string (e.g., "3.0.0").
+        var currentVersion: String {
+            Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        }
+
+        /// Current app build number (e.g., "30000").
+        var currentBuild: String {
+            Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
+        }
+
+        /// Formatted version string for display (e.g., "v3.0.0 (30000)").
+        var versionDisplay: String {
+            "v\(currentVersion) (\(currentBuild))"
+        }
+
+        private let driver = SPUStandardUserDriver(hostBundle: Bundle.main, delegate: nil)
+
+        private var updater: SPUUpdater?
+
+        override init() {
+            super.init()
+
+            updater = SPUUpdater(
+                hostBundle: Bundle.main,
+                applicationBundle: Bundle.main,
+                userDriver: driver,
+                delegate: self
+            )
+            updater?.automaticallyChecksForUpdates = true
+            updater?.automaticallyDownloadsUpdates = true
+            updater?.updateCheckInterval = 60.0 * 60.0 * 12
+
+            guard let feedURL = Bundle.main.infoDictionary?["SUFeedURL"] as? String,
+                  !feedURL.isEmpty,
+                  URL(string: feedURL) != nil
+            else {
+                BLogger.updates.warning("Sparkle feed URL not configured - auto-updates disabled")
+                return
+            }
+
+            do {
+                try updater?.start()
+            } catch {
+                BLogger.updates.error("Failed to start Sparkle updater: \(error)")
+                #if canImport(Sentry)
+                    SentrySDK.capture(error: error)
+                #endif
+            }
+
+            checked = updater?.lastUpdateCheckDate
+
+        }
+
+        isolated deinit {
+            stateResetTask?.cancel()
+        }
+
+        func updateCheck() {
+            updater?.checkForUpdatesInBackground()
+            state = .checking
+
+        }
+
+        nonisolated func updater(
+            _: SPUUpdater,
+            willInstallUpdateOnQuit _: SUAppcastItem,
+            immediateInstallationBlock immediateInstallHandler: @escaping () -> Void
+        ) -> Bool {
+            immediateInstallHandler()
+            return true
+        }
+
+        nonisolated func updater(
+            _: SPUUpdater,
+            shouldPostponeRelaunchForUpdate _: SUAppcastItem,
+            untilInvokingBlock _: @escaping () -> Void
+        ) -> Bool {
+            false
+        }
+
+        nonisolated func updaterShouldDownloadReleaseNotes(_: SPUUpdater) -> Bool {
+            true
+        }
+
+        nonisolated func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
+            // Extract values before async context to avoid Sendable issues
+            let title = item.title
+            let id = item.propertiesDictionary["id"] as? String
+            let semver = item.propertiesDictionary["sparkle:shortVersionString"] as? String ?? item.versionString
+            let lastCheck = updater.lastUpdateCheckDate
+
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                guard let title, let id else {
+                    state = .failed
+                    checked = lastCheck
+                    return
+                }
+
+                let version: UpdateVersionObject = .init(formatted: title, semver: semver)
+                available = .init(id: id, name: title, version: version)
+                state = .completed
+                checked = lastCheck
+            }
+        }
+
+        nonisolated func updater(_: SPUUpdater, failedToDownloadUpdate _: SUAppcastItem, error: Error) {
             #if canImport(Sentry)
                 SentrySDK.capture(error: error)
             #endif
         }
 
-        checked = updater?.lastUpdateCheckDate
+        nonisolated func updater(_: SPUUpdater, failedToDownloadAppcastWithError error: Error) {
+            #if canImport(Sentry)
+                SentrySDK.capture(error: error)
+            #endif
+        }
 
-    }
-
-    isolated deinit {
-        stateResetTask?.cancel()
-    }
-
-    func updateCheck() {
-        updater?.checkForUpdatesInBackground()
-        state = .checking
-
-    }
-
-    nonisolated func updater(
-        _: SPUUpdater,
-        willInstallUpdateOnQuit _: SUAppcastItem,
-        immediateInstallationBlock immediateInstallHandler: @escaping () -> Void
-    ) -> Bool {
-        immediateInstallHandler()
-        return true
-    }
-
-    nonisolated func updater(
-        _: SPUUpdater,
-        shouldPostponeRelaunchForUpdate _: SUAppcastItem,
-        untilInvokingBlock _: @escaping () -> Void
-    ) -> Bool {
-        false
-    }
-
-    nonisolated func updaterShouldDownloadReleaseNotes(_: SPUUpdater) -> Bool {
-        true
-    }
-
-    nonisolated func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
-        // Extract values before async context to avoid Sendable issues
-        let title = item.title
-        let id = item.propertiesDictionary["id"] as? String
-        let semver = item.propertiesDictionary["sparkle:shortVersionString"] as? String ?? item.versionString
-        let lastCheck = updater.lastUpdateCheckDate
-
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            guard let title, let id else {
-                state = .failed
+        nonisolated func updaterDidNotFindUpdate(_ updater: SPUUpdater) {
+            let lastCheck = updater.lastUpdateCheckDate
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                available = nil
+                state = .completed
                 checked = lastCheck
-                return
             }
-
-            let version: UpdateVersionObject = .init(formatted: title, semver: semver)
-            available = .init(id: id, name: title, version: version)
-            state = .completed
-            checked = lastCheck
         }
-    }
 
-    nonisolated func updater(_: SPUUpdater, failedToDownloadUpdate _: SUAppcastItem, error: Error) {
-        #if canImport(Sentry)
-            SentrySDK.capture(error: error)
-        #endif
-    }
+        nonisolated func updater(_: SPUUpdater, willShowModalAlert _: NSAlert) {}
 
-    nonisolated func updater(_: SPUUpdater, failedToDownloadAppcastWithError error: Error) {
-        #if canImport(Sentry)
-            SentrySDK.capture(error: error)
-        #endif
-    }
-
-    nonisolated func updaterDidNotFindUpdate(_ updater: SPUUpdater) {
-        let lastCheck = updater.lastUpdateCheckDate
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            available = nil
-            state = .completed
-            checked = lastCheck
-        }
-    }
-
-    nonisolated func updater(_: SPUUpdater, willShowModalAlert _: NSAlert) {}
-
-    nonisolated func updater(_: SPUUpdater, didAbortWithError error: Error) {
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            if let nsError = error as NSError? {
-                // 4005 = user cancelled, 4006 = already on latest
-                // 1000 = appcast parsing errors (often benign)
-                switch nsError.code {
-                case 4005:
-                    state = .completed
-                    return
-                case 4006, 1000:
-                    state = .idle
-                    return
-                default:
-                    break
+        nonisolated func updater(_: SPUUpdater, didAbortWithError error: Error) {
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if let nsError = error as NSError? {
+                    // 4005 = user cancelled, 4006 = already on latest
+                    // 1000 = appcast parsing errors (often benign)
+                    switch nsError.code {
+                    case 4005:
+                        state = .completed
+                        return
+                    case 4006, 1000:
+                        state = .idle
+                        return
+                    default:
+                        break
+                    }
                 }
+                BLogger.updates.warning("Update aborted: \(error)")
+                state = .failed
             }
-            BLogger.updates.warning("Update aborted: \(error)")
-            state = .failed
+        }
+
+        var updateVersion: String {
+            get {
+                if let version = UserDefaults.main
+                    .object(forKey: SystemDefaultsKeys.versionCurrent.rawValue) as? String
+                {
+                    return version
+
+                } else {
+                    self.updateVersion = (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0"
+
+                }
+
+                return (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0"
+
+            }
+
+            set {
+                UserDefaults.save(
+                    .versionCurrent,
+                    value: (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? newValue
+                )
+
+            }
+
+        }
+
+    }
+
+#else
+
+    @Observable @MainActor
+    final class UpdateManager: NSObject, UpdateManagerProtocol {
+        var state: UpdateStateType = .idle
+        var available: UpdatePayloadObject?
+        var checked: Date?
+        var automaticUpdates: Bool = true
+
+        var currentVersion: String {
+            Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        }
+
+        var currentBuild: String {
+            Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
+        }
+
+        var versionDisplay: String {
+            "v\(currentVersion) (\(currentBuild))"
+        }
+
+        func updateCheck() {}
+
+        var updateVersion: String {
+            get {
+                (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0"
+            }
+            set {
+                UserDefaults.save(.versionCurrent, value: newValue)
+            }
         }
     }
 
-    var updateVersion: String {
-        get {
-            if let version = UserDefaults.main.object(forKey: SystemDefaultsKeys.versionCurrent.rawValue) as? String {
-                return version
-
-            } else {
-                self.updateVersion = (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0"
-
-            }
-
-            return (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0"
-
-        }
-
-        set {
-            UserDefaults.save(
-                .versionCurrent,
-                value: (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? newValue
-            )
-
-        }
-
-    }
-
-}
+#endif

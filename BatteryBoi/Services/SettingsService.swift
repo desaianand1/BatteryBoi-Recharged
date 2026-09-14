@@ -376,12 +376,20 @@ final class SettingsService: SettingsServiceProtocol {
                 NSWorkspace.shared.open(url)
             }
         } else if action.type == .appRate {
-            if let urlString = Bundle.main.infoDictionary?["GITHUB_REPO_URL"] as? String,
-               !urlString.isEmpty,
-               let url = URL(string: urlString)
-            {
-                NSWorkspace.shared.open(url)
-            }
+            #if DIRECT_DISTRIBUTION
+                if let urlString = Bundle.main.infoDictionary?["GITHUB_REPO_URL"] as? String,
+                   !urlString.isEmpty,
+                   let url = URL(string: urlString)
+                {
+                    NSWorkspace.shared.open(url)
+                }
+            #else
+                if let appId = Bundle.main.infoDictionary?["APP_APPLE_ID"] as? String, !appId.isEmpty,
+                   let url = URL(string: "macappstore://apps.apple.com/app/id\(appId)?action=write-review")
+                {
+                    NSWorkspace.shared.open(url)
+                }
+            #endif
         } else if action.type == .appQuit {
             windowService.setState(.dismissed, animated: false)
 

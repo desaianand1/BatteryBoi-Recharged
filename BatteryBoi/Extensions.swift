@@ -322,13 +322,13 @@ extension String {
     /// Normalizes a Bluetooth MAC address to a consistent format.
     /// Converts to lowercase and replaces colons with dashes.
     /// Example: "AA:BB:CC:DD:EE:FF" -> "aa-bb-cc-dd-ee-ff"
-    var normalizedBluetoothAddress: String {
+    nonisolated var normalizedBluetoothAddress: String {
         lowercased().replacingOccurrences(of: ":", with: "-")
     }
 
     /// Converts a normalized Bluetooth address back to colon-separated format.
     /// Example: "aa-bb-cc-dd-ee-ff" -> "aa:bb:cc:dd:ee:ff"
-    var colonSeparatedBluetoothAddress: String {
+    nonisolated var colonSeparatedBluetoothAddress: String {
         replacingOccurrences(of: "-", with: ":")
     }
 }

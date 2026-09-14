@@ -251,31 +251,36 @@ final class BatteryService: BatteryServiceProtocol {
     }
 
     func powerSaveMode() {
-        if saver != .unavailable {
-            let command = "do shell script \"pmset -c lowpowermode \(saver.flag ? 0 : 1)\" with administrator privileges"
+        #if DIRECT_DISTRIBUTION
+            if saver != .unavailable {
+                let command = "do shell script \"pmset -c lowpowermode \(saver.flag ? 0 : 1)\" with administrator privileges"
 
-            if let script = NSAppleScript(source: command) {
-                var error: NSDictionary?
-                script.executeAndReturnError(&error)
+                if let script = NSAppleScript(source: command) {
+                    var error: NSDictionary?
+                    script.executeAndReturnError(&error)
 
-                if let error {
-                    #if canImport(Sentry)
-                        SentrySDK.capture(message: "Power save mode AppleScript failed") { scope in
-                            scope.setExtra(
-                                value: error["NSAppleScriptErrorMessage"] as? String ?? "Unknown error",
-                                key: "message"
-                            )
-                            scope.setExtra(value: error["NSAppleScriptErrorNumber"] as? Int ?? -1, key: "errorNumber")
-                        }
-                    #endif
-                }
+                    if let error {
+                        #if canImport(Sentry)
+                            SentrySDK.capture(message: "Power save mode AppleScript failed") { scope in
+                                scope.setExtra(
+                                    value: error["NSAppleScriptErrorMessage"] as? String ?? "Unknown error",
+                                    key: "message"
+                                )
+                                scope.setExtra(
+                                    value: error["NSAppleScriptErrorNumber"] as? Int ?? -1,
+                                    key: "errorNumber"
+                                )
+                            }
+                        #endif
+                    }
 
-                saveModeFetchTask = Task { [weak self] in
-                    guard let self else { return }
-                    self.saver = self.fetchPowerSaveModeStatus()
+                    saveModeFetchTask = Task { [weak self] in
+                        guard let self else { return }
+                        self.saver = self.fetchPowerSaveModeStatus()
+                    }
                 }
             }
-        }
+        #endif
     }
 
     private func powerThermalCheck() {

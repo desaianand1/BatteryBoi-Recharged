@@ -1,6 +1,5 @@
 import Foundation
 import Logging
-import Sparkle
 import SwiftUI
 
 @Observable @MainActor
@@ -153,27 +152,31 @@ final class AppManager: AppManagerProtocol {
     }
 
     func appDistribution() async -> SystemDistribution {
-        do {
-            let output = try await ProcessRunner.shared.run(
-                executable: "/usr/bin/codesign",
-                arguments: ["-dv", "--verbose=4", Bundle.main.bundlePath],
-                timeout: .seconds(10)
-            )
+        #if DIRECT_DISTRIBUTION
+            do {
+                let output = try await ProcessRunner.shared.run(
+                    executable: "/usr/bin/codesign",
+                    arguments: ["-dv", "--verbose=4", Bundle.main.bundlePath],
+                    timeout: .seconds(10)
+                )
 
-            if output.contains("Authority=Apple Mac OS Application Signing") {
-                return .appstore
-            }
-        } catch {
-            // codesign outputs to stderr, so non-zero exit is expected for non-App Store builds
-            // Check if the error message contains the App Store signing info
-            if case let ProcessRunnerError.nonZeroExitCode(_, errorOutput) = error {
-                if errorOutput.contains("Authority=Apple Mac OS Application Signing") {
+                if output.contains("Authority=Apple Mac OS Application Signing") {
                     return .appstore
                 }
+            } catch {
+                // codesign outputs to stderr, so non-zero exit is expected for non-App Store builds
+                // Check if the error message contains the App Store signing info
+                if case let ProcessRunnerError.nonZeroExitCode(_, errorOutput) = error {
+                    if errorOutput.contains("Authority=Apple Mac OS Application Signing") {
+                        return .appstore
+                    }
+                }
             }
-        }
 
-        return .direct
+            return .direct
+        #else
+            return .appstore
+        #endif
 
     }
 
