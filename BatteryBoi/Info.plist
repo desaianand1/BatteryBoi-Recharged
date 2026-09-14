@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>APP_APPLE_ID</key>
+	<string>$(APP_APPLE_ID)</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -13,29 +15,25 @@
 			</array>
 		</dict>
 	</array>
-	<key>MDItemKeywords</key>
-	<string>Battery,Power,BatteryBoi,Energy</string>
-	<key>NSCalendarsFullAccessUsageDescription</key>
-	<string>We check your calendar to ensure your battery lasts for your conference calls.</string>
 	<key>DONATE_BUYMEACOFFEE_URL</key>
 	<string>$(DONATE_BUYMEACOFFEE_URL)</string>
 	<key>DONATE_KOFI_URL</key>
 	<string>$(DONATE_KOFI_URL)</string>
 	<key>GITHUB_REPO_URL</key>
 	<string>$(GITHUB_REPO_URL)</string>
+	<key>MDItemKeywords</key>
+	<string>Battery,Power,BatteryBoi,Energy</string>
 	<key>SUFeedURL</key>
 	<string>https://github.com/desaianand1/BatteryBoi-Recharged/releases/latest/download/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>luVX4/2YuPZ5Ly2UfWCf+Mr+63xxC642sFONANdzGek=</string>
 	<key>SentryDSN</key>
 	<string>$(SENTRY_DSN)</string>
-	<key>SentryTracesSampleRate</key>
-	<string>$(SENTRY_TRACES_SAMPLE_RATE)</string>
-	<key>SentryProfilesSampleRate</key>
-	<string>$(SENTRY_PROFILES_SAMPLE_RATE)</string>
 	<key>SentryEnvironment</key>
 	<string>$(SENTRY_ENVIRONMENT)</string>
-	<key>LSUIElement</key>
-	<true/>
+	<key>SentryProfilesSampleRate</key>
+	<string>$(SENTRY_PROFILES_SAMPLE_RATE)</string>
+	<key>SentryTracesSampleRate</key>
+	<string>$(SENTRY_TRACES_SAMPLE_RATE)</string>
 </dict>
 </plist>

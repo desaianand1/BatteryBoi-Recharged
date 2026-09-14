@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C1A0B0C02C09000000000001 /* OnboardingServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C09000000000002 /* OnboardingServiceProtocol.swift */; };
 		1743B5712F2FCA6E00496B29 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 1743B5702F2FCA6E00496B29 /* Sentry */; };
 		1743B5742F2FCAA700496B29 /* InMemoryLogging in Frameworks */ = {isa = PBXBuildFile; productRef = 1743B5732F2FCAA700496B29 /* InMemoryLogging */; };
 		1743B5762F2FCAA700496B29 /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 1743B5752F2FCAA700496B29 /* Logging */; };
@@ -17,10 +16,6 @@
 		BC45C9ABBFA2916F7EC0DECF /* OnboardingCompleteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC6941A1612DAE39BCA0CD4C /* OnboardingCompleteView.swift */; };
 		BCD9E15438772DE754E0529C /* OnboardingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE6A8B85D561453365F8C45F /* OnboardingService.swift */; };
 		C1A0B0C02C01000000000003 /* ProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C01000000000002 /* ProcessRunner.swift */; };
-		C1A0B0C02C08000000000002 /* SystemModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C08000000000001 /* SystemModels.swift */; };
-		C1A0B0C02C08000000000004 /* SystemDefaultsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C08000000000003 /* SystemDefaultsKeys.swift */; };
-		C1A0B0C02C08000000000006 /* SoundEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C08000000000005 /* SoundEffects.swift */; };
-		C1A0B0C02C08000000000008 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C08000000000007 /* AppDelegate.swift */; };
 		C1A0B0C02C02000000000011 /* BatteryServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000001 /* BatteryServiceProtocol.swift */; };
 		C1A0B0C02C02000000000012 /* BluetoothServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000002 /* BluetoothServiceProtocol.swift */; };
 		C1A0B0C02C02000000000013 /* SettingsServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C02000000000003 /* SettingsServiceProtocol.swift */; };
@@ -31,7 +26,6 @@
 		C1A0B0C02C03000000000006 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000005 /* DesignTokens.swift */; };
 		C1A0B0C02C03000000000008 /* IOKitBatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000007 /* IOKitBatteryService.swift */; };
 		C1A0B0C02C03000000000010 /* IOKitBluetoothService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C03000000000009 /* IOKitBluetoothService.swift */; };
-		C1A0B0C02C07000000000001 /* ObservationStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C07000000000002 /* ObservationStream.swift */; };
 		C1A0B0C02C04000000000005 /* ServiceCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C04000000000006 /* ServiceCoordinator.swift */; };
 		C1A0B0C02C04000000000007 /* EventService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C04000000000008 /* EventService.swift */; };
 		C1A0B0C02C04000000000009 /* SettingsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C04000000000010 /* SettingsService.swift */; };
@@ -50,6 +44,12 @@
 		C1A0B0C02C06000000000003 /* EventServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C06000000000004 /* EventServiceProtocol.swift */; };
 		C1A0B0C02C06000000000005 /* AppManagerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C06000000000006 /* AppManagerProtocol.swift */; };
 		C1A0B0C02C06000000000007 /* UpdateManagerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C06000000000008 /* UpdateManagerProtocol.swift */; };
+		C1A0B0C02C07000000000001 /* ObservationStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C07000000000002 /* ObservationStream.swift */; };
+		C1A0B0C02C08000000000002 /* SystemModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C08000000000001 /* SystemModels.swift */; };
+		C1A0B0C02C08000000000004 /* SystemDefaultsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C08000000000003 /* SystemDefaultsKeys.swift */; };
+		C1A0B0C02C08000000000006 /* SoundEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C08000000000005 /* SoundEffects.swift */; };
+		C1A0B0C02C08000000000008 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C08000000000007 /* AppDelegate.swift */; };
+		C1A0B0C02C09000000000001 /* OnboardingServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C09000000000002 /* OnboardingServiceProtocol.swift */; };
 		D83CD7452AA8F693004223D7 /* BluetoothView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83CD7442AA8F693004223D7 /* BluetoothView.swift */; };
 		D83DD3F52A9908E600FCC534 /* UpdateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83DD3F42A9908E600FCC534 /* UpdateManager.swift */; };
 		D84F4E182A85A66900668582 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = D84F4E172A85A66900668582 /* Sparkle */; };
@@ -102,14 +102,11 @@
 /* Begin PBXFileReference section */
 		1762F5BE2F30CDC9005DB7BF /* BatteryBoi - RechargedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "BatteryBoi - RechargedTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1762F5C72F30CE1C005DB7BF /* BatteryBoi - Recharged.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = "BatteryBoi - Recharged.xctestplan"; sourceTree = "<group>"; };
+		17DF9BDB30580D7A0062B2DA /* BatteryBoi.AppStore.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BatteryBoi.AppStore.entitlements; sourceTree = "<group>"; };
 		8BA23429F303D6EB77F4B904 /* OnboardingWelcomeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingWelcomeView.swift; sourceTree = "<group>"; };
 		AC6941A1612DAE39BCA0CD4C /* OnboardingCompleteView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingCompleteView.swift; sourceTree = "<group>"; };
 		B434599867D1109FB7DBBA7D /* OnboardingPermissionsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingPermissionsView.swift; sourceTree = "<group>"; };
 		C1A0B0C02C01000000000002 /* ProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessRunner.swift; sourceTree = "<group>"; };
-		C1A0B0C02C08000000000001 /* SystemModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemModels.swift; sourceTree = "<group>"; };
-		C1A0B0C02C08000000000003 /* SystemDefaultsKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemDefaultsKeys.swift; sourceTree = "<group>"; };
-		C1A0B0C02C08000000000005 /* SoundEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundEffects.swift; sourceTree = "<group>"; };
-		C1A0B0C02C08000000000007 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C1A0B0C02C02000000000001 /* BatteryServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryServiceProtocol.swift; sourceTree = "<group>"; };
 		C1A0B0C02C02000000000002 /* BluetoothServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothServiceProtocol.swift; sourceTree = "<group>"; };
 		C1A0B0C02C02000000000003 /* SettingsServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsServiceProtocol.swift; sourceTree = "<group>"; };
@@ -120,7 +117,6 @@
 		C1A0B0C02C03000000000005 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		C1A0B0C02C03000000000007 /* IOKitBatteryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOKitBatteryService.swift; sourceTree = "<group>"; };
 		C1A0B0C02C03000000000009 /* IOKitBluetoothService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOKitBluetoothService.swift; sourceTree = "<group>"; };
-		C1A0B0C02C07000000000002 /* ObservationStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservationStream.swift; sourceTree = "<group>"; };
 		C1A0B0C02C04000000000006 /* ServiceCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceCoordinator.swift; sourceTree = "<group>"; };
 		C1A0B0C02C04000000000008 /* EventService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventService.swift; sourceTree = "<group>"; };
 		C1A0B0C02C04000000000010 /* SettingsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsService.swift; sourceTree = "<group>"; };
@@ -139,6 +135,11 @@
 		C1A0B0C02C06000000000004 /* EventServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventServiceProtocol.swift; sourceTree = "<group>"; };
 		C1A0B0C02C06000000000006 /* AppManagerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppManagerProtocol.swift; sourceTree = "<group>"; };
 		C1A0B0C02C06000000000008 /* UpdateManagerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateManagerProtocol.swift; sourceTree = "<group>"; };
+		C1A0B0C02C07000000000002 /* ObservationStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservationStream.swift; sourceTree = "<group>"; };
+		C1A0B0C02C08000000000001 /* SystemModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemModels.swift; sourceTree = "<group>"; };
+		C1A0B0C02C08000000000003 /* SystemDefaultsKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemDefaultsKeys.swift; sourceTree = "<group>"; };
+		C1A0B0C02C08000000000005 /* SoundEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundEffects.swift; sourceTree = "<group>"; };
+		C1A0B0C02C08000000000007 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C1A0B0C02C09000000000002 /* OnboardingServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingServiceProtocol.swift; sourceTree = "<group>"; };
 		D540748087DD0FBD17E51AC2 /* OnboardingView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		D83CD7442AA8F693004223D7 /* BluetoothView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothView.swift; sourceTree = "<group>"; };
@@ -185,17 +186,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		1762F5BF2F30CDC9005DB7BF /* BatteryBoi - RechargedTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = "BatteryBoi - RechargedTests";
-			sourceTree = "<group>";
-		};
+		1762F5BF2F30CDC9005DB7BF /* BatteryBoi - RechargedTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "BatteryBoi - RechargedTests"; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -357,6 +348,7 @@
 				C1A0B0C02C01000000000001 /* Utilities */,
 				D8D9E5BA2A80649B00E295FA /* Views */,
 				D8D9E5A32A7DE7AE00E295FA /* Assets.xcassets */,
+				17DF9BDB30580D7A0062B2DA /* BatteryBoi.AppStore.entitlements */,
 				D8D9E5A82A7DE7AE00E295FA /* BatteryBoi.entitlements */,
 				D8D9E5A52A7DE7AE00E295FA /* Preview Content */,
 			);
@@ -721,6 +713,130 @@
 			};
 			name = Release;
 		};
+		17DF9BD730580A420062B2DA /* Release - AppStore */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D8D9E5CC2A84069700E295FA /* Environments.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				OTHER_SWIFT_FLAGS = "-DMACOS_13_AND_ABOVE -default-isolation MainActor";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = "Release - AppStore";
+		};
+		17DF9BD830580A420062B2DA /* Release - AppStore */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D8D9E5CC2A84069700E295FA /* Environments.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = BatteryBoi/BatteryBoi.AppStore.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 125701;
+				DEVELOPMENT_ASSET_PATHS = "\"BatteryBoi/Preview Content\"";
+				DEVELOPMENT_TEAM = YF3F2NR98Q;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BatteryBoi/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "BatteryBoi - Recharged";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "We need access to Bluetooth to show the battery status for your connected headsets and other devices.";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "We check your calendar event durations to ensure your battery lasts for your conference calls so we can notify you to plug-in your charger accordingly";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "We check your calendar to ensure your battery lasts for your conference calls.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Nirnshard LLP";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
+				MARKETING_VERSION = 12.57.1;
+				OLDER_MACOS = "";
+				OTHER_SWIFT_FLAGS = "-DMACOS_13_AND_ABOVE -default-isolation MainActor";
+				PRODUCT_BUNDLE_IDENTIFIER = com.nirnshard.batteryboirecharged;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.2;
+			};
+			name = "Release - AppStore";
+		};
+		17DF9BD930580A420062B2DA /* Release - AppStore */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 125701;
+				DEVELOPMENT_TEAM = YF3F2NR98Q;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
+				MARKETING_VERSION = 12.57.1;
+				OTHER_SWIFT_FLAGS = "-DMACOS_13_AND_ABOVE";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.nirnshard.BatteryBoi---RechargedTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.2;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BatteryBoi - Recharged.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BatteryBoi - Recharged";
+			};
+			name = "Release - AppStore";
+		};
 		D8D9E5A92A7DE7AE00E295FA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = D8D9E5CC2A84069700E295FA /* Environments.xcconfig */;
@@ -858,8 +974,10 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BatteryBoi/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "BatteryBoi - Recharged";
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.reference";
-				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "We need access to Bluetooth to show the Battery Status for your Connected Devices.";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "We need access to Bluetooth to show the battery status for your connected headsets and other devices.";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "We check your calendar event durations to ensure your battery lasts for your conference calls so we can notify you to plug-in your charger accordingly";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "We check your calendar to ensure your battery lasts for your conference calls.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Nirnshard LLP";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -895,8 +1013,10 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BatteryBoi/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "BatteryBoi - Recharged";
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.reference";
-				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "We need access to Bluetooth to show the Battery Status for your Connected Devices.";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "We need access to Bluetooth to show the battery status for your connected headsets and other devices.";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "We check your calendar event durations to ensure your battery lasts for your conference calls so we can notify you to plug-in your charger accordingly";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "We check your calendar to ensure your battery lasts for your conference calls.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Nirnshard LLP";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -923,6 +1043,7 @@
 			buildConfigurations = (
 				1762F5C42F30CDC9005DB7BF /* Debug */,
 				1762F5C52F30CDC9005DB7BF /* Release */,
+				17DF9BD930580A420062B2DA /* Release - AppStore */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -932,6 +1053,7 @@
 			buildConfigurations = (
 				D8D9E5A92A7DE7AE00E295FA /* Debug */,
 				D8D9E5AA2A7DE7AE00E295FA /* Release */,
+				17DF9BD730580A420062B2DA /* Release - AppStore */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -941,6 +1063,7 @@
 			buildConfigurations = (
 				D8D9E5AC2A7DE7AE00E295FA /* Debug */,
 				D8D9E5AD2A7DE7AE00E295FA /* Release */,
+				17DF9BD830580A420062B2DA /* Release - AppStore */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

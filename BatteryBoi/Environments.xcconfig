@@ -22,3 +22,6 @@ SENTRY_ENVIRONMENT = production
 // Values: complete (strictest), targeted, minimal (least strict)
 // Using complete for Swift 6.2 strict concurrency compliance
 SWIFT_STRICT_CONCURRENCY = complete
+
+// App Store App ID
+APP_APPLE_ID = 6758589177
