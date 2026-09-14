@@ -1,0 +1,43 @@
+name: App Store Release
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  XCODE_VERSION: '26.2'
+  SCHEME: 'BatteryBoi - Recharged'
+  PROJECT: 'BatteryBoi.xcodeproj'
+
+jobs:
+  submit-appstore:
+    name: Build & Submit to App Store
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Fetch Doppler Secrets
+        uses: dopplerhq/secrets-fetch-action@v1.3.0
+        with:
+          doppler-token: ${{ secrets.DOPPLER_PRD_TOKEN }}
+          doppler-project: batteryboi-recharged
+          doppler-config: prd
+          inject-env-vars: true
+
+      - name: Build and Submit to App Store
+        run: bundle exec fastlane appstore_submit

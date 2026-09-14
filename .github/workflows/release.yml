@@ -149,6 +149,35 @@ jobs:
           echo "Appcast: https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}/appcast.xml"
           echo "Appcast (latest): https://github.com/${{ github.repository }}/releases/latest/download/appcast.xml"
 
+  testflight:
+    name: Upload to TestFlight
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Fetch Doppler Secrets
+        uses: dopplerhq/secrets-fetch-action@v1.3.0
+        with:
+          doppler-token: ${{ secrets.DOPPLER_PRD_TOKEN }}
+          doppler-project: batteryboi-recharged
+          doppler-config: prd
+          inject-env-vars: true
+
+      - name: Build and Upload to TestFlight
+        run: bundle exec fastlane testflight_upload
+
   create-sentry-release:
     name: Create Sentry Release
     runs-on: ubuntu-latest
