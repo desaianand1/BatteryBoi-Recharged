@@ -5,6 +5,7 @@ A beautiful, powerful battery indicator for your macOS menu bar.
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-BD0000?logo=gplv3)](https://www.gnu.org/licenses/gpl-3.0)
 [![Swift Version](https://img.shields.io/badge/Swift-6.x-F05138?logo=swift)]()
 [![macOS](https://img.shields.io/badge/macOS-14.0+-black?logo=apple)]()
+[![Download on the Mac App Store](docs/download_on_app_store_badge.svg)](https://apps.apple.com/app/id6758589177)
 
 > [!NOTE]
 > This is a faithful revival of the original [BatteryBoi](https://github.com/thebarbican19/BatteryBoi) app by Joe Barbour, updated and maintained for modern macOS versions.
@@ -18,13 +19,17 @@ A beautiful, powerful battery indicator for your macOS menu bar.
 - Support for both Intel and Apple Silicon Macs
 - Customizable display options (percentage, time, cycle count, hidden)
 - Sound effects for battery events
-- Automatic updates via Sparkle
+- Automatic updates (via Mac App Store or Sparkle for direct downloads)
 - Full keyboard navigation and VoiceOver accessibility
 - Localized in 15+ languages
 
 ## Installation
 
-### Homebrew (Recommended)
+### Mac App Store
+
+[![Download on the Mac App Store](docs/download_on_app_store_badge.svg)](https://apps.apple.com/app/id6758589177)
+
+### Homebrew
 
 ```bash
 brew install --cask batteryboi-recharged
@@ -85,7 +90,8 @@ This project uses automated build, sign, test, and release pipelines with:
 - **Fastlane** for build automation
 - **Match** for code signing
 - **GitHub Actions** for CI/CD
-- **Sparkle** for auto-updates
+- **Sparkle** for auto-updates (direct distribution)
+- **TestFlight** for beta testing (App Store distribution)
 - **Semantic Release** for versioning
 
 **📖 For complete setup instructions, see [CI/CD Setup Guide](docs/CI-CD-SETUP.md)**
