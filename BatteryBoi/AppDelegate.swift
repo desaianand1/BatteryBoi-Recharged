@@ -170,6 +170,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
                     button.addSubview(hosting)
                 }
                 button.action = #selector(applicationStatusBarButtonClicked(sender:))
+                button.sendAction(on: [.leftMouseUp, .rightMouseUp])
                 button.target = self
 
                 self.env.settings.pinned = .disabled
@@ -186,12 +187,206 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     }
 
     @objc
-    func applicationStatusBarButtonClicked(sender _: NSStatusBarButton) {
-        if self.env.window.isVisible(.userInitiated) == false {
-            self.env.window.open(.userInitiated, device: nil)
+    func applicationStatusBarButtonClicked(sender: NSStatusBarButton) {
+        if NSApp.currentEvent?.type == .rightMouseUp {
+            showContextMenu(relativeTo: sender)
         } else {
-            self.env.window.setState(.dismissed, animated: true)
+            if self.env.window.isVisible(.userInitiated) == false {
+                self.env.window.open(.userInitiated, device: nil)
+            } else {
+                self.env.window.setState(.dismissed, animated: true)
+            }
         }
+    }
+
+    // MARK: - Context Menu
+
+    struct ContextMenuState {
+        var percentage: Int
+        var isCharging: Bool
+        var autoLaunchEnabled: Bool
+        var pinnedEnabled: Bool
+        var sfxEnabled: Bool
+        var isDirectDistribution: Bool
+    }
+
+    private func showContextMenu(relativeTo button: NSStatusBarButton) {
+        let state = ContextMenuState(
+            percentage: Int(self.env.battery.percentage),
+            isCharging: self.env.battery.charging.state.charging,
+            autoLaunchEnabled: self.env.settings.autoLaunch == .enabled,
+            pinnedEnabled: self.env.settings.pinned == .enabled,
+            sfxEnabled: self.env.settings.soundEffects == .enabled,
+            isDirectDistribution: self.env.settings.menu.contains(where: { $0.type == .appUpdateCheck })
+        )
+        let menu = Self.buildContextMenu(state: state, target: self)
+        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: button.bounds.height + 5), in: button)
+    }
+
+    nonisolated static func buildContextMenu(state: ContextMenuState, target: AnyObject) -> NSMenu {
+        let menu = NSMenu()
+        let iconConfig = NSImage.SymbolConfiguration(pointSize: 13, weight: .medium)
+        let subtleConfig = iconConfig.applying(.init(paletteColors: [.secondaryLabelColor]))
+
+        // Battery header
+        let headerItem = NSMenuItem()
+        let headerString = NSMutableAttributedString()
+
+        let batteryIconName = state.isCharging ? "battery.100.bolt" : "battery.50"
+        if let batteryIcon = NSImage(systemSymbolName: batteryIconName, accessibilityDescription: nil)?
+            .withSymbolConfiguration(subtleConfig)
+        {
+            let iconAttachment = NSTextAttachment()
+            iconAttachment.image = batteryIcon
+            headerString.append(NSAttributedString(attachment: iconAttachment))
+            headerString.append(NSAttributedString(string: "  "))
+        }
+
+        let percentText = "\("DeviceDetailBatteryLabel".localise()): \(state.percentage)%"
+        headerString.append(NSAttributedString(
+            string: percentText,
+            attributes: [
+                .font: NSFont.systemFont(ofSize: NSFont.systemFontSize, weight: .medium),
+                .foregroundColor: NSColor.secondaryLabelColor,
+            ]
+        ))
+
+        if state.isCharging {
+            headerString.append(NSAttributedString(
+                string: " · \("AlertChargingTitle".localise())",
+                attributes: [
+                    .font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize, weight: .regular),
+                    .foregroundColor: NSColor.tertiaryLabelColor,
+                ]
+            ))
+        }
+
+        headerItem.attributedTitle = headerString
+        headerItem.isEnabled = false
+        menu.addItem(headerItem)
+
+        menu.addItem(.separator())
+
+        // Launch at Login
+        let launchItem = NSMenuItem(
+            title: "OnboardingLaunchAtLoginLabel".localise(),
+            action: #selector(contextMenuToggleLaunchAtLogin),
+            keyEquivalent: ""
+        )
+        launchItem.target = target
+        launchItem.state = state.autoLaunchEnabled ? .on : .off
+        launchItem.image = NSImage(
+            systemSymbolName: "arrow.right.circle",
+            accessibilityDescription: nil
+        )?.withSymbolConfiguration(subtleConfig)
+        menu.addItem(launchItem)
+
+        // Pin to Screen
+        let pinItem = NSMenuItem(
+            title: "SettingsPinnedLabel".localise(),
+            action: #selector(contextMenuTogglePinned),
+            keyEquivalent: ""
+        )
+        pinItem.target = target
+        pinItem.state = state.pinnedEnabled ? .on : .off
+        pinItem.image = NSImage(
+            systemSymbolName: state.pinnedEnabled ? "pin.fill" : "pin",
+            accessibilityDescription: nil
+        )?.withSymbolConfiguration(subtleConfig)
+        menu.addItem(pinItem)
+
+        // Sound Effects
+        let sfxItem = NSMenuItem(
+            title: "SettingsSoundEffectsLabel".localise(),
+            action: #selector(contextMenuToggleSoundEffects),
+            keyEquivalent: ""
+        )
+        sfxItem.target = target
+        sfxItem.state = state.sfxEnabled ? .on : .off
+        sfxItem.image = NSImage(
+            systemSymbolName: state.sfxEnabled ? "speaker.wave.2.fill" : "speaker.slash",
+            accessibilityDescription: nil
+        )?.withSymbolConfiguration(subtleConfig)
+        menu.addItem(sfxItem)
+
+        menu.addItem(.separator())
+
+        // Check for Updates (direct distribution only)
+        if state.isDirectDistribution {
+            let updateItem = NSMenuItem(
+                title: "\("SettingsCheckUpdatesLabel".localise())…",
+                action: #selector(contextMenuCheckForUpdates),
+                keyEquivalent: ""
+            )
+            updateItem.target = target
+            updateItem.image = NSImage(
+                systemSymbolName: "arrow.triangle.2.circlepath",
+                accessibilityDescription: nil
+            )?.withSymbolConfiguration(subtleConfig)
+            menu.addItem(updateItem)
+        }
+
+        // Support Development
+        let websiteItem = NSMenuItem(
+            title: "SettingsWebsiteLabel".localise(),
+            action: #selector(contextMenuOpenWebsite),
+            keyEquivalent: ""
+        )
+        websiteItem.target = target
+        websiteItem.image = NSImage(
+            systemSymbolName: "heart",
+            accessibilityDescription: nil
+        )?.withSymbolConfiguration(subtleConfig)
+        menu.addItem(websiteItem)
+
+        menu.addItem(.separator())
+
+        // Quit
+        let appName = Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "BatteryBoi"
+        let quitItem = NSMenuItem(
+            title: "\("SettingsQuitLabel".localise()) \(appName)",
+            action: #selector(contextMenuQuit),
+            keyEquivalent: "q"
+        )
+        quitItem.keyEquivalentModifierMask = .command
+        quitItem.target = target
+        quitItem.image = NSImage(
+            systemSymbolName: "power",
+            accessibilityDescription: nil
+        )?.withSymbolConfiguration(subtleConfig)
+        menu.addItem(quitItem)
+
+        return menu
+    }
+
+    @objc
+    func contextMenuToggleLaunchAtLogin() {
+        self.env.settings.autoLaunch = self.env.settings.autoLaunch == .enabled ? .disabled : .enabled
+    }
+
+    @objc
+    func contextMenuTogglePinned() {
+        self.env.settings.pinned = self.env.settings.pinned == .enabled ? .disabled : .enabled
+    }
+
+    @objc
+    func contextMenuToggleSoundEffects() {
+        self.env.settings.soundEffects = self.env.settings.soundEffects == .enabled ? .disabled : .enabled
+    }
+
+    @objc
+    func contextMenuCheckForUpdates() {
+        self.env.update.updateCheck()
+    }
+
+    @objc
+    func contextMenuOpenWebsite() {
+        self.env.settings.performAction(SettingsActionObject(.appWebsite))
+    }
+
+    @objc
+    func contextMenuQuit() {
+        self.env.settings.performAction(SettingsActionObject(.appQuit))
     }
 
     @objc
