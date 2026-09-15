@@ -54,16 +54,6 @@ enum SettingsCharged: String, SettingsToggle {
     static let disabledIcon = "bolt.slash"
 }
 
-// MARK: - Beta Mode
-
-enum SettingsBeta: String, SettingsToggle {
-    case enabled
-    case disabled
-
-    static let enabledIcon = "flask.fill"
-    static let disabledIcon = "flask"
-}
-
 // MARK: - Display Type
 
 enum SettingsDisplayType: String {
@@ -107,7 +97,6 @@ struct SettingsActionObject: Hashable {
         case .appDevices: title = "SettingsDevicesLabel".localise()
         case .appSettings: title = "SettingsSettingsLabel".localise()
         case .appEfficiencyMode: title = "SettingsEfficiencyLabel".localise()
-        case .appBeta: title = "SettingsPrereleasesLabel".localise()
         case .appRate: title = "SettingsRateLabel".localise()
         case .appUpdateCheck: title = "SettingsCheckUpdatesLabel".localise()
         case .appInstallUpdate: title = "SettingsNewUpdateLabel".localise()
@@ -135,7 +124,6 @@ enum SettingsActionType {
     case appRate
     case appEfficiencyMode
     case appInstallUpdate
-    case appBeta
     case customiseSoundEffects
     case customiseDisplay
     case customiseTheme
@@ -148,7 +136,6 @@ enum SettingsActionType {
         case .appUpdateCheck: "arrow.triangle.2.circlepath"
         case .appInstallUpdate: "arrow.triangle.2.circlepath"
         case .appWebsite: "globe"
-        case .appBeta: "flask.fill"
         case .appQuit: "power"
         case .appDevices: "rectangle.3.group"
         case .appSettings: "gearshape.fill"

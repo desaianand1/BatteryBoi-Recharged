@@ -52,6 +52,9 @@ protocol SettingsServiceProtocol: AnyObject {
     /// Bluetooth status
     var bluetoothStatus: SettingsStateValue { get set }
 
+    /// Power save mode enabled
+    var enabledPowerSave: Bool { get set }
+
     // MARK: - Methods
 
     /// Toggle display type to the next option

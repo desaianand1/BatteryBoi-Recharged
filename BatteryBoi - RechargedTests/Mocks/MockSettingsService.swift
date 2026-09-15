@@ -32,6 +32,7 @@ import Foundation
         var progressBar: Bool
         var soundEffects: SettingsSoundEffects
         var bluetoothStatus: SettingsStateValue
+        var enabledPowerSave: Bool
 
         // MARK: - Test Helpers
 
@@ -53,7 +54,8 @@ import Foundation
             chargeEighty: SettingsCharged = .disabled,
             progressBar: Bool = true,
             soundEffects: SettingsSoundEffects = .enabled,
-            bluetoothStatus: SettingsStateValue = .enabled
+            bluetoothStatus: SettingsStateValue = .enabled,
+            enabledPowerSave: Bool = false
         ) {
             self.menu = menu
             self.display = display
@@ -67,6 +69,7 @@ import Foundation
             self.progressBar = progressBar
             self.soundEffects = soundEffects
             self.bluetoothStatus = bluetoothStatus
+            self.enabledPowerSave = enabledPowerSave
         }
 
         // MARK: - Methods

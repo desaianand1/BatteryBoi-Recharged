@@ -71,6 +71,15 @@ final class SettingsService: SettingsServiceProtocol {
         set { enabledBluetoothStatus = newValue }
     }
 
+    var enabledPowerSave: Bool {
+        get { batteryService.saver == .efficient }
+        set {
+            if newValue != (batteryService.saver == .efficient) {
+                batteryService.togglePowerSaveMode()
+            }
+        }
+    }
+
     // MARK: - Initialization
 
     init(
@@ -406,7 +415,7 @@ final class SettingsService: SettingsServiceProtocol {
             updateManager.updateCheck()
         } else if action.type == .appEfficiencyMode {
             batteryService.togglePowerSaveMode()
-        } else if action.type == .appBeta {} else if action.type == .appPinned {
+        } else if action.type == .appPinned {
             switch enabledPinned {
             case .enabled: enabledPinned = .disabled
             case .disabled: enabledPinned = .enabled
