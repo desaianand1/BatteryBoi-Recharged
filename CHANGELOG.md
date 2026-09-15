@@ -1,3 +1,30 @@
+## [12.58.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.57.1...v12.58.0) (2026-09-15)
+
+### ⚠ BREAKING CHANGES
+
+* **hud:** AnimationManager.swift deleted. AnimationObject,
+AnimationKeyframeObject, and AnimationModifier types removed from
+HUDModels.swift. HUDMaskValues defaults changed (width/height 20→8,
+radius 10→4, opacity 1.0→0.0). All animation consumers must use the
+new keyframeAnimator-based HUDMaskView and HUDGlow views.
+
+### Features
+
+* **bluetooth:** add KVC and IORegistry key constants ([af5bdb8](https://github.com/desaianand1/BatteryBoi-Recharged/commit/af5bdb894ce51df0fb86441f65bb5f134c435bb8))
+* **bluetooth:** add KVC battery reader and broaden IORegistry scan ([139b103](https://github.com/desaianand1/BatteryBoi-Recharged/commit/139b1035befe6800bfa028870ad1403796a13d02))
+* **bluetooth:** expand data model for multi-battery devices ([d0de71b](https://github.com/desaianand1/BatteryBoi-Recharged/commit/d0de71bbc35a13dab7607e6877c251073518cdfa))
+* **bluetooth:** improve no-battery display and add vendor/case rows ([1b1a76e](https://github.com/desaianand1/BatteryBoi-Recharged/commit/1b1a76e09bf4dba4de44e626d2d21ff7931b62d7))
+* **bluetooth:** pass multi-battery and vendor data through service ([8a5ca7a](https://github.com/desaianand1/BatteryBoi-Recharged/commit/8a5ca7ab80bac0cc234e55946b5c8aa70d261250))
+* **i18n:** add DeviceDetailBrandLabel and DeviceDetailCaseLabel keys ([af000f3](https://github.com/desaianand1/BatteryBoi-Recharged/commit/af000f34746e981c1adb58072ceb4ddcc5964634))
+
+### Bug Fixes
+
+* **i18n:** add brand and case keys to non-English locale files ([8cb0af5](https://github.com/desaianand1/BatteryBoi-Recharged/commit/8cb0af53c710c16caaf227fd1f8d10ebacf86e4b))
+
+### Refactoring
+
+* **hud:** replace AnimationManager with keyframeAnimator and tune animation feel ([69e4f22](https://github.com/desaianand1/BatteryBoi-Recharged/commit/69e4f223b61840b012abd2e72d8b734198f8f0b7))
+
 ## [12.57.1](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.57.0...v12.57.1) (2026-09-13)
 
 ### Bug Fixes
