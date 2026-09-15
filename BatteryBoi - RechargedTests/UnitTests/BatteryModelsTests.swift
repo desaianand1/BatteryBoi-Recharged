@@ -10,20 +10,6 @@
 
 final class BatteryModelsTests: XCTestCase {
 
-    // MARK: - BatteryThermalState Tests
-
-    @MainActor
-    func testThermalStateOptimal() {
-        let state: BatteryThermalState = .optimal
-        XCTAssertEqual(state, .optimal)
-    }
-
-    @MainActor
-    func testThermalStateSuboptimal() {
-        let state: BatteryThermalState = .suboptimal
-        XCTAssertEqual(state, .suboptimal)
-    }
-
     // MARK: - BatteryCondition Tests
 
     @MainActor
@@ -214,48 +200,60 @@ final class BatteryModelsTests: XCTestCase {
         XCTAssertNil(BatteryStyle(rawValue: "invalid"))
     }
 
-    // MARK: - Progress Calculation Tests
+    // MARK: - Progress Clamping Tests
 
     @MainActor
-    func testProgressCalculationCharging() {
-        let state: BatteryChargingState = .charging
+    func testProgressAt0PercentClampsToMinimum() {
         let width: CGFloat = 100
+        let adjusted = width - Constants.Progress.batteryBarPadding
+        let expected = CGFloat(Constants.Progress.lowBatteryMinDisplay / 100) * adjusted
 
-        // When charging, progress should be at max
-        let progress = state.progress(50, width: width)
-        XCTAssertGreaterThan(progress, 0)
+        let progress = BatteryChargingState.battery.progress(0.1, width: width)
+
+        XCTAssertEqual(progress, expected, accuracy: 0.01)
     }
 
     @MainActor
-    func testProgressCalculationBattery() {
-        let state: BatteryChargingState = .battery
+    func testProgressAt5PercentClampsToMinimum() {
         let width: CGFloat = 100
+        let adjusted = width - Constants.Progress.batteryBarPadding
+        let expected = CGFloat(Constants.Progress.lowBatteryMinDisplay / 100) * adjusted
 
-        // Battery at 50% should return proportional progress
-        let progress = state.progress(50, width: width)
-        XCTAssertGreaterThan(progress, 0)
-        XCTAssertLessThanOrEqual(progress, width)
+        let progress = BatteryChargingState.battery.progress(5, width: width)
+
+        XCTAssertEqual(progress, expected, accuracy: 0.01)
     }
 
     @MainActor
-    func testProgressCalculationLowBattery() {
-        let state: BatteryChargingState = .battery
+    func testProgressAt50PercentIsLinear() {
         let width: CGFloat = 100
+        let adjusted = width - Constants.Progress.batteryBarPadding
+        let expected = CGFloat(50.0 / 100) * adjusted
 
-        // Very low battery should have minimum display
-        let progress = state.progress(1, width: width)
-        XCTAssertGreaterThan(progress, 0)
+        let progress = BatteryChargingState.battery.progress(50, width: width)
+
+        XCTAssertEqual(progress, expected, accuracy: 0.01)
     }
 
     @MainActor
-    func testProgressCalculationHighBattery() {
-        let state: BatteryChargingState = .battery
+    func testProgressAt99PercentClampsToMaximum() {
         let width: CGFloat = 100
+        let adjusted = width - Constants.Progress.batteryBarPadding
+        let expected = CGFloat(Constants.Progress.highBatteryMaxDisplay / 100) * adjusted
 
-        // High battery (not quite 100) should cap at max display
-        let progress = state.progress(99, width: width)
-        XCTAssertGreaterThan(progress, 0)
-        XCTAssertLessThanOrEqual(progress, width)
+        let progress = BatteryChargingState.battery.progress(99, width: width)
+
+        XCTAssertEqual(progress, expected, accuracy: 0.01)
+    }
+
+    @MainActor
+    func testProgressChargingAlwaysReturnsFullWidth() {
+        let width: CGFloat = 100
+        let adjusted = width - Constants.Progress.batteryBarPadding
+
+        let progress = BatteryChargingState.charging.progress(50, width: width)
+
+        XCTAssertEqual(progress, adjusted, accuracy: 0.01)
     }
 
     // MARK: - BatteryRemaining Tests

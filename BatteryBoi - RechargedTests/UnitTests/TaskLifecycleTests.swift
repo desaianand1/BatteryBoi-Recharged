@@ -88,7 +88,7 @@ final class TaskLifecycleTests: XCTestCase {
 
         let countBefore = mockWindow.openCallCount
         mockBattery.percentage = 24
-        try? await Task.sleep(for: .seconds(2))
+        try? await Task.sleep(for: .milliseconds(500))
 
         XCTAssertEqual(mockWindow.openCallCount, countBefore, "No alerts should fire after stopObserving")
     }

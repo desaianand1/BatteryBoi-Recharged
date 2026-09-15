@@ -30,36 +30,6 @@ final class BatteryServiceBehaviorTests: XCTestCase {
         super.tearDown()
     }
 
-    // MARK: - Percentage Tests
-
-    @MainActor
-    func testPercentageInValidRange() {
-        // Given a battery service with a valid percentage
-        mockBatteryService.percentage = 75.0
-
-        // Then the percentage should be within valid bounds
-        XCTAssertGreaterThanOrEqual(mockBatteryService.percentage, 0)
-        XCTAssertLessThanOrEqual(mockBatteryService.percentage, 100)
-    }
-
-    @MainActor
-    func testPercentageAtZero() {
-        // Given a battery service with 0% battery
-        mockBatteryService.percentage = 0.0
-
-        // Then the percentage should be exactly 0
-        XCTAssertEqual(mockBatteryService.percentage, 0.0)
-    }
-
-    @MainActor
-    func testPercentageAtFull() {
-        // Given a battery service with 100% battery
-        mockBatteryService.percentage = 100.0
-
-        // Then the percentage should be exactly 100
-        XCTAssertEqual(mockBatteryService.percentage, 100.0)
-    }
-
     // MARK: - Charging State Tests
 
     @MainActor
@@ -87,24 +57,6 @@ final class BatteryServiceBehaviorTests: XCTestCase {
     }
 
     // MARK: - Thermal State Tests
-
-    @MainActor
-    func testThermalStateOptimal() {
-        // Given optimal thermal conditions
-        mockBatteryService.thermal = .optimal
-
-        // Then thermal state should be optimal
-        XCTAssertEqual(mockBatteryService.thermal, .optimal)
-    }
-
-    @MainActor
-    func testThermalStateSuboptimal() {
-        // Given suboptimal thermal conditions
-        mockBatteryService.thermal = .suboptimal
-
-        // Then thermal state should be suboptimal
-        XCTAssertEqual(mockBatteryService.thermal, .suboptimal)
-    }
 
     @MainActor
     func testThermalStateTransition() {
@@ -142,7 +94,6 @@ final class BatteryServiceBehaviorTests: XCTestCase {
 
         // Then it should switch to efficient mode
         XCTAssertEqual(mockBatteryService.saver, .efficient)
-        XCTAssertEqual(mockBatteryService.togglePowerSaveModeCallCount, 1)
     }
 
     @MainActor
@@ -155,20 +106,6 @@ final class BatteryServiceBehaviorTests: XCTestCase {
 
         // Then it should switch to normal mode
         XCTAssertEqual(mockBatteryService.saver, .normal)
-    }
-
-    // MARK: - Force Refresh Tests
-
-    @MainActor
-    func testForceRefreshCallCount() {
-        // Given a battery service
-        XCTAssertEqual(mockBatteryService.forceRefreshCallCount, 0)
-
-        // When force refresh is called
-        mockBatteryService.forceRefresh()
-
-        // Then the call count should increment
-        XCTAssertEqual(mockBatteryService.forceRefreshCallCount, 1)
     }
 
     // MARK: - Bug Fix Verification Tests

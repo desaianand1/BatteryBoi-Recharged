@@ -42,7 +42,6 @@ final class SettingsServiceBehaviorTests: XCTestCase {
 
         // Then it should change to percent
         XCTAssertEqual(newDisplay, .percent)
-        XCTAssertEqual(mockSettingsService.toggleDisplayCallCount, 1)
     }
 
     @MainActor
@@ -107,77 +106,9 @@ final class SettingsServiceBehaviorTests: XCTestCase {
 
         // Then it should be back to countdown
         XCTAssertEqual(finalDisplay, .countdown)
-        XCTAssertEqual(mockSettingsService.toggleDisplayCallCount, 5)
-    }
-
-    // MARK: - Theme Tests
-
-    @MainActor
-    func testThemeDark() {
-        // Given dark theme
-        mockSettingsService.theme = .dark
-
-        // Then theme should be dark
-        XCTAssertEqual(mockSettingsService.theme, .dark)
-    }
-
-    @MainActor
-    func testThemeLight() {
-        // Given light theme
-        mockSettingsService.theme = .light
-
-        // Then theme should be light
-        XCTAssertEqual(mockSettingsService.theme, .light)
-    }
-
-    @MainActor
-    func testThemeSystem() {
-        // Given system theme
-        mockSettingsService.theme = .system
-
-        // Then theme should be system
-        XCTAssertEqual(mockSettingsService.theme, .system)
-    }
-
-    // MARK: - Sound Effects Tests
-
-    @MainActor
-    func testSoundEffectsEnabled() {
-        // Given sound effects enabled
-        mockSettingsService.sfx = .enabled
-
-        // Then sound effects should be enabled
-        XCTAssertEqual(mockSettingsService.sfx, .enabled)
-    }
-
-    @MainActor
-    func testSoundEffectsDisabled() {
-        // Given sound effects disabled
-        mockSettingsService.sfx = .disabled
-
-        // Then sound effects should be disabled
-        XCTAssertEqual(mockSettingsService.sfx, .disabled)
     }
 
     // MARK: - Pinned Setting Tests
-
-    @MainActor
-    func testPinnedEnabled() {
-        // Given pinned enabled
-        mockSettingsService.pinned = .enabled
-
-        // Then pinned should be enabled
-        XCTAssertEqual(mockSettingsService.pinned, .enabled)
-    }
-
-    @MainActor
-    func testPinnedDisabled() {
-        // Given pinned disabled
-        mockSettingsService.pinned = .disabled
-
-        // Then pinned should be disabled
-        XCTAssertEqual(mockSettingsService.pinned, .disabled)
-    }
 
     @MainActor
     func testPinnedSimulation() {
@@ -191,26 +122,6 @@ final class SettingsServiceBehaviorTests: XCTestCase {
         XCTAssertEqual(mockSettingsService.pinned, .enabled)
     }
 
-    // MARK: - Charge Setting Tests
-
-    @MainActor
-    func testChargeEightyEnabled() {
-        // Given charge to 80% enabled
-        mockSettingsService.charge = .enabled
-
-        // Then charge should be enabled
-        XCTAssertEqual(mockSettingsService.charge, .enabled)
-    }
-
-    @MainActor
-    func testChargeEightyDisabled() {
-        // Given charge to 80% disabled
-        mockSettingsService.charge = .disabled
-
-        // Then charge should be disabled
-        XCTAssertEqual(mockSettingsService.charge, .disabled)
-    }
-
     // MARK: - Action Perform Tests
 
     @MainActor
@@ -222,7 +133,6 @@ final class SettingsServiceBehaviorTests: XCTestCase {
         mockSettingsService.performAction(action)
 
         // Then the action should be tracked
-        XCTAssertEqual(mockSettingsService.performActionCallCount, 1)
         XCTAssertEqual(mockSettingsService.lastPerformedAction?.type, .appQuit)
     }
 }

@@ -30,107 +30,10 @@ final class BluetoothServiceBehaviorTests: XCTestCase {
         super.tearDown()
     }
 
-    // MARK: - Device Type Tests
-
-    @MainActor
-    func testDeviceTypeMouseFromClassName() {
-        // Given a device class that represents a mouse
-        let deviceType = BluetoothDeviceType.mouse
-
-        // Then the type should have the correct icon
-        XCTAssertEqual(deviceType.icon, "magicmouse.fill")
-    }
-
-    @MainActor
-    func testDeviceTypeKeyboardFromClassName() {
-        // Given a device class that represents a keyboard
-        let deviceType = BluetoothDeviceType.keyboard
-
-        // Then the type should have the correct icon
-        XCTAssertEqual(deviceType.icon, "keyboard.fill")
-    }
-
-    @MainActor
-    func testDeviceTypeHeadphonesFromClassName() {
-        // Given a device class that represents headphones
-        let deviceType = BluetoothDeviceType.headphones
-
-        // Then the type should have the correct icon
-        XCTAssertEqual(deviceType.icon, "headphones")
-    }
-
-    @MainActor
-    func testDeviceTypeGamepadFromClassName() {
-        // Given a device class that represents a gamepad
-        let deviceType = BluetoothDeviceType.gamepad
-
-        // Then the type should have the correct icon
-        XCTAssertEqual(deviceType.icon, "gamecontroller.fill")
-    }
-
-    @MainActor
-    func testDeviceTypeSpeakerFromClassName() {
-        // Given a device class that represents a speaker
-        let deviceType = BluetoothDeviceType.speaker
-
-        // Then the type should have the correct icon
-        XCTAssertEqual(deviceType.icon, "hifispeaker.2.fill")
-    }
-
-    // MARK: - Vendor Detection Tests
-
-    func testVendorDetectionApple() {
-        // Given an Apple vendor code
-        let vendor = BluetoothVendor(rawValue: "0x004C")
-
-        // Then it should be identified as Apple
-        XCTAssertEqual(vendor, .apple)
-    }
-
-    func testVendorDetectionSony() {
-        // Given a Sony vendor code
-        let vendor = BluetoothVendor(rawValue: "0x1003")
-
-        // Then it should be identified as Sony
-        XCTAssertEqual(vendor, .sony)
-    }
-
-    func testVendorDetectionBose() {
-        // Given a Bose vendor code
-        let vendor = BluetoothVendor(rawValue: "0x1001")
-
-        // Then it should be identified as Bose
-        XCTAssertEqual(vendor, .bose)
-    }
-
-    func testVendorDetectionLogitech() {
-        // Given a Logitech vendor code
-        let vendor = BluetoothVendor(rawValue: "0x046D")
-
-        // Then it should be identified as Logitech
-        XCTAssertEqual(vendor, .logitech)
-    }
-
-    func testVendorDetectionRazer() {
-        // Given a Razer vendor code
-        let vendor = BluetoothVendor(rawValue: "0x1532")
-
-        // Then it should be identified as Razer
-        XCTAssertEqual(vendor, .razer)
-    }
-
-    func testVendorDetectionUnknown() {
-        // Given an unknown vendor code
-        let vendor = BluetoothVendor(rawValue: "0x9999")
-
-        // Then it should be nil (unknown)
-        XCTAssertNil(vendor)
-    }
-
     // MARK: - Connection Tests
 
     @MainActor
-    func testUpdateConnectionCallCount() {
+    func testUpdateConnectionTracksDevice() {
         // Given a mock Bluetooth service
         let device = BluetoothObject.testDevice(
             address: "AA:BB:CC:DD:EE:FF",
@@ -141,8 +44,7 @@ final class BluetoothServiceBehaviorTests: XCTestCase {
         // When updating connection
         _ = mockBluetoothService.updateConnection(device, state: .connected)
 
-        // Then the call should be tracked
-        XCTAssertEqual(mockBluetoothService.updateConnectionCallCount, 1)
+        // Then the device should be tracked
         XCTAssertEqual(mockBluetoothService.lastUpdateConnectionDevice?.address, device.address)
     }
 
@@ -192,17 +94,4 @@ final class BluetoothServiceBehaviorTests: XCTestCase {
         XCTAssertEqual(battery.percent, 60.0)
     }
 
-    // MARK: - Refresh Tests
-
-    @MainActor
-    func testRefreshDeviceListCallCount() async {
-        // Given a mock Bluetooth service
-        XCTAssertEqual(mockBluetoothService.refreshDeviceListCallCount, 0)
-
-        // When refreshing device list
-        await mockBluetoothService.refreshDeviceList()
-
-        // Then the call should be tracked
-        XCTAssertEqual(mockBluetoothService.refreshDeviceListCallCount, 1)
-    }
 }

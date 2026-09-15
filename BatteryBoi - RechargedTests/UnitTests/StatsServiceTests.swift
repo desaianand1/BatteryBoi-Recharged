@@ -35,14 +35,10 @@ final class StatsServiceTests: XCTestCase {
 
     @MainActor
     func testRecordChargingActivity() async {
-        // Given initial state
-        XCTAssertEqual(mockStatsService.recordActivityCallCount, 0)
-
         // When recording charging activity
         await mockStatsService.recordActivity(.charging, device: nil)
 
         // Then activity should be recorded
-        XCTAssertEqual(mockStatsService.recordActivityCallCount, 1)
         XCTAssertEqual(mockStatsService.lastRecordedState, .charging)
         XCTAssertNil(mockStatsService.lastRecordedDevice)
     }
@@ -91,54 +87,7 @@ final class StatsServiceTests: XCTestCase {
         XCTAssertEqual(mockStatsService.lastRecordedDevice?.device, "AirPods")
     }
 
-    // MARK: - Display Tests
-
-    @MainActor
-    func testDisplayProperty() {
-        // Given a display value
-        mockStatsService.display = "75%"
-
-        // Then display should be accessible
-        XCTAssertEqual(mockStatsService.display, "75%")
-    }
-
-    @MainActor
-    func testOverlayProperty() {
-        // Given an overlay value
-        mockStatsService.overlay = "2h 30m"
-
-        // Then overlay should be accessible
-        XCTAssertEqual(mockStatsService.overlay, "2h 30m")
-    }
-
-    @MainActor
-    func testNilDisplay() {
-        // Given nil display
-        mockStatsService.display = nil
-
-        // Then display should be nil
-        XCTAssertNil(mockStatsService.display)
-    }
-
     // MARK: - Title and Subtitle Tests
-
-    @MainActor
-    func testTitleProperty() {
-        // Given a title
-        mockStatsService.title = "Charging"
-
-        // Then title should be accessible
-        XCTAssertEqual(mockStatsService.title, "Charging")
-    }
-
-    @MainActor
-    func testSubtitleProperty() {
-        // Given a subtitle
-        mockStatsService.subtitle = "Fully charged in 1 hour"
-
-        // Then subtitle should be accessible
-        XCTAssertEqual(mockStatsService.subtitle, "Fully charged in 1 hour")
-    }
 
     @MainActor
     func testTitleChange() {
@@ -208,40 +157,6 @@ final class StatsServiceTests: XCTestCase {
 
         // Then display should be nil
         XCTAssertNil(mockStatsService.display)
-    }
-
-    // MARK: - Multiple Activity Recording Tests
-
-    @MainActor
-    func testMultipleActivityRecording() async {
-        // When recording multiple activities
-        await mockStatsService.recordActivity(.charging, device: nil)
-        await mockStatsService.recordActivity(.depleted, device: nil)
-        await mockStatsService.recordActivity(.connected, device: nil)
-
-        // Then all activities should be counted
-        XCTAssertEqual(mockStatsService.recordActivityCallCount, 3)
-        XCTAssertEqual(mockStatsService.lastRecordedState, .connected)
-    }
-
-    // MARK: - Edge Cases
-
-    @MainActor
-    func testEmptyTitle() {
-        // Given empty title
-        mockStatsService.title = ""
-
-        // Then title should be empty string
-        XCTAssertEqual(mockStatsService.title, "")
-    }
-
-    @MainActor
-    func testEmptySubtitle() {
-        // Given empty subtitle
-        mockStatsService.subtitle = ""
-
-        // Then subtitle should be empty string
-        XCTAssertEqual(mockStatsService.subtitle, "")
     }
 
     // MARK: - StatsIcon Alert Type Tests

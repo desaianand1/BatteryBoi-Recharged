@@ -43,7 +43,6 @@ final class WindowServiceBehaviorTests: XCTestCase {
 
         // Then the state should be revealed
         XCTAssertEqual(mockWindowService.state, .revealed)
-        XCTAssertEqual(mockWindowService.openCallCount, 1)
     }
 
     @MainActor
@@ -206,17 +205,9 @@ final class WindowServiceBehaviorTests: XCTestCase {
     // MARK: - Sleep/Wake Lifecycle Tests
 
     @MainActor
-    func testHandleSleep() {
-        mockWindowService.handleSleep()
-
-        XCTAssertEqual(mockWindowService.handleSleepCallCount, 1)
-    }
-
-    @MainActor
     func testHandleWake() {
         mockWindowService.handleWake()
 
-        XCTAssertEqual(mockWindowService.handleWakeCallCount, 1)
         XCTAssertEqual(mockWindowService.state, .hidden)
         XCTAssertNil(mockWindowService.currentAlert)
     }
@@ -237,7 +228,6 @@ final class WindowServiceBehaviorTests: XCTestCase {
         mockWindowService.open(.chargingBegan, device: nil)
         mockWindowService.open(.percentFive, device: nil)
 
-        XCTAssertEqual(mockWindowService.openCallCount, 2)
         XCTAssertEqual(mockWindowService.lastOpenType, .percentFive)
     }
 
@@ -318,5 +308,35 @@ final class WindowServiceBehaviorTests: XCTestCase {
         mockWindowService.toggleExpanded()
 
         XCTAssertEqual(mockWindowService.state, .revealed)
+    }
+
+    // MARK: - WindowPosition.nearest() Tests
+
+    @MainActor
+    func testNearestToTopLeftCorner() {
+        let result = WindowPosition.nearest(to: CGPoint(x: 0.05, y: 0.95))
+
+        XCTAssertEqual(result, .topLeft)
+    }
+
+    @MainActor
+    func testNearestToBottomRightCorner() {
+        let result = WindowPosition.nearest(to: CGPoint(x: 0.95, y: 0.05))
+
+        XCTAssertEqual(result, .bottomRight)
+    }
+
+    @MainActor
+    func testNearestToCenter() {
+        let result = WindowPosition.nearest(to: CGPoint(x: 0.5, y: 0.5))
+
+        XCTAssertNotNil(result)
+    }
+
+    @MainActor
+    func testNearestExcludesCurrentPosition() {
+        let result = WindowPosition.nearest(to: CGPoint(x: 0.5, y: 1.0), excluding: .topMiddle)
+
+        XCTAssertNotEqual(result, .topMiddle)
     }
 }

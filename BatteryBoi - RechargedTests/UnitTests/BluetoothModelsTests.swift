@@ -6,168 +6,56 @@
 //
 
 @testable import BatteryBoi___Recharged
+import Testing
 @preconcurrency import XCTest
 
+// MARK: - Parameterized Bluetooth Tests
+
+@Suite("BluetoothVendor raw value mapping")
+struct BluetoothVendorTests {
+
+    @Test(arguments: [
+        ("0x004C", BluetoothVendor.apple),
+        ("0x0050", BluetoothVendor.samsung),
+        ("0x0052", BluetoothVendor.microsoft),
+        ("0x1001", BluetoothVendor.bose),
+        ("0x1002", BluetoothVendor.sennheiser),
+        ("0x1003", BluetoothVendor.sony),
+        ("0x1004", BluetoothVendor.jbl),
+        ("0x1006", BluetoothVendor.beats),
+        ("0x046D", BluetoothVendor.logitech),
+        ("0x1532", BluetoothVendor.razer),
+        ("0x1038", BluetoothVendor.steelseries),
+        ("0x1B1C", BluetoothVendor.corsair),
+    ])
+    func `vendor from raw value`(rawValue: String, expected: BluetoothVendor) {
+        #expect(BluetoothVendor(rawValue: rawValue) == expected)
+    }
+
+    @Test
+    func `unknown vendor returns nil`() {
+        #expect(BluetoothVendor(rawValue: "0x9999") == nil)
+    }
+}
+
+@Suite("BluetoothDeviceType icon mapping")
+@MainActor
+struct BluetoothDeviceTypeTests {
+
+    @Test(arguments: [
+        (BluetoothDeviceType.mouse, "magicmouse.fill"),
+        (BluetoothDeviceType.keyboard, "keyboard.fill"),
+        (BluetoothDeviceType.headphones, "headphones"),
+        (BluetoothDeviceType.gamepad, "gamecontroller.fill"),
+        (BluetoothDeviceType.speaker, "hifispeaker.2.fill"),
+        (BluetoothDeviceType.other, ""),
+    ])
+    func `device type icon`(type: BluetoothDeviceType, expectedIcon: String) {
+        #expect(type.icon == expectedIcon)
+    }
+}
+
 final class BluetoothModelsTests: XCTestCase {
-
-    // MARK: - BluetoothConnectionState Tests
-
-    @MainActor
-    func testConnectionStateConnected() {
-        let state: BluetoothConnectionState = .connected
-        XCTAssertEqual(state, .connected)
-    }
-
-    @MainActor
-    func testConnectionStateDisconnected() {
-        let state: BluetoothConnectionState = .disconnected
-        XCTAssertEqual(state, .disconnected)
-    }
-
-    @MainActor
-    func testConnectionStateFailed() {
-        let state: BluetoothConnectionState = .failed
-        XCTAssertEqual(state, .failed)
-    }
-
-    @MainActor
-    func testConnectionStateUnavailable() {
-        let state: BluetoothConnectionState = .unavailable
-        XCTAssertEqual(state, .unavailable)
-    }
-
-    // MARK: - BluetoothVendor Tests
-
-    func testVendorApple() {
-        let vendor = BluetoothVendor(rawValue: "0x004C")
-        XCTAssertEqual(vendor, .apple)
-    }
-
-    func testVendorSamsung() {
-        let vendor = BluetoothVendor(rawValue: "0x0050")
-        XCTAssertEqual(vendor, .samsung)
-    }
-
-    func testVendorMicrosoft() {
-        let vendor = BluetoothVendor(rawValue: "0x0052")
-        XCTAssertEqual(vendor, .microsoft)
-    }
-
-    func testVendorBose() {
-        let vendor = BluetoothVendor(rawValue: "0x1001")
-        XCTAssertEqual(vendor, .bose)
-    }
-
-    func testVendorSennheiser() {
-        let vendor = BluetoothVendor(rawValue: "0x1002")
-        XCTAssertEqual(vendor, .sennheiser)
-    }
-
-    func testVendorSony() {
-        let vendor = BluetoothVendor(rawValue: "0x1003")
-        XCTAssertEqual(vendor, .sony)
-    }
-
-    func testVendorJBL() {
-        let vendor = BluetoothVendor(rawValue: "0x1004")
-        XCTAssertEqual(vendor, .jbl)
-    }
-
-    func testVendorBeats() {
-        let vendor = BluetoothVendor(rawValue: "0x1006")
-        XCTAssertEqual(vendor, .beats)
-    }
-
-    func testVendorLogitech() {
-        let vendor = BluetoothVendor(rawValue: "0x046D")
-        XCTAssertEqual(vendor, .logitech)
-    }
-
-    func testVendorRazer() {
-        let vendor = BluetoothVendor(rawValue: "0x1532")
-        XCTAssertEqual(vendor, .razer)
-    }
-
-    func testVendorSteelseries() {
-        let vendor = BluetoothVendor(rawValue: "0x1038")
-        XCTAssertEqual(vendor, .steelseries)
-    }
-
-    func testVendorCorsair() {
-        let vendor = BluetoothVendor(rawValue: "0x1B1C")
-        XCTAssertEqual(vendor, .corsair)
-    }
-
-    func testVendorUnknown() {
-        let vendor = BluetoothVendor(rawValue: "0x9999")
-        XCTAssertNil(vendor)
-    }
-
-    // MARK: - BluetoothDistanceType Tests
-
-    func testDistanceProximate() {
-        let distance: BluetoothDistanceType = .proximate
-        XCTAssertEqual(distance.rawValue, 0)
-    }
-
-    func testDistanceNear() {
-        let distance: BluetoothDistanceType = .near
-        XCTAssertEqual(distance.rawValue, 1)
-    }
-
-    func testDistanceFar() {
-        let distance: BluetoothDistanceType = .far
-        XCTAssertEqual(distance.rawValue, 2)
-    }
-
-    func testDistanceUnknown() {
-        let distance: BluetoothDistanceType = .unknown
-        XCTAssertEqual(distance.rawValue, 3)
-    }
-
-    // MARK: - BluetoothDeviceType Tests
-
-    @MainActor
-    func testDeviceTypeMouse() {
-        let type: BluetoothDeviceType = .mouse
-        XCTAssertEqual(type.rawValue, "mouse")
-        XCTAssertEqual(type.icon, "magicmouse.fill")
-    }
-
-    @MainActor
-    func testDeviceTypeHeadphones() {
-        let type: BluetoothDeviceType = .headphones
-        XCTAssertEqual(type.rawValue, "headphones")
-        XCTAssertEqual(type.icon, "headphones")
-    }
-
-    @MainActor
-    func testDeviceTypeGamepad() {
-        let type: BluetoothDeviceType = .gamepad
-        XCTAssertEqual(type.rawValue, "gamepad")
-        XCTAssertEqual(type.icon, "gamecontroller.fill")
-    }
-
-    @MainActor
-    func testDeviceTypeSpeaker() {
-        let type: BluetoothDeviceType = .speaker
-        XCTAssertEqual(type.rawValue, "speaker")
-        XCTAssertEqual(type.icon, "hifispeaker.2.fill")
-    }
-
-    @MainActor
-    func testDeviceTypeKeyboard() {
-        let type: BluetoothDeviceType = .keyboard
-        XCTAssertEqual(type.rawValue, "keyboard")
-        XCTAssertEqual(type.icon, "keyboard.fill")
-    }
-
-    @MainActor
-    func testDeviceTypeOther() {
-        let type: BluetoothDeviceType = .other
-        XCTAssertEqual(type.rawValue, "other")
-        XCTAssertEqual(type.icon, "")
-    }
 
     // MARK: - BluetoothDeviceSubtype Tests
 

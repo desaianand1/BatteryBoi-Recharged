@@ -273,7 +273,7 @@ final class ServiceCoordinator {
         notifiedBluetoothThresholds = notifiedBluetoothThresholds.filter { currentAddresses.contains($0.key) }
     }
 
-    private func checkBluetoothBatteryLevels() {
+    func checkBluetoothBatteryLevels() {
         let connected = self.bluetooth.list.filter { $0.connected == .connected }
 
         for device in connected {
@@ -300,7 +300,7 @@ final class ServiceCoordinator {
         }
     }
 
-    private func checkUpcomingEvents() {
+    func checkUpcomingEvents() {
         guard self.battery.charging.state == .battery else { return }
         let now = Date()
         guard let event = self.events.events

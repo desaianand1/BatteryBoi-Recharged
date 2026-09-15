@@ -30,31 +30,6 @@ final class EventServiceTests: XCTestCase {
         super.tearDown()
     }
 
-    // MARK: - Event Refresh Tests
-
-    @MainActor
-    func testRefreshEventsCallCount() {
-        // Given initial state
-        XCTAssertEqual(mockEventService.refreshEventsCallCount, 0)
-
-        // When refreshing events
-        mockEventService.refreshEvents()
-
-        // Then call count should increment
-        XCTAssertEqual(mockEventService.refreshEventsCallCount, 1)
-    }
-
-    @MainActor
-    func testMultipleRefreshCalls() {
-        // When refreshing multiple times
-        mockEventService.refreshEvents()
-        mockEventService.refreshEvents()
-        mockEventService.refreshEvents()
-
-        // Then all calls should be counted
-        XCTAssertEqual(mockEventService.refreshEventsCallCount, 3)
-    }
-
     // MARK: - Event List Tests
 
     @MainActor

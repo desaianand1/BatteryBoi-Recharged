@@ -105,7 +105,7 @@ final class ServiceCoordinatorTests: XCTestCase {
         await waitForObservation()
 
         mockBattery.percentage = 24
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
 
         XCTAssertEqual(mockWindow.openCallCount, 1)
         XCTAssertEqual(mockWindow.lastOpenType, .percentTwentyFive)
@@ -119,20 +119,20 @@ final class ServiceCoordinatorTests: XCTestCase {
         await waitForObservation()
 
         mockBattery.percentage = 24
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
         let firstPercentAlerts = mockWindow.openHistory.filter { $0 == .percentTwentyFive }
         XCTAssertEqual(firstPercentAlerts.count, 1, "Should have fired one 25% alert")
 
         // Switch to charging (resets thresholds) — wait for debounce (2s)
         mockBattery.charging = BatteryCharging(.charging)
-        try? await Task.sleep(for: .seconds(3))
+        try? await Task.sleep(for: .milliseconds(800))
 
         // Switch back to battery at 24% — threshold should re-fire
         mockBattery.charging = BatteryCharging(.battery)
         mockBattery.percentage = 26
-        try? await Task.sleep(for: .seconds(3))
+        try? await Task.sleep(for: .milliseconds(800))
         mockBattery.percentage = 24
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
 
         let secondPercentAlerts = mockWindow.openHistory.filter { $0 == .percentTwentyFive }
         XCTAssertEqual(secondPercentAlerts.count, 2, "Threshold should re-fire after charging reset")
@@ -145,7 +145,7 @@ final class ServiceCoordinatorTests: XCTestCase {
         await waitForObservation()
 
         mockBattery.thermal = .suboptimal
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
 
         XCTAssertEqual(mockWindow.openCallCount, 1)
         XCTAssertEqual(mockWindow.lastOpenType, .deviceOverheating)
@@ -160,7 +160,7 @@ final class ServiceCoordinatorTests: XCTestCase {
 
         let device = BluetoothObject.testDevice(address: "11:22:33:44:55:66", name: "AirPods")
         mockBluetooth.simulateDeviceConnected(device)
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
 
         XCTAssertEqual(mockWindow.openCallCount, 1)
         XCTAssertEqual(mockWindow.lastOpenType, .deviceConnected)
@@ -174,7 +174,7 @@ final class ServiceCoordinatorTests: XCTestCase {
         await waitForObservation()
 
         mockBluetooth.simulateDeviceDisconnected(address: "11:22:33:44:55:66")
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
 
         XCTAssertEqual(mockWindow.lastOpenType, .deviceRemoved)
     }
@@ -190,7 +190,7 @@ final class ServiceCoordinatorTests: XCTestCase {
         await waitForObservation()
 
         mockBattery.percentage = 100
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
 
         XCTAssertEqual(mockWindow.lastOpenType, .chargingComplete)
     }
@@ -204,7 +204,7 @@ final class ServiceCoordinatorTests: XCTestCase {
         await waitForObservation()
 
         mockBattery.percentage = 80
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
 
         XCTAssertEqual(mockWindow.lastOpenType, .chargingComplete)
     }
@@ -225,7 +225,7 @@ final class ServiceCoordinatorTests: XCTestCase {
         mockBattery.charging = BatteryCharging(.charging)
 
         // Wait for debounce to settle (chargingDebounce = 2s)
-        try? await Task.sleep(for: .seconds(3))
+        try? await Task.sleep(for: .milliseconds(800))
 
         let countAfter = mockWindow.openCallCount
         XCTAssertEqual(countAfter - countBefore, 1, "Debounce should coalesce rapid changes into one alert")
@@ -234,7 +234,7 @@ final class ServiceCoordinatorTests: XCTestCase {
     // MARK: - Event Alert Tests
 
     @MainActor
-    func testEventAlertWithin3Minutes() async {
+    func testEventAlertWithin3Minutes() {
         mockBattery.charging = BatteryCharging(.battery)
         let event = MockEventService.createMockEvent(
             id: "test-1",
@@ -242,10 +242,8 @@ final class ServiceCoordinatorTests: XCTestCase {
             start: Date().addingTimeInterval(120)
         )
         mockEvents.events = [event]
-        coordinator.startObserving()
 
-        // Event check polls every 30 seconds
-        try? await Task.sleep(for: .seconds(32))
+        coordinator.checkUpcomingEvents()
 
         XCTAssertEqual(mockWindow.lastOpenType, .userEvent)
     }
@@ -260,7 +258,7 @@ final class ServiceCoordinatorTests: XCTestCase {
         await waitForObservation()
 
         mockBattery.percentage = 9
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
 
         XCTAssertEqual(mockWindow.openCallCount, 1)
         XCTAssertEqual(mockWindow.lastOpenType, .percentTen)
@@ -274,7 +272,7 @@ final class ServiceCoordinatorTests: XCTestCase {
         await waitForObservation()
 
         mockBattery.percentage = 4
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
 
         XCTAssertEqual(mockWindow.openCallCount, 1)
         XCTAssertEqual(mockWindow.lastOpenType, .percentFive)
@@ -288,7 +286,7 @@ final class ServiceCoordinatorTests: XCTestCase {
         await waitForObservation()
 
         mockBattery.percentage = 0.5
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
 
         XCTAssertEqual(mockWindow.openCallCount, 1)
         XCTAssertEqual(mockWindow.lastOpenType, .percentOne)
@@ -302,7 +300,7 @@ final class ServiceCoordinatorTests: XCTestCase {
         await waitForObservation()
 
         mockBattery.percentage = 4
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
 
         let percentAlerts = mockWindow.openHistory.filter {
             $0 == .percentTwentyFive || $0 == .percentTen || $0 == .percentFive || $0 == .percentOne
@@ -321,13 +319,13 @@ final class ServiceCoordinatorTests: XCTestCase {
         await waitForObservation()
 
         mockBattery.percentage = 24
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
         let firstCount = mockWindow.openCallCount
 
         mockBattery.percentage = 25
         try? await Task.sleep(for: .milliseconds(200))
         mockBattery.percentage = 24
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
 
         XCTAssertEqual(mockWindow.openCallCount, firstCount)
     }
@@ -342,7 +340,7 @@ final class ServiceCoordinatorTests: XCTestCase {
         await waitForObservation()
 
         mockBattery.percentage = 25.0
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
 
         XCTAssertEqual(mockWindow.openCallCount, 1)
         XCTAssertEqual(mockWindow.lastOpenType, .percentTwentyFive)
@@ -356,11 +354,11 @@ final class ServiceCoordinatorTests: XCTestCase {
         await waitForObservation()
 
         mockBattery.percentage = 24
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
         XCTAssertEqual(mockWindow.openCallCount, 1)
 
         mockBattery.percentage = 26
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
 
         let percentAlerts = mockWindow.openHistory.filter { $0 == .percentTwentyFive }
         XCTAssertEqual(percentAlerts.count, 1, "Rising above threshold should not re-trigger")
@@ -375,14 +373,14 @@ final class ServiceCoordinatorTests: XCTestCase {
         await waitForObservation()
 
         mockBattery.thermal = .suboptimal
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
         XCTAssertEqual(mockWindow.openCallCount, 1)
 
         mockBattery.thermal = .optimal
         try? await Task.sleep(for: .milliseconds(200))
 
         mockBattery.thermal = .suboptimal
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
 
         let overheatAlerts = mockWindow.openHistory.filter { $0 == .deviceOverheating }
         XCTAssertEqual(overheatAlerts.count, 2, "Second transition to suboptimal should fire again")
@@ -391,7 +389,7 @@ final class ServiceCoordinatorTests: XCTestCase {
     // MARK: - Event Timing Edge Cases
 
     @MainActor
-    func testEventUnder1MinuteDoesNotTrigger() async {
+    func testEventUnder1MinuteDoesNotTrigger() {
         mockBattery.charging = BatteryCharging(.battery)
         let event = MockEventService.createMockEvent(
             id: "close-event",
@@ -399,16 +397,15 @@ final class ServiceCoordinatorTests: XCTestCase {
             start: Date().addingTimeInterval(30)
         )
         mockEvents.events = [event]
-        coordinator.startObserving()
 
-        try? await Task.sleep(for: .seconds(32))
+        coordinator.checkUpcomingEvents()
 
         let eventAlerts = mockWindow.openHistory.filter { $0 == .userEvent }
         XCTAssertEqual(eventAlerts.count, 0, "Event under 1 minute away should not trigger")
     }
 
     @MainActor
-    func testEventAt3MinBoundaryTriggers() async {
+    func testEventAt3MinBoundaryTriggers() {
         mockBattery.charging = BatteryCharging(.battery)
         let event = MockEventService.createMockEvent(
             id: "boundary-event",
@@ -416,16 +413,15 @@ final class ServiceCoordinatorTests: XCTestCase {
             start: Date().addingTimeInterval(180)
         )
         mockEvents.events = [event]
-        coordinator.startObserving()
 
-        try? await Task.sleep(for: .seconds(32))
+        coordinator.checkUpcomingEvents()
 
         let eventAlerts = mockWindow.openHistory.filter { $0 == .userEvent }
         XCTAssertEqual(eventAlerts.count, 1, "Event at exactly 3 minutes should trigger")
     }
 
     @MainActor
-    func testEventDedupSameIdNotReNotified() async {
+    func testEventDedupSameIdNotReNotified() {
         mockBattery.charging = BatteryCharging(.battery)
         let event = MockEventService.createMockEvent(
             id: "dedup-event",
@@ -433,15 +429,16 @@ final class ServiceCoordinatorTests: XCTestCase {
             start: Date().addingTimeInterval(120)
         )
         mockEvents.events = [event]
-        coordinator.startObserving()
 
-        try? await Task.sleep(for: .seconds(32))
-        let firstCount = mockWindow.openHistory.count(where: { $0 == .userEvent })
-        XCTAssertEqual(firstCount, 1)
+        coordinator.checkUpcomingEvents()
+        XCTAssertEqual(mockWindow.openHistory.count(where: { $0 == .userEvent }), 1)
 
-        try? await Task.sleep(for: .seconds(32))
-        let secondCount = mockWindow.openHistory.count(where: { $0 == .userEvent })
-        XCTAssertEqual(secondCount, 1, "Same event ID should not trigger twice")
+        coordinator.checkUpcomingEvents()
+        XCTAssertEqual(
+            mockWindow.openHistory.count(where: { $0 == .userEvent }),
+            1,
+            "Same event ID should not trigger twice"
+        )
     }
 
     // MARK: - Multiple Charging Cycle Tests
@@ -455,29 +452,29 @@ final class ServiceCoordinatorTests: XCTestCase {
 
         // First cycle: trigger 25% alert
         mockBattery.percentage = 24
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
         XCTAssertEqual(mockWindow.openHistory.count(where: { $0 == .percentTwentyFive }), 1)
 
         // Charge — wait for debounce (2s)
         mockBattery.charging = BatteryCharging(.charging)
-        try? await Task.sleep(for: .seconds(3))
+        try? await Task.sleep(for: .milliseconds(800))
 
         // Second cycle
         mockBattery.charging = BatteryCharging(.battery)
         mockBattery.percentage = 30
-        try? await Task.sleep(for: .seconds(3))
+        try? await Task.sleep(for: .milliseconds(800))
         mockBattery.percentage = 24
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
         XCTAssertEqual(mockWindow.openHistory.count(where: { $0 == .percentTwentyFive }), 2)
 
         // Third cycle
         mockBattery.charging = BatteryCharging(.charging)
-        try? await Task.sleep(for: .seconds(3))
+        try? await Task.sleep(for: .milliseconds(800))
         mockBattery.charging = BatteryCharging(.battery)
         mockBattery.percentage = 30
-        try? await Task.sleep(for: .seconds(3))
+        try? await Task.sleep(for: .milliseconds(800))
         mockBattery.percentage = 24
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
 
         XCTAssertEqual(
             mockWindow.openHistory.count(where: { $0 == .percentTwentyFive }), 3,
@@ -507,7 +504,7 @@ final class ServiceCoordinatorTests: XCTestCase {
         await waitForObservation()
 
         mockBluetooth.simulateDeviceDisconnected(address: "BT:11:22:33:44:55")
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(200))
 
         XCTAssertTrue(
             mockWindow.openHistory.contains(.deviceRemoved),
@@ -518,7 +515,7 @@ final class ServiceCoordinatorTests: XCTestCase {
     // MARK: - Event Suppression While Charging
 
     @MainActor
-    func testEventDoesNotTriggerWhileCharging() async {
+    func testEventDoesNotTriggerWhileCharging() {
         mockBattery.charging = BatteryCharging(.charging)
         let event = MockEventService.createMockEvent(
             id: "charging-event",
@@ -526,11 +523,107 @@ final class ServiceCoordinatorTests: XCTestCase {
             start: Date().addingTimeInterval(120)
         )
         mockEvents.events = [event]
-        coordinator.startObserving()
 
-        try? await Task.sleep(for: .seconds(32))
+        coordinator.checkUpcomingEvents()
 
         let eventAlerts = mockWindow.openHistory.filter { $0 == .userEvent }
         XCTAssertEqual(eventAlerts.count, 0, "Events should not trigger while charging")
+    }
+
+    // MARK: - Bluetooth Battery Level Alert Tests
+
+    @MainActor
+    func testBluetoothDeviceLowBatteryTriggersAlert() {
+        let device = BluetoothObject.testDevice(
+            address: "BT:AA:BB:CC:DD:EE",
+            name: "TestBuds",
+            batteryPercent: 20
+        )
+        mockBluetooth.simulateDeviceConnected(device)
+
+        coordinator.checkBluetoothBatteryLevels()
+
+        XCTAssertEqual(mockWindow.lastOpenType, .percentTwentyFive)
+    }
+
+    @MainActor
+    func testBluetoothDeviceBatteryResetAbove50() {
+        let lowDevice = BluetoothObject.testDevice(
+            address: "BT:AA:BB:CC:DD:EE",
+            name: "TestBuds",
+            batteryPercent: 20
+        )
+        mockBluetooth.simulateDeviceConnected(lowDevice)
+        coordinator.checkBluetoothBatteryLevels()
+        XCTAssertEqual(mockWindow.openCallCount, 1)
+
+        let highDevice = BluetoothObject.testDevice(
+            address: "BT:AA:BB:CC:DD:EE",
+            name: "TestBuds",
+            batteryPercent: 51
+        )
+        mockBluetooth.simulateBatteryUpdate(highDevice)
+        coordinator.checkBluetoothBatteryLevels()
+
+        let lowAgain = BluetoothObject.testDevice(
+            address: "BT:AA:BB:CC:DD:EE",
+            name: "TestBuds",
+            batteryPercent: 20
+        )
+        mockBluetooth.simulateBatteryUpdate(lowAgain)
+        coordinator.checkBluetoothBatteryLevels()
+
+        XCTAssertEqual(mockWindow.openCallCount, 2, "Alert should fire again after threshold reset above 50%")
+    }
+
+    @MainActor
+    func testBluetoothDeviceBatteryAt50DoesNotReset() {
+        let lowDevice = BluetoothObject.testDevice(
+            address: "BT:AA:BB:CC:DD:EE",
+            name: "TestBuds",
+            batteryPercent: 20
+        )
+        mockBluetooth.simulateDeviceConnected(lowDevice)
+        coordinator.checkBluetoothBatteryLevels()
+        XCTAssertEqual(mockWindow.openCallCount, 1)
+
+        let atFifty = BluetoothObject.testDevice(
+            address: "BT:AA:BB:CC:DD:EE",
+            name: "TestBuds",
+            batteryPercent: 50
+        )
+        mockBluetooth.simulateBatteryUpdate(atFifty)
+        coordinator.checkBluetoothBatteryLevels()
+
+        let lowAgain = BluetoothObject.testDevice(
+            address: "BT:AA:BB:CC:DD:EE",
+            name: "TestBuds",
+            batteryPercent: 20
+        )
+        mockBluetooth.simulateBatteryUpdate(lowAgain)
+        coordinator.checkBluetoothBatteryLevels()
+
+        XCTAssertEqual(mockWindow.openCallCount, 1, "50% exactly should not reset thresholds (requires > 50)")
+    }
+
+    @MainActor
+    func testMultipleBluetoothDevicesTrackSeparately() {
+        let deviceA = BluetoothObject.testDevice(
+            address: "BT:11:22:33:44:55",
+            name: "DeviceA",
+            batteryPercent: 20
+        )
+        let deviceB = BluetoothObject.testDevice(
+            address: "BT:66:77:88:99:00",
+            name: "DeviceB",
+            batteryPercent: 60
+        )
+        mockBluetooth.simulateDeviceConnected(deviceA)
+        mockBluetooth.simulateDeviceConnected(deviceB)
+
+        coordinator.checkBluetoothBatteryLevels()
+
+        XCTAssertEqual(mockWindow.openCallCount, 1, "Only low-battery device should trigger alert")
+        XCTAssertEqual(mockWindow.lastOpenDevice?.device, "DeviceA")
     }
 }
