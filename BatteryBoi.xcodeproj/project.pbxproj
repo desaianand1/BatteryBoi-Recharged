@@ -59,7 +59,7 @@
 		D851F8022AB152B7003FCA79 /* UpdateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D851F8012AB152B7003FCA79 /* UpdateView.swift */; };
 		D851F8062AB214E8003FCA79 /* DataObject.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D851F8042AB214E8003FCA79 /* DataObject.xcdatamodeld */; };
 		D851F80A2ABA29A0003FCA79 /* NavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D851F8092ABA299F003FCA79 /* NavigationView.swift */; };
-		D891134D2AAC34DC00B5E4F5 /* AnimationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D891134C2AAC34DC00B5E4F5 /* AnimationManager.swift */; };
+
 		D89CCFEE2A9FF97900D9531A /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D89CCFED2A9FF97900D9531A /* AboutView.swift */; };
 		D8CDA7FD2AA249F800FAD41E /* highnote.wav in Resources */ = {isa = PBXBuildFile; fileRef = D8CDA7FB2AA249F800FAD41E /* highnote.wav */; };
 		D8CDA7FE2AA249F800FAD41E /* lownote.wav in Resources */ = {isa = PBXBuildFile; fileRef = D8CDA7FC2AA249F800FAD41E /* lownote.wav */; };
@@ -159,7 +159,6 @@
 		D851F8092ABA299F003FCA79 /* NavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationView.swift; sourceTree = "<group>"; };
 		D864D09E2AAF9C1E00842526 /* sk */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sk; path = sk.lproj/LocalizableMain.strings; sourceTree = "<group>"; };
 		D864D09F2AAF9C8500842526 /* sl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sl; path = sl.lproj/LocalizableMain.strings; sourceTree = "<group>"; };
-		D891134C2AAC34DC00B5E4F5 /* AnimationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationManager.swift; sourceTree = "<group>"; };
 		D89CCFED2A9FF97900D9531A /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		D89CCFF22AA0FC5B00D9531A /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/LocalizableMain.strings; sourceTree = "<group>"; };
 		D89CCFF32AA0FDEA00D9531A /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/LocalizableMain.strings; sourceTree = "<group>"; };
@@ -377,7 +376,6 @@
 			children = (
 				D8D9E5CA2A8403D300E295FA /* AppManager.swift */,
 				D83DD3F42A9908E600FCC534 /* UpdateManager.swift */,
-				D891134C2AAC34DC00B5E4F5 /* AnimationManager.swift */,
 			);
 			path = Objects;
 			sourceTree = "<group>";
@@ -597,7 +595,7 @@
 				D851F8062AB214E8003FCA79 /* DataObject.xcdatamodeld in Sources */,
 				D89CCFEE2A9FF97900D9531A /* AboutView.swift in Sources */,
 				D8DFD5842A8C26F300732635 /* SettingsView.swift in Sources */,
-				D891134D2AAC34DC00B5E4F5 /* AnimationManager.swift in Sources */,
+
 				D851F80A2ABA29A0003FCA79 /* NavigationView.swift in Sources */,
 				D8D9E5B32A7DFF3E00E295FA /* MenuView.swift in Sources */,
 				D851F7FF2AB0FC20003FCA79 /* HUDView.swift in Sources */,

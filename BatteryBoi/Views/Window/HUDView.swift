@@ -102,40 +102,41 @@ struct HUDSummary: View {
 
 struct HUDContainer: View {
     @Environment(AppEnvironment.self) private var env
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var battery: any BatteryServiceProtocol {
-        env.battery
+        self.env.battery
     }
 
     private var window: any WindowServiceProtocol {
-        env.window
+        self.env.window
     }
 
     private var manager: any AppManagerProtocol {
-        env.app
+        self.env.app
     }
 
-    @State private var timeline: AnimationObject
-    @State private var animation: AnimationState = .waiting
+    @State private var containerPaddingTop: CGFloat = 0
+    @State private var containerPaddingBottom: CGFloat = 0
+    @State private var containerOpacity: CGFloat = 1.0
+    @State private var containerBlur: CGFloat = 0.0
     @State private var ringSlideTask: Task<Void, Never>?
 
     @Binding private var progress: HUDProgressLayout
 
     init(progress: Binding<HUDProgressLayout>) {
-        _timeline = State(initialValue: .init([]))
-        _progress = progress
-
+        self._progress = progress
     }
 
     var body: some View {
         HStack(alignment: .center) {
             HUDSummary()
 
-            if window.state == .detailed {
+            if self.window.state == .detailed {
                 Spacer()
 
                 Button(
-                    action: { window.toggleExpanded() },
+                    action: { self.window.toggleExpanded() },
                     label: {
                         Image(systemName: "xmark")
                             .font(Typography.heading)
@@ -148,166 +149,434 @@ struct HUDContainer: View {
                 .transition(.blurFade)
             }
         }
-        .timeline($timeline, state: $animation)
+        .opacity(self.containerOpacity)
+        .blur(radius: self.containerBlur)
+        .padding(.top, self.containerPaddingTop)
+        .padding(.bottom, self.containerPaddingBottom)
         .padding(.leading, Spacing.md + Spacing.xs)
-        .padding(.trailing, window.state == .detailed ? Spacing.lg : Spacing.sm + Spacing.xxs)
-        .padding(.vertical, window.state == .detailed ? Spacing.xs : 0)
+        .padding(.trailing, self.window.state == .detailed ? Spacing.lg : Spacing.sm + Spacing.xxs)
+        .padding(.vertical, self.window.state == .detailed ? Spacing.xs : 0)
         .onAppear {
-            if let animation = window.state.container {
-                timeline = animation
-
-            }
-
+            self.applyContainer(from: .hidden, to: self.window.state)
         }
-        .onChange(of: window.state) { oldValue, newValue in
-            if let animation = HUDState.containerTransition(from: oldValue, to: newValue) {
-                timeline = animation
-
-            }
+        .onChange(of: self.window.state) { oldValue, newValue in
+            self.applyContainer(from: oldValue, to: newValue)
 
             if newValue == .revealed, oldValue != .detailed {
-                ringSlideTask?.cancel()
-                ringSlideTask = Task {
+                self.ringSlideTask?.cancel()
+                self.ringSlideTask = Task {
                     try? await Task.sleep(for: .seconds(RevealTiming.ringSlideDelay))
                     guard !Task.isCancelled else { return }
                     withAnimation(.easeOut(duration: RevealTiming.ringSlide)) {
-                        progress = .trailing
+                        self.progress = .trailing
                     }
                 }
-
             }
 
             if !newValue.visible {
-                ringSlideTask?.cancel()
+                self.ringSlideTask?.cancel()
             }
-
         }
         .onDisappear {
-            ringSlideTask?.cancel()
+            self.ringSlideTask?.cancel()
         }
-
     }
 
+    private func applyContainer(from: HUDState, to: HUDState) {
+        if from == .detailed, to == .revealed {
+            let animation = DesignAnimation.easeOut(
+                duration: RevealTiming.collapseDuration, reduceMotion: self.reduceMotion
+            )
+            withAnimation(animation) {
+                self.containerPaddingTop = 0
+                self.containerPaddingBottom = 0
+            }
+            return
+        }
+        switch to {
+        case .detailed:
+            let animation = DesignAnimation.easeOut(duration: 0.4, reduceMotion: self.reduceMotion)
+            withAnimation(animation) {
+                self.containerPaddingTop = 24
+                self.containerPaddingBottom = 16
+            }
+        case .dismissed:
+            let animation = DesignAnimation.easeOut(
+                duration: RevealTiming.dismissContainerFade, reduceMotion: self.reduceMotion
+            )
+            withAnimation(animation) {
+                self.containerOpacity = 0.0
+                self.containerBlur = 5.0
+            }
+        default:
+            break
+        }
+    }
 }
 
 struct HUDMaskView: View {
     @Environment(AppEnvironment.self) private var env
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var window: any WindowServiceProtocol {
-        env.window
+        self.env.window
     }
 
-    @State private var timeline: AnimationObject
-    @State private var animation: AnimationState = .waiting
+    @State private var maskPhase: HUDMaskPhase = .idle
+    @State private var maskGeneration: Int = 0
 
-    var keyframes = [AnimationKeyframeObject]()
-
-    init() {
-        _timeline = State(initialValue: .init([]))
-
-    }
+    @State private var staticWidth: CGFloat = 20
+    @State private var staticHeight: CGFloat = 20
+    @State private var staticRadius: CGFloat = 10
+    @State private var staticOpacity: CGFloat = 1.0
 
     var body: some View {
         ZStack(alignment: .center) {
-            RoundedRectangle(cornerRadius: 0, style: .continuous)
-                .timeline($timeline, state: $animation)
-                .frame(width: 20, height: 20)
-
+            if self.reduceMotion {
+                RoundedRectangle(cornerRadius: self.staticRadius, style: .continuous)
+                    .frame(width: self.staticWidth, height: self.staticHeight)
+                    .opacity(self.staticOpacity)
+            } else {
+                self.maskAnimator
+                    .id(self.maskPhase)
+                    .transition(.identity)
+                    .task(id: self.maskPhase) {
+                        self.maskGeneration += 1
+                    }
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
-            if let animation = window.state.mask {
-                timeline = animation
-
+            if self.reduceMotion {
+                self.applyMaskEndState(from: .hidden, to: self.window.state)
+            } else if let phase = self.maskPhaseFor(from: .hidden, to: self.window.state) {
+                self.maskPhase = phase
             }
-
         }
-        .onChange(of: window.state) { oldValue, newValue in
-            if let animation = HUDState.maskTransition(from: oldValue, to: newValue) {
-                timeline = animation
-
+        .onChange(of: self.window.state) { oldValue, newValue in
+            if self.reduceMotion {
+                self.applyMaskEndState(from: oldValue, to: newValue)
+            } else if let phase = self.maskPhaseFor(from: oldValue, to: newValue) {
+                self.maskPhase = phase
             }
-
         }
-
     }
 
+    // MARK: - Phase-specific keyframe animators
+
+    @ViewBuilder
+    private var maskAnimator: some View {
+        switch self.maskPhase {
+        case .idle:
+            self.maskShape(initialValue: HUDMaskValues()) {
+                KeyframeTrack(\.width) { LinearKeyframe(8, duration: 0.01) }
+                KeyframeTrack(\.height) { LinearKeyframe(8, duration: 0.01) }
+            }
+
+        case .reveal:
+            self.maskShape(initialValue: HUDMaskValues()) {
+                KeyframeTrack(\.width) {
+                    SpringKeyframe(120, duration: RevealTiming.circlePhaseEnd, spring: DesignAnimation.hudSpring)
+                    SpringKeyframe(430, duration: RevealTiming.pillExpansion, spring: DesignAnimation.hudSpring)
+                }
+                KeyframeTrack(\.height) {
+                    SpringKeyframe(120, duration: RevealTiming.circlePhaseEnd, spring: DesignAnimation.hudSpring)
+                    LinearKeyframe(120, duration: RevealTiming.pillExpansion)
+                }
+                KeyframeTrack(\.radius) {
+                    SpringKeyframe(
+                        Constants.CornerRadius.maskCircle,
+                        duration: RevealTiming.circlePhaseEnd,
+                        spring: DesignAnimation.hudSpring
+                    )
+                    LinearKeyframe(Constants.CornerRadius.maskCircle, duration: RevealTiming.pillExpansion)
+                }
+                KeyframeTrack(\.opacity) {
+                    SpringKeyframe(1.0, duration: 0.15, spring: DesignAnimation.hudSpring)
+                }
+            }
+
+        case .expand:
+            self.maskShape(initialValue: HUDMaskValues(
+                width: 430, height: 120,
+                radius: Constants.CornerRadius.maskCircle, opacity: 1.0
+            )) {
+                KeyframeTrack(\.width) {
+                    SpringKeyframe(500, duration: RevealTiming.expandDuration, spring: DesignAnimation.hudSpring)
+                }
+                KeyframeTrack(\.height) {
+                    SpringKeyframe(460, duration: RevealTiming.expandDuration, spring: DesignAnimation.hudSpring)
+                }
+                KeyframeTrack(\.radius) {
+                    SpringKeyframe(
+                        Constants.CornerRadius.hud,
+                        duration: RevealTiming.expandDuration,
+                        spring: DesignAnimation.hudSpring
+                    )
+                }
+            }
+
+        case .collapse:
+            self.maskShape(initialValue: HUDMaskValues(
+                width: 500, height: 460,
+                radius: Constants.CornerRadius.hud, opacity: 1.0
+            )) {
+                KeyframeTrack(\.width) {
+                    SpringKeyframe(430, duration: RevealTiming.collapseDuration, spring: DesignAnimation.hudSpring)
+                }
+                KeyframeTrack(\.height) {
+                    SpringKeyframe(120, duration: RevealTiming.collapseDuration, spring: DesignAnimation.hudSpring)
+                }
+                KeyframeTrack(\.radius) {
+                    SpringKeyframe(60, duration: RevealTiming.collapseDuration, spring: DesignAnimation.hudSpring)
+                }
+            }
+
+        case .dismiss:
+            self.maskShape(initialValue: HUDMaskValues(
+                width: 430, height: 120,
+                radius: Constants.CornerRadius.maskCircle, opacity: 1.0
+            )) {
+                KeyframeTrack(\.width) {
+                    LinearKeyframe(430, duration: RevealTiming.dismissMaskHold)
+                    SpringKeyframe(120, duration: RevealTiming.dismissPillContract, spring: DesignAnimation.hudSpring)
+                    SpringKeyframe(40, duration: RevealTiming.dismissCircleShrink, spring: DesignAnimation.hudSpring)
+                }
+                KeyframeTrack(\.height) {
+                    LinearKeyframe(120, duration: RevealTiming.dismissMaskHold)
+                    LinearKeyframe(120, duration: RevealTiming.dismissPillContract)
+                    SpringKeyframe(40, duration: RevealTiming.dismissCircleShrink, spring: DesignAnimation.hudSpring)
+                }
+                KeyframeTrack(\.radius) {
+                    LinearKeyframe(Constants.CornerRadius.maskCircle, duration: RevealTiming.dismissMaskHold)
+                    LinearKeyframe(Constants.CornerRadius.maskCircle, duration: RevealTiming.dismissPillContract)
+                    SpringKeyframe(
+                        Constants.CornerRadius.maskDismiss,
+                        duration: RevealTiming.dismissCircleShrink,
+                        spring: DesignAnimation.hudSpring
+                    )
+                }
+                KeyframeTrack(\.opacity) {
+                    LinearKeyframe(1.0, duration: RevealTiming.dismissMaskHold + RevealTiming.dismissPillContract)
+                    CubicKeyframe(0.0, duration: RevealTiming.dismissCircleShrink)
+                }
+            }
+        }
+    }
+
+    private func maskShape<K: Keyframes>(
+        initialValue: HUDMaskValues,
+        @KeyframesBuilder<HUDMaskValues> keyframes: @escaping () -> K
+    ) -> some View where K.Value == HUDMaskValues {
+        RoundedRectangle(cornerRadius: 0, style: .continuous)
+            .keyframeAnimator(
+                initialValue: initialValue,
+                trigger: self.maskGeneration
+            ) { content, values in
+                content
+                    .frame(width: values.width, height: values.height)
+                    .clipShape(RoundedRectangle(cornerRadius: values.radius, style: .continuous))
+                    .opacity(values.opacity)
+            } keyframes: { _ in
+                keyframes()
+            }
+    }
+
+    // MARK: - Reduce motion
+
+    private func applyMaskEndState(from: HUDState, to: HUDState) {
+        switch self.maskPhaseFor(from: from, to: to) {
+        case .reveal:
+            self.staticWidth = 430; self.staticHeight = 120
+            self.staticRadius = Constants.CornerRadius.maskCircle; self.staticOpacity = 1.0
+        case .expand:
+            self.staticWidth = 500; self.staticHeight = 460
+            self.staticRadius = Constants.CornerRadius.hud; self.staticOpacity = 1.0
+        case .collapse:
+            self.staticWidth = 430; self.staticHeight = 120
+            self.staticRadius = 60; self.staticOpacity = 1.0
+        case .dismiss:
+            self.staticWidth = 40; self.staticHeight = 40
+            self.staticRadius = Constants.CornerRadius.maskDismiss; self.staticOpacity = 0.0
+        case .idle, nil:
+            break
+        }
+    }
+
+    private func maskPhaseFor(from: HUDState, to: HUDState) -> HUDMaskPhase? {
+        if from == .detailed, to == .revealed {
+            return .collapse
+        }
+        switch to {
+        case .revealed: return .reveal
+        case .detailed: return .expand
+        case .dismissed: return .dismiss
+        default: return nil
+        }
+    }
 }
 
 struct HUDGlow: View {
     @Environment(AppEnvironment.self) private var env
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var window: any WindowServiceProtocol {
-        env.window
+        self.env.window
     }
 
-    @State private var timeline: AnimationObject
-    @State private var animation: AnimationState = .waiting
-
-    init() {
-        _timeline = State(initialValue: .init([]))
-
-    }
+    @State private var glowPhase: HUDGlowPhase = .idle
+    @State private var glowGeneration: Int = 0
 
     var body: some View {
+        if self.reduceMotion {
+            Circle()
+                .fill(Color("BBBackground"))
+                .frame(width: 80, height: 80)
+                .opacity(0)
+        } else {
+            self.glowAnimator
+                .id(self.glowPhase)
+                .transition(.identity)
+                .task(id: self.glowPhase) {
+                    self.glowGeneration += 1
+                }
+                .onAppear {
+                    if let phase = self.glowPhaseFor(from: .hidden, to: self.window.state) {
+                        self.glowPhase = phase
+                    }
+                }
+                .onChange(of: self.window.state) { oldValue, newValue in
+                    if let phase = self.glowPhaseFor(from: oldValue, to: newValue) {
+                        self.glowPhase = phase
+                    }
+                }
+        }
+    }
+
+    @ViewBuilder
+    private var glowAnimator: some View {
+        switch self.glowPhase {
+        case .idle:
+            self.glowShape(initialValue: HUDGlowValues()) {
+                KeyframeTrack(\.opacity) { LinearKeyframe(0.0, duration: 0.01) }
+            }
+
+        case .reveal:
+            self.glowShape(initialValue: HUDGlowValues()) {
+                KeyframeTrack(\.opacity) {
+                    LinearKeyframe(0.0, duration: RevealTiming.glowStartDelay - 0.03)
+                    CubicKeyframe(0.0, duration: 0.03)
+                    SpringKeyframe(0.5, duration: RevealTiming.glowPulse, spring: DesignAnimation.hudSpring)
+                    CubicKeyframe(0.0, duration: RevealTiming.glowFade)
+                }
+                KeyframeTrack(\.scale) {
+                    LinearKeyframe(0.2, duration: RevealTiming.glowStartDelay)
+                    SpringKeyframe(1.9, duration: RevealTiming.glowPulse, spring: DesignAnimation.hudSpring)
+                    CubicKeyframe(1.0, duration: RevealTiming.glowFade)
+                }
+            }
+
+        case .dismiss:
+            self.glowShape(initialValue: HUDGlowValues()) {
+                KeyframeTrack(\.opacity) {
+                    CubicKeyframe(0.0, duration: 0.03)
+                    CubicKeyframe(0.6, duration: 0.4)
+                    SpringKeyframe(0.0, duration: 0.2, spring: DesignAnimation.hudSpring)
+                }
+                KeyframeTrack(\.scale) {
+                    CubicKeyframe(0.2, duration: 0.03)
+                    CubicKeyframe(1.4, duration: 0.4)
+                    SpringKeyframe(0.2, duration: 0.2, spring: DesignAnimation.hudSpring)
+                }
+            }
+        }
+    }
+
+    private func glowShape<K: Keyframes>(
+        initialValue: HUDGlowValues,
+        @KeyframesBuilder<HUDGlowValues> keyframes: @escaping () -> K
+    ) -> some View where K.Value == HUDGlowValues {
         Circle()
             .fill(Color("BBBackground"))
             .frame(width: 80, height: 80)
-            .timeline($timeline, state: $animation)
-            .onAppear {
-                if let animation = window.state.glow {
-                    timeline = animation
-
-                }
-
+            .keyframeAnimator(
+                initialValue: initialValue,
+                trigger: self.glowGeneration
+            ) { content, values in
+                content
+                    .opacity(values.opacity)
+                    .scaleEffect(values.scale)
+            } keyframes: { _ in
+                keyframes()
             }
-            .onChange(of: window.state) { oldValue, newValue in
-                if let animation = HUDState.glowTransition(from: oldValue, to: newValue) {
-                    timeline = animation
-
-                }
-
-            }
-
     }
 
+    private func glowPhaseFor(from: HUDState, to: HUDState) -> HUDGlowPhase? {
+        if from == .detailed, to == .revealed {
+            return nil
+        }
+        switch to {
+        case .revealed: return .reveal
+        case .dismissed: return .dismiss
+        default: return nil
+        }
+    }
 }
 
 struct HUDProgress: View {
     @Environment(AppEnvironment.self) private var env
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var window: any WindowServiceProtocol {
-        env.window
+        self.env.window
     }
 
-    @State private var timeline: AnimationObject
-    @State private var animation: AnimationState = .waiting
-
-    init() {
-        _timeline = State(initialValue: .init([]))
-
-    }
+    @State private var progressOpacity: CGFloat = 0.0
+    @State private var progressScale: CGFloat = 0.85
+    @State private var progressBlur: CGFloat = 0.0
 
     var body: some View {
         RadialProgressContainer(true)
-            .timeline($timeline, state: $animation)
+            .opacity(self.progressOpacity)
+            .scaleEffect(self.progressScale)
+            .blur(radius: self.progressBlur)
             .onAppear {
-                if let animation = window.state.progress {
-                    timeline = animation
-
-                }
-
+                self.applyProgress(from: .hidden, to: self.window.state)
             }
-            .onChange(of: window.state) { oldValue, newValue in
-                if let animation = HUDState.progressTransition(from: oldValue, to: newValue) {
-                    timeline = animation
-
-                }
-
+            .onChange(of: self.window.state) { oldValue, newValue in
+                self.applyProgress(from: oldValue, to: newValue)
             }
-
     }
 
+    private func applyProgress(from: HUDState, to: HUDState) {
+        if from == .detailed, to == .revealed {
+            return
+        }
+
+        switch to {
+        case .revealed:
+            self.progressOpacity = 0.0
+            self.progressScale = 0.8
+            self.progressBlur = 5.0
+            let animation = DesignAnimation.easeOut(
+                duration: RevealTiming.ringFadeIn, reduceMotion: self.reduceMotion
+            )
+            withAnimation(animation) {
+                self.progressOpacity = 1.0
+                self.progressScale = 1.0
+                self.progressBlur = 0.0
+            }
+        case .dismissed:
+            let animation = DesignAnimation.spring(reduceMotion: self.reduceMotion)
+            withAnimation(animation) {
+                self.progressOpacity = 0.0
+                self.progressBlur = 12.0
+                self.progressScale = 0.9
+            }
+        default:
+            break
+        }
+    }
 }
 
 struct HUDView: View {
@@ -315,76 +584,59 @@ struct HUDView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var window: any WindowServiceProtocol {
-        env.window
+        self.env.window
     }
 
-    @State private var timeline: AnimationObject
-    @State private var animation: AnimationState = .waiting
     @State private var progress: HUDProgressLayout = .center
 
     @Namespace private var namespace
 
-    init() {
-        _timeline = State(initialValue: .init([]))
-
-    }
-
     var body: some View {
         ZStack(alignment: .center) {
             VStack {
-                if window.state == .detailed {
-                    HUDContainer(progress: $progress)
-                        .matchedGeometryEffect(id: "hud", in: namespace)
+                if self.window.state == .detailed {
+                    HUDContainer(progress: self.$progress)
+                        .matchedGeometryEffect(id: "hud", in: self.namespace)
 
                     NavigationContainer()
 
                     Spacer(minLength: 0)
 
                 } else {
-                    HUDContainer(progress: $progress)
-                        .matchedGeometryEffect(id: "hud", in: namespace)
-
+                    HUDContainer(progress: self.$progress)
+                        .matchedGeometryEffect(id: "hud", in: self.namespace)
                 }
-
             }
 
             HUDProgress()
-                .opacity(window.state == .detailed ? 0.0 : 1.0)
-                .scaleEffect(window.state == .detailed ? 0.85 : 1.0)
-                .allowsHitTesting(window.state != .detailed)
+                .opacity(self.window.state == .detailed ? 0.0 : 1.0)
+                .scaleEffect(self.window.state == .detailed ? 0.85 : 1.0)
+                .allowsHitTesting(self.window.state != .detailed)
                 .animation(
-                    reduceMotion ? nil : .easeOut(duration: RevealTiming.expandDuration),
-                    value: window.state == .detailed
+                    self.reduceMotion ? nil : .easeOut(duration: RevealTiming.expandDuration),
+                    value: self.window.state == .detailed
                 )
-                .frame(maxWidth: .infinity, alignment: progress == .trailing ? .trailing : .center)
-                .padding(.trailing, progress == .trailing ? Spacing.sm + Spacing.xxs : 0)
-
+                .frame(maxWidth: .infinity, alignment: self.progress == .trailing ? .trailing : .center)
+                .padding(.trailing, self.progress == .trailing ? Spacing.sm + Spacing.xxs : 0)
         }
         .frame(minWidth: 380, idealWidth: 450, maxWidth: 520)
         .frame(minHeight: 200, idealHeight: 250, maxHeight: 500)
         .background(
-            Color("BBBackground").opacity(window.opacity)
-
+            Color("BBBackground").opacity(self.window.opacity)
         )
-        .timeline($timeline, state: $animation)
         .mask(
             HUDMaskView()
-
         )
         .background(
             HUDGlow()
-
         )
         .onHover(perform: { hover in
-            window.hover = hover
-
+            self.window.hover = hover
         })
         .accessibilityElement(children: .contain)
         .accessibilityLabel("AccessibilityBatteryNotification".localise())
         .accessibilityAddTraits(.isModal)
-
     }
-
 }
 
 struct HUDParent: View {

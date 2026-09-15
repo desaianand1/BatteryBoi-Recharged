@@ -45,7 +45,7 @@ nonisolated enum RevealTiming {
     // MARK: Atomic — tweak only these; everything else derives
 
     static let circleBounce: Double = 0.6
-    static let circlePause: Double = 0.7
+    static let circlePause: Double = 0.85
     static let ringFadeIn: Double = 0.3
     static let glowPulse: Double = 0.4
     static let glowFade: Double = 0.4
@@ -97,6 +97,8 @@ nonisolated enum ChargingAnimation {
 }
 
 enum DesignAnimation {
+    static let hudSpring = Spring(response: 0.35, dampingRatio: 0.65)
+
     static func spring(
         response: Double = 0.4,
         dampingFraction: Double = 0.8,

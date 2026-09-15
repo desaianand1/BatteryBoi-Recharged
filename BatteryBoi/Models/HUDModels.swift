@@ -8,6 +8,36 @@
 import Foundation
 import SwiftUI
 
+// MARK: - HUD Animation Value Types
+
+struct HUDMaskValues {
+    var width: CGFloat = 8
+    var height: CGFloat = 8
+    var radius: CGFloat = 4
+    var opacity: CGFloat = 0.0
+}
+
+struct HUDGlowValues {
+    var opacity: CGFloat = 0.0
+    var scale: CGFloat = 0.2
+}
+
+// MARK: - HUD Animation Phases
+
+enum HUDMaskPhase {
+    case idle
+    case reveal
+    case expand
+    case collapse
+    case dismiss
+}
+
+enum HUDGlowPhase {
+    case idle
+    case reveal
+    case dismiss
+}
+
 // MARK: - HUD State
 
 enum HUDState: Equatable {
@@ -23,140 +53,6 @@ enum HUDState: Equatable {
         case .dismissed: false
         default: true
         }
-    }
-
-    var mask: AnimationObject? {
-        if self == .revealed {
-            return .init([
-                .init(
-                    RevealTiming.circleBounce,
-                    delay: RevealTiming.circlePause,
-                    easing: .bounce,
-                    width: 120,
-                    height: 120,
-                    blur: 0,
-                    radius: Constants.CornerRadius.maskCircle
-                ),
-                .init(
-                    RevealTiming.pillExpansion,
-                    easing: .bounce,
-                    width: 430,
-                    height: 120,
-                    blur: 0,
-                    radius: Constants.CornerRadius.maskCircle
-                ),
-            ], id: "initial")
-        } else if self == .detailed {
-            return .init(
-                [.init(
-                    RevealTiming.expandDuration, easing: .bounce,
-                    width: 500, height: 460,
-                    radius: Constants.CornerRadius.hud
-                )],
-                id: "expand_out"
-            )
-        } else if self == .dismissed {
-            return .init(
-                [
-                    .init(
-                        RevealTiming.dismissMaskHold, easing: .easeout,
-                        width: 430, height: 120,
-                        radius: Constants.CornerRadius.maskCircle
-                    ),
-                    .init(
-                        RevealTiming.dismissPillContract, easing: .easeout,
-                        width: 120, height: 120,
-                        radius: Constants.CornerRadius.maskCircle
-                    ),
-                    .init(
-                        RevealTiming.dismissCircleShrink,
-                        easing: .bounce,
-                        width: 40,
-                        height: 40,
-                        opacity: 0,
-                        radius: Constants.CornerRadius.maskDismiss
-                    ),
-                ],
-                id: "expand_close"
-            )
-        }
-        return nil
-    }
-
-    var glow: AnimationObject? {
-        if self == .revealed {
-            return .init([
-                .init(0.03, delay: RevealTiming.glowStartDelay - 0.03, easing: .easeout, opacity: 0.0, scale: 0.2),
-                .init(RevealTiming.glowPulse, easing: .bounce, opacity: 0.5, scale: 1.9),
-                .init(RevealTiming.glowFade, easing: .easein, opacity: 0.0),
-            ])
-        } else if self == .dismissed {
-            return .init([
-                .init(0.03, easing: .easeout, opacity: 0.0, scale: 0.2),
-                .init(0.4, easing: .easein, opacity: 0.6, scale: 1.4),
-                .init(0.2, easing: .bounce, opacity: 0.0, scale: 0.2),
-            ])
-        }
-        return nil
-    }
-
-    var progress: AnimationObject? {
-        if self == .revealed {
-            return .init([
-                .init(0.01, easing: .linear, opacity: 0.0, scale: 0.85),
-                .init(RevealTiming.ringFadeIn, easing: .easeout, opacity: 1.0, scale: 1.0),
-            ])
-        } else if self == .dismissed {
-            return .init([.init(0.6, easing: .bounce, opacity: 0.0, blur: 12.0, scale: 0.9)])
-        }
-        return nil
-    }
-
-    var container: AnimationObject? {
-        if self == .detailed {
-            return .init([.init(0.4, easing: .easeout, padding: .init(top: 24, bottom: 16))], id: "hud_expand")
-        } else if self == .dismissed {
-            return .init([.init(RevealTiming.dismissContainerFade, easing: .easeout, opacity: 0.0, blur: 5.0)])
-        }
-        return nil
-    }
-}
-
-// MARK: - HUD State Transitions
-
-extension HUDState {
-    static func maskTransition(from: HUDState, to: HUDState) -> AnimationObject? {
-        if from == .detailed, to == .revealed {
-            return .init(
-                [.init(RevealTiming.collapseDuration, easing: .bounce, width: 430, height: 120, radius: 60)],
-                id: "collapse_to_pill"
-            )
-        }
-        return to.mask
-    }
-
-    static func glowTransition(from: HUDState, to: HUDState) -> AnimationObject? {
-        if from == .detailed, to == .revealed {
-            return nil
-        }
-        return to.glow
-    }
-
-    static func progressTransition(from: HUDState, to: HUDState) -> AnimationObject? {
-        if from == .detailed, to == .revealed {
-            return nil
-        }
-        return to.progress
-    }
-
-    static func containerTransition(from: HUDState, to: HUDState) -> AnimationObject? {
-        if from == .detailed, to == .revealed {
-            return .init(
-                [.init(RevealTiming.collapseDuration, easing: .easeout, padding: .init())],
-                id: "collapse_container"
-            )
-        }
-        return to.container
     }
 }
 
