@@ -56,6 +56,19 @@ enum HUDState: Equatable {
     }
 }
 
+// MARK: - Alert Priority
+
+enum AlertPriority: Int, Comparable {
+    case low = 0
+    case medium = 1
+    case high = 2
+    case critical = 3
+
+    static func < (lhs: Self, rhs: Self) -> Bool {
+        lhs.rawValue < rhs.rawValue
+    }
+}
+
 // MARK: - HUD Alert Types
 
 enum HUDAlertTypes: Equatable {
@@ -88,6 +101,17 @@ enum HUDAlertTypes: Equatable {
         case .deviceRemoved: true
         case .deviceOverheating: true
         case .userEvent: true
+        }
+    }
+
+    var priority: AlertPriority {
+        switch self {
+        case .percentOne, .deviceOverheating: .critical
+        case .percentFive, .chargingComplete: .high
+        case .chargingBegan, .chargingStopped, .percentTen,
+             .percentTwentyFive, .deviceConnected, .deviceRemoved: .medium
+        case .userLaunched, .userEvent: .low
+        case .userInitiated: .low
         }
     }
 

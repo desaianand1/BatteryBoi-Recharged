@@ -80,6 +80,11 @@ final class WindowService: WindowServiceProtocol {
     private(set) var currentAlert: HUDAlertTypes?
     var currentDevice: BluetoothObject?
 
+    // MARK: - Alert Queue
+
+    private(set) var alertQueue: [(type: HUDAlertTypes, device: BluetoothObject?)] = []
+    private let maxQueueSize = 5
+
     // MARK: - Dependencies
 
     private let settings: any SettingsServiceProtocol
@@ -164,6 +169,7 @@ final class WindowService: WindowServiceProtocol {
         dismissRemainingTime = nil
         dismissStartTime = nil
         hoverStartTime = nil
+        alertQueue.removeAll()
     }
 
     func handleWake() {
@@ -177,6 +183,7 @@ final class WindowService: WindowServiceProtocol {
         }
         currentAlert = nil
         currentDevice = nil
+        alertQueue.removeAll()
         tearDownDragState()
     }
 
@@ -411,6 +418,18 @@ final class WindowService: WindowServiceProtocol {
     }
 
     func windowOpen(_ type: HUDAlertTypes, device: BluetoothObject?) {
+        // userInitiated bypasses the priority queue entirely
+        if type != .userInitiated {
+            if let current = currentAlert, current != type, type.priority < current.priority {
+                enqueueAlert(type, device: device)
+                return
+            }
+        }
+
+        showAlert(type, device: device)
+    }
+
+    private func showAlert(_ type: HUDAlertTypes, device: BluetoothObject?) {
         dismissalTask?.cancel()
         dismissalTask = nil
 
@@ -450,6 +469,17 @@ final class WindowService: WindowServiceProtocol {
         windowSetState(.progress)
     }
 
+    private func enqueueAlert(_ type: HUDAlertTypes, device: BluetoothObject?) {
+        guard alertQueue.count < maxQueueSize else { return }
+        alertQueue.append((type: type, device: device))
+    }
+
+    private func processAlertQueue() {
+        guard let next = alertQueue.first else { return }
+        alertQueue.removeFirst()
+        windowOpen(next.type, device: next.device)
+    }
+
     private func windowClose() {
         if let window = NSApplication.shared.windows.first(where: { $0.title == Constants.Window.modalWindowTitle }) {
             if currentAlert != nil {
@@ -459,6 +489,8 @@ final class WindowService: WindowServiceProtocol {
                 state = .hidden
 
                 window.alphaValue = 0.0
+
+                processAlertQueue()
             }
         }
     }

@@ -33,6 +33,9 @@ protocol WindowServiceProtocol: AnyObject {
     /// Current device for Bluetooth alerts
     var currentDevice: BluetoothObject? { get set }
 
+    /// Queued alerts waiting to be shown after the current alert dismisses
+    var alertQueue: [(type: HUDAlertTypes, device: BluetoothObject?)] { get }
+
     // MARK: - Methods
 
     /// Set the HUD state with optional animation

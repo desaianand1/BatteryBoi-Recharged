@@ -70,6 +70,16 @@ import Foundation
 
         func open(_ type: HUDAlertTypes, device: BluetoothObject?) {
             openCallCount += 1
+
+            if type != .userInitiated {
+                if let current = currentAlert, current != type, type.priority < current.priority {
+                    if alertQueue.count < maxQueueSize {
+                        alertQueue.append((type: type, device: device))
+                    }
+                    return
+                }
+            }
+
             openHistory.append(type)
             lastOpenType = type
             lastOpenDevice = device
@@ -94,6 +104,7 @@ import Foundation
             handleWakeCallCount += 1
             state = .hidden
             currentAlert = nil
+            alertQueue.removeAll()
             openHistory.removeAll()
         }
 
@@ -122,7 +133,23 @@ import Foundation
         var currentAlert: HUDAlertTypes?
         var currentDevice: BluetoothObject?
 
+        // MARK: - Alert Queue
+
+        var alertQueue: [(type: HUDAlertTypes, device: BluetoothObject?)] = []
+        private let maxQueueSize = 5
+
         // MARK: - Test Simulation
+
+        func simulateDismissal() {
+            currentAlert = nil
+            currentDevice = nil
+            state = .hidden
+
+            if let next = alertQueue.first {
+                alertQueue.removeFirst()
+                open(next.type, device: next.device)
+            }
+        }
 
         func simulateHoverChange(_ newHover: Bool) {
             hover = newHover
