@@ -163,12 +163,12 @@ public extension Date {
 
     var formatted: String {
         let components = Calendar.current.dateComponents([.day, .hour, .minute, .second], from: self, to: Date())
-        if let days = components.day, days > 1 {
+        if let days = components.day, days >= 1 {
             return "TimestampMinuteDaysLabel".localise([days])
 
         }
 
-        if let hours = components.hour, hours > 1 {
+        if let hours = components.hour, hours >= 1 {
             return "TimestampHourFullLabel".localise([hours])
 
         }
@@ -196,12 +196,11 @@ public extension Date {
         formatter.dateStyle = .none
         formatter.locale = Locale.current
 
-        let timeString = formatter.string(from: self)
+        return formatter.string(from: self)
+    }
 
-        if !Calendar.current.isDateInToday(self) {
-            return "\("AlertChargeTomorrowPrefix".localise()) \(timeString)"
-        }
-        return timeString
+    var isTomorrow: Bool {
+        Calendar.current.isDateInTomorrow(self)
     }
 
 }

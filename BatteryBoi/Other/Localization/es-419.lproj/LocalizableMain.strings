@@ -7,13 +7,13 @@
 "AlertDeviceDisconnectedTitle" = "'%@' desconectado"; // 'Audífonos de Joe' desconectado
 "AlertDeviceUnknownTitle" = "Desconocido";
 "AlertDeviceCalculatingTitle" = "Calculando...";
-"AlertChargeTomorrowPrefix" = "mañana";
 "AlertOverheatingTitle" = "Sobrecalentamiento";
 "AlertLimitedTitle" = "Batería insuficiente...";
 
 "AlertEstimateSummary" = "**%@** hasta agotarse"; // 1 hora, 32 minutos hasta agotarse
 "AlertPercentSummary" = "¡Hora de buscar el cable!";
 "AlertStartedChargeSummary" = "Carga completa a las **%@**."; // Carga completa a las 2:32pm
+"AlertStartedChargeTomorrowSummary" = "Carga completa mañana a las **%@**.";
 "AlertChargedSummary" = "Tu batería está completamente cargada.";
 "AlertOverheatingSummary" = "Las altas temperaturas pueden agotar tu batería más rápido y causar daños a largo plazo.";
 "AlertLimitedSummary" = "Tu batería podría ser insuficiente para el evento '%@'.";

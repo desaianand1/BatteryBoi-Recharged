@@ -7,13 +7,13 @@
 "AlertDeviceDisconnectedTitle" = "'%@' 已断开"; // 'Joe's Headphones' Disconnected
 "AlertDeviceUnknownTitle" = "未知设备";
 "AlertDeviceCalculatingTitle" = "正在计算...";
-"AlertChargeTomorrowPrefix" = "明天";
 "AlertOverheatingTitle" = "过热";
 "AlertLimitedTitle" = "电量不足...";
 
 "AlertEstimateSummary" = "剩余可用 %@"; // 1 hour, 32 minutes until empty
 "AlertPercentSummary" = "请连接电源!";
 "AlertStartedChargeSummary" = "已于 %@ 完成充电."; // Fully charged at 2:32pm
+"AlertStartedChargeTomorrowSummary" = "将于明天 %@ 完成充电.";
 "AlertChargedSummary" = "您的Mac电量已满.";
 "AlertOverheatingSummary" = "高温会加速电池消耗并可能造成长期损坏。";
 "AlertLimitedSummary" = "您的电池可能不足以支撑活动 '%@'。";

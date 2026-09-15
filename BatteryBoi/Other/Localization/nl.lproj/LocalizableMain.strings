@@ -9,11 +9,11 @@
 "AlertDeviceDisconnectedTitle" = "'%@' Ontkoppeld"; // 'Joe's Headphones' Disconnected
 "AlertDeviceUnknownTitle" = "Onbekend";
 "AlertDeviceCalculatingTitle" = "Aan het rekenen...";
-"AlertChargeTomorrowPrefix" = "morgen";
 
 "AlertEstimateSummary" = "%@ totdat de batterij leeg is"; // 1 hour, 32 minutes until empty
 "AlertPercentSummary" = "Tijd om op te laden!";
 "AlertStartedChargeSummary" = "Volledig opgeladen om %@."; // Fully charged at 2:32pm
+"AlertStartedChargeTomorrowSummary" = "Volledig opgeladen morgen om %@.";
 "AlertChargedSummary" = "De batterij is volledig opgeladen.";
 "AlertOverheatingSummary" = "Hoge temperaturen kunnen je batterij sneller leegmaken en langdurige schade veroorzaken.";
 "AlertLimitedSummary" = "Je batterij is is waarschijnlijk onvoldoende opgeladen voor taak '%@'";

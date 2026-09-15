@@ -9,13 +9,13 @@
 "AlertDeviceDisconnectedTitle" = "'%@'の接続が解除されました"; //'Joe's Headphones'の接続が解除されました
 "AlertDeviceUnknownTitle" = "不明";
 "AlertDeviceCalculatingTitle" = "計算中...";
-"AlertChargeTomorrowPrefix" = "明日";
 "AlertOverheatingTitle" = "過熱";
 "AlertLimitedTitle" = "バッテリー不足...";
 
 "AlertEstimateSummary" = "充電が無くなるまで %@"; // 充電が無くなるまで 1時間32分
 "AlertPercentSummary" = "ケーブルに繋ぐ時間です！";
 "AlertStartedChargeSummary" = "%@ に充電完了"; // 2:32pm に充電完了
+"AlertStartedChargeTomorrowSummary" = "明日 %@ に充電完了";
 "AlertChargedSummary" = "バッテリーは完全に充電されています。";
 "AlertOverheatingSummary" = "高温はバッテリーの消耗を早め、長期的なダメージを与える可能性があります。";
 "AlertLimitedSummary" = "バッテリーがイベント '%@' に不十分な可能性があります。";

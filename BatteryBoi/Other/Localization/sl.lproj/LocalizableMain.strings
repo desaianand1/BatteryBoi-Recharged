@@ -7,13 +7,13 @@
 "AlertDeviceDisconnectedTitle" = "'%@' odvezane"; // 'Joe's Headphones' Disconnected
 "AlertDeviceUnknownTitle" = "Neznano";
 "AlertDeviceCalculatingTitle" = "Računanje...";
-"AlertChargeTomorrowPrefix" = "jutri";
 "AlertOverheatingTitle" = "Pregrevanje";
 "AlertLimitedTitle" = "Premalo baterije...";
 
 "AlertEstimateSummary" = "%@ dokler se baterija ne sprazni"; // 1 hour, 32 minutes until empty
 "AlertPercentSummary" = "Čas je da vzameš kabel!";
 "AlertStartedChargeSummary" = "Napolnjeno ob %@."; // Fully charged at 2:32pm
+"AlertStartedChargeTomorrowSummary" = "Napolnjeno jutri ob %@.";
 "AlertChargedSummary" = "Tvoja baterija je napolnjena.";
 "AlertOverheatingSummary" = "Visoke temperature lahko hitreje izpraznijo baterijo in povzročijo dolgoročno škodo.";
 "AlertLimitedSummary" = "Vaša baterija morda ne bo zadostovala za dogodek '%@'.";

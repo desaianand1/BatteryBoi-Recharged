@@ -7,13 +7,13 @@
 "AlertDeviceDisconnectedTitle" = "Odłączono '%@'"; //'Odłączono słuchawki Joe'
 "AlertDeviceUnknownTitle" = "Nieznane";
 "AlertDeviceCalculatingTitle" = "Obliczanie...";
-"AlertChargeTomorrowPrefix" = "jutro";
 "AlertOverheatingTitle" = "Przegrzewanie";
 "AlertLimitedTitle" = "Za mało baterii...";
 
 "AlertEstimateSummary" = "%@ do wyczerpania"; // 1 godzina, 32 minuty do wyczerpania
 "AlertPercentSummary" = "Czas podłączyć ładowarkę!";
 "AlertStartedChargeSummary" = "Pełne naładowanie o %@."; // Pełne naładowanie o 14:32
+"AlertStartedChargeTomorrowSummary" = "Pełne naładowanie jutro o %@.";
 "AlertChargedSummary" = "Twoja bateria jest w pełni naładowana.";
 "AlertOverheatingSummary" = "Wysokie temperatury mogą szybciej wyczerpać baterię i spowodować długotrwałe uszkodzenia.";
 "AlertLimitedSummary" = "Twoja bateria może być niewystarczająca na wydarzenie '%@'.";

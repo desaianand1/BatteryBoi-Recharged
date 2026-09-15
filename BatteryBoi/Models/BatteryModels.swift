@@ -144,7 +144,7 @@ struct BatteryRemaining: Equatable, Sendable {
                 .secondsPerHour + Double(minute) * Constants.Battery.secondsPerMinute)
 
         if hour > 0, minute > 0 {
-            formatted = "\("TimestampHourFullLabel".localise([hour]))  \("TimestampMinuteFullLabel".localise([minute]))"
+            formatted = "\("TimestampHourFullLabel".localise([hour])) \("TimestampMinuteFullLabel".localise([minute]))"
         } else if hour == 0, minute > 0 {
             formatted = "TimestampMinuteFullLabel".localise([minute])
         } else if hour > 0 {

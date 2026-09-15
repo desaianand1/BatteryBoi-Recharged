@@ -102,7 +102,71 @@ struct StatsSubtitleTests {
             untilFull: nil,
             latestEventName: nil
         )
+        #expect(result.contains("Fully charged"))
+    }
+
+    @Test
+    func `charging today shows fully charged at time`() throws {
+        let twoHoursFromNow = try #require(Calendar.current.date(byAdding: .hour, value: 2, to: Date()))
+        guard Calendar.current.isDateInToday(twoHoursFromNow) else { return }
+
+        let result = StatsService.computeSubtitle(
+            alert: nil,
+            chargingState: .charging,
+            percentage: 65,
+            remaining: nil,
+            untilFull: twoHoursFromNow,
+            latestEventName: nil
+        )
         #expect(result.contains("Fully charged at"))
+        #expect(!result.lowercased().contains("tomorrow"))
+    }
+
+    @Test
+    func `charging tomorrow shows tomorrow in subtitle`() throws {
+        let tomorrow = try #require(Calendar.current.date(byAdding: .day, value: 1, to: Date()))
+        guard Calendar.current.isDateInTomorrow(tomorrow) else { return }
+
+        let result = StatsService.computeSubtitle(
+            alert: nil,
+            chargingState: .charging,
+            percentage: 65,
+            remaining: nil,
+            untilFull: tomorrow,
+            latestEventName: nil
+        )
+        #expect(result.lowercased().contains("tomorrow"))
+    }
+
+    @Test
+    func `charging began alert with tomorrow date shows tomorrow`() throws {
+        let tomorrow = try #require(Calendar.current.date(byAdding: .day, value: 1, to: Date()))
+        guard Calendar.current.isDateInTomorrow(tomorrow) else { return }
+
+        let result = StatsService.computeSubtitle(
+            alert: .chargingBegan,
+            chargingState: .charging,
+            percentage: 50,
+            remaining: nil,
+            untilFull: tomorrow,
+            latestEventName: nil
+        )
+        #expect(result.lowercased().contains("tomorrow"))
+    }
+
+    @Test
+    func `charging with past untilFull shows calculating`() throws {
+        let pastDate = try #require(Calendar.current.date(byAdding: .hour, value: -2, to: Date()))
+
+        let result = StatsService.computeSubtitle(
+            alert: nil,
+            chargingState: .charging,
+            percentage: 65,
+            remaining: nil,
+            untilFull: pastDate,
+            latestEventName: nil
+        )
+        #expect(result.contains("Calculating"))
     }
 
     @Test

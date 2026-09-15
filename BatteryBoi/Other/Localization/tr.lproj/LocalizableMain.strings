@@ -9,11 +9,11 @@
 "AlertDeviceDisconnectedTitle" = "'%@' Bağlantısı Kesildi"; // 'Joe's Headphones' Disconnected
 "AlertDeviceUnknownTitle" = "Bilinmiyor";
 "AlertDeviceCalculatingTitle" = "Hesaplanıyor...";
-"AlertChargeTomorrowPrefix" = "yarın";
 
 "AlertEstimateSummary" = "%@ kaldı"; // 1 hour, 32 minutes until empty
 "AlertPercentSummary" = "Şarj kablosunu takma zamanı!";
 "AlertStartedChargeSummary" = "Saat %@' de tam şarj oldu."; // Fully charged at 2:32pm
+"AlertStartedChargeTomorrowSummary" = "Yarın saat %@' de tam şarj olacak.";
 "AlertChargedSummary" = "Piliniz tamamen şarj oldu.";
 "AlertOverheatingSummary" = "Yüksek sıcaklıklar bataryanızı daha hızlı tüketebilir ve uzun vadede zarar verebilir.";
 "AlertLimitedSummary" = "Bataryanız '%@' etkinliği için yetersiz olabilir.";

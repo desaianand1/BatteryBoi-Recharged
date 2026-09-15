@@ -7,13 +7,13 @@
 "AlertDeviceDisconnectedTitle" = "'%@' Disconnesso"; //'Cuffie di Joe' Disconnesse
 "AlertDeviceUnknownTitle" = "Sconosciuto";
 "AlertDeviceCalculatingTitle" = "Calcolo in corso...";
-"AlertChargeTomorrowPrefix" = "domani";
 "AlertOverheatingTitle" = "Surriscaldamento";
 "AlertLimitedTitle" = "Batteria insufficiente...";
 
 "AlertEstimateSummary" = "**%@** fino a esaurimento"; // 1 ora, 32 minuti fino a esaurimento
 "AlertPercentSummary" = "È ora di prendere il cavo!";
 "AlertStartedChargeSummary" = "Completamente carico alle **%@**."; // Completamente carico alle 14:32
+"AlertStartedChargeTomorrowSummary" = "Completamente carico domani alle **%@**.";
 "AlertChargedSummary" = "La tua batteria è completamente carica.";
 "AlertOverheatingSummary" = "Le alte temperature possono scaricare la batteria più rapidamente e causare danni a lungo termine.";
 "AlertLimitedSummary" = "La tua batteria potrebbe essere insufficiente per l'evento '%@'.";

@@ -9,11 +9,11 @@
 "AlertDeviceDisconnectedTitle" = "'%@' Отключено"; // 'Joe's Headphones' Disconnected
 "AlertDeviceUnknownTitle" = "Неизвестно";
 "AlertDeviceCalculatingTitle" = "Идёт рассчёт...";
-"AlertChargeTomorrowPrefix" = "завтра";
 
 "AlertEstimateSummary" = "Заряда хватит на %@"; // 1 hour, 32 minutes until empty
 "AlertPercentSummary" = "Пора искать зарядное устройство!";
 "AlertStartedChargeSummary" = "Батарея будет заряжена к **%@**."; // Fully charged at 2:32pm
+"AlertStartedChargeTomorrowSummary" = "Батарея будет заряжена завтра к **%@**.";
 "AlertChargedSummary" = "Батарея полностью заряжена.";
 "AlertOverheatingSummary" = "Высокая температура может быстрее истощать аккумулятор и вызывать его деградацию в долгосрочной перспективе.";
 "AlertLimitedSummary" = "Ваш заряд батареи может быть недостаточным для события '%@'.";

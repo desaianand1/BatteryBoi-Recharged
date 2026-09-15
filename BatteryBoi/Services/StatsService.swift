@@ -363,8 +363,7 @@ final class StatsService: StatsServiceProtocol {
 
         switch alert {
         case .chargingComplete: return "AlertChargedSummary".localise()
-        case .chargingBegan: return "AlertStartedChargeSummary"
-            .localise([untilFull?.time ?? "AlertDeviceCalculatingTitle".localise()])
+        case .chargingBegan: return Self.chargeTimeSummary(untilFull: untilFull)
         case .chargingStopped: return "AlertEstimateSummary"
             .localise([remaining?.formatted ?? "AlertDeviceCalculatingTitle".localise()])
         case .percentFive: return "AlertPercentSummary".localise()
@@ -379,12 +378,24 @@ final class StatsService: StatsServiceProtocol {
         if chargingState == .charging {
             switch percent {
             case 100: return "AlertChargedSummary".localise()
-            default: return "AlertStartedChargeSummary"
-                .localise([untilFull?.time ?? "AlertDeviceCalculatingTitle".localise()])
+            default: return Self.chargeTimeSummary(untilFull: untilFull)
             }
         }
 
         return "AlertEstimateSummary".localise([remaining?.formatted ?? "AlertDeviceCalculatingTitle".localise()])
+    }
+
+    private static func chargeTimeSummary(untilFull: Date?) -> String {
+        guard let untilFull, untilFull > Date() else {
+            return "AlertStartedChargeSummary"
+                .localise(["AlertDeviceCalculatingTitle".localise()])
+        }
+        if untilFull.isTomorrow {
+            return "AlertStartedChargeTomorrowSummary"
+                .localise([untilFull.time])
+        }
+        return "AlertStartedChargeSummary"
+            .localise([untilFull.time])
     }
 
     static func computeDisplay(
