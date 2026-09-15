@@ -1,3 +1,25 @@
+## [12.59.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.58.0...v12.59.0) (2026-09-15)
+
+### Features
+
+* **alerts:** add priority-based alert queuing system ([b194406](https://github.com/desaianand1/BatteryBoi-Recharged/commit/b194406e8e61cc3970b918c27bd480d67ed26863))
+* **menu:** add right-click context menu on status bar icon ([8cb0b9a](https://github.com/desaianand1/BatteryBoi-Recharged/commit/8cb0b9ad6edfe41d3d17712452dcd75423159689))
+
+### Bug Fixes
+
+* **menu:** resolve header layout bug and reduce icon clutter ([ce2e4ac](https://github.com/desaianand1/BatteryBoi-Recharged/commit/ce2e4acb9bc50e55efd34e3b16c45933568b0897))
+* **menu:** restore icon on Launch at Login toggle ([f6e8d48](https://github.com/desaianand1/BatteryBoi-Recharged/commit/f6e8d48a08cd7057b14ae7caab1f1509505f4ceb))
+* **menu:** use statusItem.menu for native menu bar positioning ([3d7fdc6](https://github.com/desaianand1/BatteryBoi-Recharged/commit/3d7fdc6c6e87e27fcedeffff7ce0ab1978013f6c))
+* **text:** correct charging time, duration, and timestamp rendering ([cdae285](https://github.com/desaianand1/BatteryBoi-Recharged/commit/cdae2850ab091445d06be328f96f5a4610d8128f))
+
+### Performance
+
+* **build:** enable compilation caching and eager linking ([67e93a8](https://github.com/desaianand1/BatteryBoi-Recharged/commit/67e93a8abf1ab6014ce1500b1b45afaec4b092e1))
+
+### Refactoring
+
+* **settings:** surface power save mode, remove dead beta code ([ae036f9](https://github.com/desaianand1/BatteryBoi-Recharged/commit/ae036f9bacccba44c605728c40459b22f0807379))
+
 ## [12.58.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.57.1...v12.58.0) (2026-09-15)
 
 ### ⚠ BREAKING CHANGES
