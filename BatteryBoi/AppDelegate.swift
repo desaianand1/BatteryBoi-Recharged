@@ -250,6 +250,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         )
         launchItem.target = target
         launchItem.state = state.autoLaunchEnabled ? .on : .off
+        launchItem.image = NSImage(
+            systemSymbolName: "arrow.right.circle",
+            accessibilityDescription: nil
+        )?.withSymbolConfiguration(iconConfig)
         menu.addItem(launchItem)
 
         // Pin to Screen
