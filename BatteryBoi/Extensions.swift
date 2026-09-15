@@ -111,7 +111,7 @@ public extension String {
 
     }
 
-    func localise(_ params: [CVarArg]? = nil, comment: String? = nil) -> String {
+    nonisolated func localise(_ params: [CVarArg]? = nil, comment: String? = nil) -> String {
         var key = self
         var output = NSLocalizedString(self, tableName: "LocalizableMain", comment: comment ?? "")
 

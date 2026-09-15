@@ -226,43 +226,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     nonisolated static func buildContextMenu(state: ContextMenuState, target: AnyObject) -> NSMenu {
         let menu = NSMenu()
         let iconConfig = NSImage.SymbolConfiguration(pointSize: 13, weight: .medium)
-        let subtleConfig = iconConfig.applying(.init(paletteColors: [.secondaryLabelColor]))
+            .applying(.init(paletteColors: [.secondaryLabelColor]))
 
-        // Battery header
-        let headerItem = NSMenuItem()
-        let headerString = NSMutableAttributedString()
-
-        let batteryIconName = state.isCharging ? "battery.100.bolt" : "battery.50"
-        if let batteryIcon = NSImage(systemSymbolName: batteryIconName, accessibilityDescription: nil)?
-            .withSymbolConfiguration(subtleConfig)
-        {
-            let iconAttachment = NSTextAttachment()
-            iconAttachment.image = batteryIcon
-            headerString.append(NSAttributedString(attachment: iconAttachment))
-            headerString.append(NSAttributedString(string: "  "))
-        }
-
-        let percentText = "\("DeviceDetailBatteryLabel".localise()): \(state.percentage)%"
-        headerString.append(NSAttributedString(
-            string: percentText,
-            attributes: [
-                .font: NSFont.systemFont(ofSize: NSFont.systemFontSize, weight: .medium),
-                .foregroundColor: NSColor.secondaryLabelColor,
-            ]
-        ))
-
+        // Battery header — use .image + .title to avoid NSTextAttachment layout bug
+        var headerTitle = "\("DeviceDetailBatteryLabel".localise()): \(state.percentage)%"
         if state.isCharging {
-            headerString.append(NSAttributedString(
-                string: " · \("AlertChargingTitle".localise())",
-                attributes: [
-                    .font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize, weight: .regular),
-                    .foregroundColor: NSColor.tertiaryLabelColor,
-                ]
-            ))
+            headerTitle += " · \("AlertChargingTitle".localise())"
         }
-
-        headerItem.attributedTitle = headerString
+        let headerItem = NSMenuItem(title: headerTitle, action: nil, keyEquivalent: "")
         headerItem.isEnabled = false
+        let batteryIconName = state.isCharging ? "battery.100.bolt" : "battery.50"
+        headerItem.image = NSImage(systemSymbolName: batteryIconName, accessibilityDescription: nil)?
+            .withSymbolConfiguration(iconConfig)
         menu.addItem(headerItem)
 
         menu.addItem(.separator())
@@ -275,10 +250,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         )
         launchItem.target = target
         launchItem.state = state.autoLaunchEnabled ? .on : .off
-        launchItem.image = NSImage(
-            systemSymbolName: "arrow.right.circle",
-            accessibilityDescription: nil
-        )?.withSymbolConfiguration(subtleConfig)
         menu.addItem(launchItem)
 
         // Pin to Screen
@@ -292,7 +263,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         pinItem.image = NSImage(
             systemSymbolName: state.pinnedEnabled ? "pin.fill" : "pin",
             accessibilityDescription: nil
-        )?.withSymbolConfiguration(subtleConfig)
+        )?.withSymbolConfiguration(iconConfig)
         menu.addItem(pinItem)
 
         // Sound Effects
@@ -306,7 +277,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         sfxItem.image = NSImage(
             systemSymbolName: state.sfxEnabled ? "speaker.wave.2.fill" : "speaker.slash",
             accessibilityDescription: nil
-        )?.withSymbolConfiguration(subtleConfig)
+        )?.withSymbolConfiguration(iconConfig)
         menu.addItem(sfxItem)
 
         menu.addItem(.separator())
@@ -319,10 +290,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
                 keyEquivalent: ""
             )
             updateItem.target = target
-            updateItem.image = NSImage(
-                systemSymbolName: "arrow.triangle.2.circlepath",
-                accessibilityDescription: nil
-            )?.withSymbolConfiguration(subtleConfig)
             menu.addItem(updateItem)
         }
 
@@ -333,10 +300,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             keyEquivalent: ""
         )
         websiteItem.target = target
-        websiteItem.image = NSImage(
-            systemSymbolName: "heart",
-            accessibilityDescription: nil
-        )?.withSymbolConfiguration(subtleConfig)
         menu.addItem(websiteItem)
 
         menu.addItem(.separator())
@@ -350,10 +313,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         )
         quitItem.keyEquivalentModifierMask = .command
         quitItem.target = target
-        quitItem.image = NSImage(
-            systemSymbolName: "power",
-            accessibilityDescription: nil
-        )?.withSymbolConfiguration(subtleConfig)
         menu.addItem(quitItem)
 
         return menu

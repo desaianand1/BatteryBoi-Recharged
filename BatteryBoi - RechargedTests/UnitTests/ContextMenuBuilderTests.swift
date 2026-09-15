@@ -30,15 +30,7 @@ final class ContextMenuBuilderTests: XCTestCase {
     }
 
     private func findItem(_ menu: NSMenu, titleContaining text: String) -> NSMenuItem? {
-        menu.items.first { item in
-            if let title = item.title as String?, title.contains(text) {
-                return true
-            }
-            if let attr = item.attributedTitle, attr.string.contains(text) {
-                return true
-            }
-            return false
-        }
+        menu.items.first { $0.title.contains(text) }
     }
 
     // MARK: - Header Tests
@@ -48,8 +40,8 @@ final class ContextMenuBuilderTests: XCTestCase {
         let menu = buildMenu(percentage: 66, isCharging: true)
         let header = try XCTUnwrap(menu.items.first)
 
-        XCTAssertTrue(try XCTUnwrap(header.attributedTitle?.string.contains("66%")))
-        XCTAssertTrue(try XCTUnwrap(header.attributedTitle?.string.contains("Charging")))
+        XCTAssertTrue(header.title.contains("66%"))
+        XCTAssertTrue(header.title.contains("Charging"))
     }
 
     @MainActor
@@ -57,8 +49,8 @@ final class ContextMenuBuilderTests: XCTestCase {
         let menu = buildMenu(percentage: 42, isCharging: false)
         let header = try XCTUnwrap(menu.items.first)
 
-        XCTAssertTrue(try XCTUnwrap(header.attributedTitle?.string.contains("42%")))
-        XCTAssertFalse(try XCTUnwrap(header.attributedTitle?.string.contains("Charging")))
+        XCTAssertTrue(header.title.contains("42%"))
+        XCTAssertFalse(header.title.contains("Charging"))
     }
 
     @MainActor
@@ -126,7 +118,7 @@ final class ContextMenuBuilderTests: XCTestCase {
         let menu = buildMenu(percentage: 0)
         let header = try XCTUnwrap(menu.items.first)
 
-        XCTAssertTrue(try XCTUnwrap(header.attributedTitle?.string.contains("0%")))
+        XCTAssertTrue(header.title.contains("0%"))
     }
 
     @MainActor
@@ -134,8 +126,8 @@ final class ContextMenuBuilderTests: XCTestCase {
         let menu = buildMenu(percentage: 100, isCharging: true)
         let header = try XCTUnwrap(menu.items.first)
 
-        XCTAssertTrue(try XCTUnwrap(header.attributedTitle?.string.contains("100%")))
-        XCTAssertTrue(try XCTUnwrap(header.attributedTitle?.string.contains("Charging")))
+        XCTAssertTrue(header.title.contains("100%"))
+        XCTAssertTrue(header.title.contains("Charging"))
     }
 
     // MARK: - Check for Updates visibility
