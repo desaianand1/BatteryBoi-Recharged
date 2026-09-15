@@ -210,7 +210,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         var isDirectDistribution: Bool
     }
 
-    private func showContextMenu(relativeTo button: NSStatusBarButton) {
+    private func showContextMenu(relativeTo _: NSStatusBarButton) {
         let state = ContextMenuState(
             percentage: Int(self.env.battery.percentage),
             isCharging: self.env.battery.charging.state.charging,
@@ -220,7 +220,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             isDirectDistribution: self.env.settings.menu.contains(where: { $0.type == .appUpdateCheck })
         )
         let menu = Self.buildContextMenu(state: state, target: self)
-        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: button.bounds.height + 5), in: button)
+        menu.delegate = self
+        self.status?.menu = menu
+        self.status?.button?.performClick(nil)
+    }
+
+    func menuDidClose(_: NSMenu) {
+        self.status?.menu = nil
     }
 
     nonisolated static func buildContextMenu(state: ContextMenuState, target: AnyObject) -> NSMenu {
