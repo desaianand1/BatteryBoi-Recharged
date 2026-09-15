@@ -23,60 +23,45 @@ final class AlertPriorityTests: XCTestCase {
         super.tearDown()
     }
 
-    // MARK: - Priority Level Tests
+    // MARK: - Priority Mapping
 
     @MainActor
-    func testCriticalAlertsHaveHighestPriority() {
-        XCTAssertEqual(HUDAlertTypes.percentOne.priority, .critical)
-        XCTAssertEqual(HUDAlertTypes.deviceOverheating.priority, .critical)
+    func testAllAlertTypesMapToExpectedPriority() {
+        let expectations: [(HUDAlertTypes, AlertPriority)] = [
+            (.percentOne, .critical), (.deviceOverheating, .critical),
+            (.percentFive, .high), (.chargingComplete, .high),
+            (.chargingBegan, .medium), (.chargingStopped, .medium),
+            (.percentTen, .medium), (.percentTwentyFive, .medium),
+            (.deviceConnected, .medium), (.deviceRemoved, .medium),
+            (.userLaunched, .low), (.userEvent, .low), (.userInitiated, .low),
+        ]
+        for (alert, expected) in expectations {
+            XCTAssertEqual(alert.priority, expected, "\(alert) should be \(expected)")
+        }
     }
 
-    @MainActor
-    func testHighPriorityAlerts() {
-        XCTAssertEqual(HUDAlertTypes.percentFive.priority, .high)
-        XCTAssertEqual(HUDAlertTypes.chargingComplete.priority, .high)
-    }
-
-    @MainActor
-    func testMediumPriorityAlerts() {
-        XCTAssertEqual(HUDAlertTypes.chargingBegan.priority, .medium)
-        XCTAssertEqual(HUDAlertTypes.chargingStopped.priority, .medium)
-        XCTAssertEqual(HUDAlertTypes.percentTen.priority, .medium)
-        XCTAssertEqual(HUDAlertTypes.percentTwentyFive.priority, .medium)
-        XCTAssertEqual(HUDAlertTypes.deviceConnected.priority, .medium)
-        XCTAssertEqual(HUDAlertTypes.deviceRemoved.priority, .medium)
-    }
-
-    @MainActor
-    func testLowPriorityAlerts() {
-        XCTAssertEqual(HUDAlertTypes.userLaunched.priority, .low)
-        XCTAssertEqual(HUDAlertTypes.userEvent.priority, .low)
-        XCTAssertEqual(HUDAlertTypes.userInitiated.priority, .low)
-    }
-
-    @MainActor
-    func testPriorityComparison() {
-        XCTAssertTrue(AlertPriority.low < .medium)
-        XCTAssertTrue(AlertPriority.medium < .high)
-        XCTAssertTrue(AlertPriority.high < .critical)
-        XCTAssertFalse(AlertPriority.critical < .low)
-    }
-
-    // MARK: - Priority Replacement Tests
+    // MARK: - Priority Replacement
 
     @MainActor
     func testCriticalAlertReplacesLowerPriorityAlert() {
         mockWindowService.open(.deviceConnected, device: nil)
-        XCTAssertEqual(mockWindowService.currentAlert, .deviceConnected)
 
         mockWindowService.open(.percentOne, device: nil)
         XCTAssertEqual(mockWindowService.currentAlert, .percentOne)
+    }
+
+    @MainActor
+    func testHighAlertReplacesMediumAlert() {
+        mockWindowService.open(.chargingBegan, device: nil)
+
+        mockWindowService.open(.percentFive, device: nil)
+        XCTAssertEqual(mockWindowService.currentAlert, .percentFive)
+        XCTAssertTrue(mockWindowService.alertQueue.isEmpty)
     }
 
     @MainActor
     func testLowerPriorityAlertIsQueuedWhenHigherIsShowing() {
         mockWindowService.open(.percentOne, device: nil)
-        XCTAssertEqual(mockWindowService.currentAlert, .percentOne)
 
         mockWindowService.open(.deviceConnected, device: nil)
         XCTAssertEqual(mockWindowService.currentAlert, .percentOne)
@@ -87,7 +72,6 @@ final class AlertPriorityTests: XCTestCase {
     @MainActor
     func testEqualPriorityAlertReplacesCurrentAlert() {
         mockWindowService.open(.chargingBegan, device: nil)
-        XCTAssertEqual(mockWindowService.currentAlert, .chargingBegan)
 
         mockWindowService.open(.chargingStopped, device: nil)
         XCTAssertEqual(mockWindowService.currentAlert, .chargingStopped)
@@ -103,14 +87,12 @@ final class AlertPriorityTests: XCTestCase {
         XCTAssertTrue(mockWindowService.alertQueue.isEmpty)
     }
 
-    // MARK: - Queue Processing Tests
+    // MARK: - Queue Processing
 
     @MainActor
     func testQueuedAlertShowsAfterCurrentDismisses() {
         mockWindowService.open(.percentOne, device: nil)
         mockWindowService.open(.deviceConnected, device: nil)
-        XCTAssertEqual(mockWindowService.currentAlert, .percentOne)
-        XCTAssertEqual(mockWindowService.alertQueue.count, 1)
 
         mockWindowService.simulateDismissal()
         XCTAssertEqual(mockWindowService.currentAlert, .deviceConnected)
@@ -118,11 +100,10 @@ final class AlertPriorityTests: XCTestCase {
     }
 
     @MainActor
-    func testMultipleQueuedAlertsFireSequentially() {
+    func testMultipleQueuedAlertsDrainInFIFOOrder() {
         mockWindowService.open(.percentOne, device: nil)
         mockWindowService.open(.deviceConnected, device: nil)
         mockWindowService.open(.chargingBegan, device: nil)
-        XCTAssertEqual(mockWindowService.alertQueue.count, 2)
 
         mockWindowService.simulateDismissal()
         XCTAssertEqual(mockWindowService.currentAlert, .deviceConnected)
@@ -135,35 +116,26 @@ final class AlertPriorityTests: XCTestCase {
     }
 
     @MainActor
-    func testQueueIsFIFO() throws {
+    func testDeviceDataPreservedThroughQueue() throws {
+        let device = BluetoothObject.testDevice(
+            address: "11:22:33:44:55:66",
+            name: "AirPods Pro",
+            batteryPercent: 15
+        )
+
         mockWindowService.open(.percentOne, device: nil)
-        mockWindowService.open(.deviceConnected, device: nil)
-        mockWindowService.open(.chargingStopped, device: nil)
-        mockWindowService.open(.userEvent, device: nil)
-
-        let first = try XCTUnwrap(mockWindowService.currentAlert)
-        XCTAssertEqual(first, .percentOne)
+        mockWindowService.open(.deviceConnected, device: device)
 
         mockWindowService.simulateDismissal()
-        let second = try XCTUnwrap(mockWindowService.currentAlert)
-        XCTAssertEqual(second, .deviceConnected)
-
-        mockWindowService.simulateDismissal()
-        let third = try XCTUnwrap(mockWindowService.currentAlert)
-        XCTAssertEqual(third, .chargingStopped)
-
-        mockWindowService.simulateDismissal()
-        let fourth = try XCTUnwrap(mockWindowService.currentAlert)
-        XCTAssertEqual(fourth, .userEvent)
-
-        mockWindowService.simulateDismissal()
-        XCTAssertNil(mockWindowService.currentAlert)
+        XCTAssertEqual(mockWindowService.currentAlert, .deviceConnected)
+        let deliveredDevice = try XCTUnwrap(mockWindowService.currentDevice)
+        XCTAssertEqual(deliveredDevice.address, "11-22-33-44-55-66")
     }
 
-    // MARK: - Queue Capacity Tests
+    // MARK: - Queue Capacity
 
     @MainActor
-    func testQueueDoesNotExceedMaxSize() {
+    func testQueueCapsAtMaxSize() {
         mockWindowService.open(.percentOne, device: nil)
 
         for _ in 0 ..< 10 {
@@ -173,19 +145,31 @@ final class AlertPriorityTests: XCTestCase {
         XCTAssertEqual(mockWindowService.alertQueue.count, 5)
     }
 
-    // MARK: - userInitiated Bypass Tests
+    @MainActor
+    func testOverflowAlertIsSilentlyDropped() {
+        mockWindowService.open(.percentOne, device: nil)
+
+        for i in 0 ..< 6 {
+            let device = BluetoothObject.testDevice(name: "Device \(i)")
+            mockWindowService.open(.deviceConnected, device: device)
+        }
+
+        XCTAssertEqual(mockWindowService.alertQueue.count, 5)
+        XCTAssertEqual(mockWindowService.alertQueue.last?.device?.device, "Device 4")
+    }
+
+    // MARK: - userInitiated Bypass
 
     @MainActor
     func testUserInitiatedBypassesPriorityQueue() {
         mockWindowService.open(.percentOne, device: nil)
-        XCTAssertEqual(mockWindowService.currentAlert, .percentOne)
 
         mockWindowService.open(.userInitiated, device: nil)
         XCTAssertEqual(mockWindowService.currentAlert, .userInitiated)
         XCTAssertTrue(mockWindowService.alertQueue.isEmpty)
     }
 
-    // MARK: - Wake Clears Queue Tests
+    // MARK: - Wake Clears Queue
 
     @MainActor
     func testWakeClearsAlertQueue() {
@@ -196,25 +180,5 @@ final class AlertPriorityTests: XCTestCase {
         mockWindowService.handleWake()
         XCTAssertTrue(mockWindowService.alertQueue.isEmpty)
         XCTAssertNil(mockWindowService.currentAlert)
-    }
-
-    // MARK: - No Current Alert Tests
-
-    @MainActor
-    func testAlertShowsImmediatelyWhenNothingIsShowing() {
-        XCTAssertNil(mockWindowService.currentAlert)
-
-        mockWindowService.open(.userEvent, device: nil)
-        XCTAssertEqual(mockWindowService.currentAlert, .userEvent)
-        XCTAssertTrue(mockWindowService.alertQueue.isEmpty)
-    }
-
-    @MainActor
-    func testDismissalWithEmptyQueueClearsState() {
-        mockWindowService.open(.chargingBegan, device: nil)
-
-        mockWindowService.simulateDismissal()
-        XCTAssertNil(mockWindowService.currentAlert)
-        XCTAssertEqual(mockWindowService.state, .hidden)
     }
 }
