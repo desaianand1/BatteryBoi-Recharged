@@ -1,3 +1,18 @@
+## [12.60.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.59.0...v12.60.0) (2026-09-17)
+
+### Features
+
+* **hud:** mac battery dashboard, about tab redesign, radial ring enhancements ([a40f367](https://github.com/desaianand1/BatteryBoi-Recharged/commit/a40f3671d65ac1f1b87dd37b53757ec8c3112e56))
+* **hud:** polish Settings & Devices tab UI/UX ([2441c8d](https://github.com/desaianand1/BatteryBoi-Recharged/commit/2441c8daf86bdae245e4a106f52f8182fba0796e))
+
+### Bug Fixes
+
+* **hud:** fix a spring animation not completing during the HUD reveal ([327ec19](https://github.com/desaianand1/BatteryBoi-Recharged/commit/327ec19741a9966e8bd1c9e38cbc6e78dc9edd22))
+
+### Refactoring
+
+* **hud:** extract DeviceCard, refactor AboutView, remove SettingsView ([6eceaff](https://github.com/desaianand1/BatteryBoi-Recharged/commit/6eceafffdddde29269638d3f0d16775d787496e9))
+
 ## [12.59.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.58.0...v12.59.0) (2026-09-15)
 
 ### Features
