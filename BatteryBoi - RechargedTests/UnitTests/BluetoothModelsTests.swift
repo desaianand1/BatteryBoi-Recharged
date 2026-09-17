@@ -110,12 +110,14 @@ final class BluetoothModelsTests: XCTestCase {
 
     // MARK: - Vendor Display Name Tests
 
+    @MainActor
     func testKnownVendorHasDisplayName() {
         XCTAssertEqual(BluetoothVendor.apple.name, "Apple")
         XCTAssertEqual(BluetoothVendor.sony.name, "Sony")
         XCTAssertEqual(BluetoothVendor.bose.name, "Bose")
     }
 
+    @MainActor
     func testUnknownVendorHasNoDisplayName() {
         XCTAssertNil(BluetoothVendor.unknown.name)
     }

@@ -1,52 +1,37 @@
 import SwiftUI
 
-struct AboutContainer: View {
+struct AboutTabView: View {
     @Environment(AppEnvironment.self) private var env
 
     private var updates: any UpdateManagerProtocol {
-        env.update
+        self.env.update
     }
 
     var body: some View {
-        VStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    Text("AboutTitle".localise())
+        VStack(alignment: .leading, spacing: Spacing.lg) {
+            Text("AboutTitle".localise())
+                .font(Typography.largeTitle)
+                .foregroundStyle(Color("BBTitle"))
 
-                }
-                .foregroundColor(Color("BBTitle"))
-                .font(.system(size: 26, weight: .bold))
-                .padding(.horizontal, 4)
-                .padding(.bottom, 30)
-
-                VStack(alignment: .leading, spacing: 28) {
-                    Text("AboutBodyOne".localise())
-
-                    Text("AboutBodyTwo".localise())
-
-                    Text("AboutBodyThree".localise())
-
-                    Text("AboutBodyFour".localise())
-
-                }
-                .lineSpacing(14)
-                .foregroundColor(Color("BBSubtitle"))
-                .font(.system(size: 12, weight: .medium))
-                .padding(.horizontal, 24)
-
-                // Version display
-                Text(updates.versionDisplay)
-                    .font(.system(size: 10, weight: .regular))
-                    .foregroundColor(Color("BBSubtitle").opacity(0.6))
-                    .padding(.top, 20)
+            VStack(alignment: .leading, spacing: Spacing.md) {
+                Text("AboutBodyOne".localise())
+                Text("AboutBodyTwo".localise())
+                Text("AboutBodyThree".localise())
+                Text("AboutBodyFour".localise())
             }
-            .frame(width: 340)
+            .font(Typography.body)
+            .foregroundStyle(Color("BBSubtitle"))
+            .lineSpacing(6)
+            .padding(Spacing.md)
+            .surfaceCard()
 
+            Text(self.updates.versionDisplay)
+                .font(Typography.caption)
+                .foregroundStyle(Color("BBSubtitle").opacity(0.6))
+                .frame(maxWidth: .infinity, alignment: .center)
         }
-        .frame(minWidth: 340, idealWidth: 380, maxWidth: 420)
-        .frame(minHeight: 240, idealHeight: 278, maxHeight: 320)
-        .padding(10)
-
+        .padding(.vertical, Spacing.sm)
     }
-
 }
+
+typealias AboutContainer = AboutTabView

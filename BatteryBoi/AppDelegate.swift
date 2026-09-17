@@ -151,10 +151,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             object: nil,
             queue: .main
         ) { [weak self] notification in
-            guard let window = notification.object as? NSWindow,
-                  window.title == Constants.Window.modalWindowTitle else { return }
-            // Ephemeral MainActor hop for notification callback — completes synchronously
-            Task { @MainActor [weak self] in
+            guard let window = notification.object as? NSWindow else { return }
+            MainActor.assumeIsolated {
+                guard window.title == Constants.Window.modalWindowTitle else { return }
                 self?.applicationFocusDidMove(window: window)
             }
         }
