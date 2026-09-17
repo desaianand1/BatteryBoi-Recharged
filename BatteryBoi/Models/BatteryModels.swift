@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 // MARK: - Thermal State
 
@@ -46,6 +47,14 @@ struct BatteryCycleObject: Equatable {
 struct BatteryMetricsObject: Equatable {
     var cycles: BatteryCycleObject
     var health: BatteryCondition
+    var temperature: Double?
+    var voltage: Double?
+    var amperage: Double?
+    var maxCapacity: Int?
+    var designCapacity: Int?
+    var nominalChargeCapacity: Int?
+    var appleRawMaxCapacity: Int?
+    var healthPercent: Double?
 
     init(cycles: String, health: String) {
         self.cycles = BatteryCycleObject(Int(cycles) ?? 0)
@@ -53,8 +62,167 @@ struct BatteryMetricsObject: Equatable {
     }
 
     init(cycleCount: Int, condition: String) {
-        cycles = BatteryCycleObject(cycleCount)
-        health = BatteryCondition(rawValue: condition) ?? .optimal
+        self.cycles = BatteryCycleObject(cycleCount)
+        self.health = BatteryCondition(rawValue: condition) ?? .optimal
+    }
+
+    init(
+        cycleCount: Int,
+        condition: String,
+        temperature: Double?,
+        voltage: Int?,
+        amperage: Int?,
+        maxCapacity: Int?,
+        designCapacity: Int?,
+        nominalChargeCapacity: Int? = nil,
+        appleRawMaxCapacity: Int? = nil
+    ) {
+        self.cycles = BatteryCycleObject(cycleCount)
+        self.health = BatteryCondition(rawValue: condition) ?? .optimal
+
+        self.temperature = (temperature == nil || temperature == 0.0) ? nil : temperature
+        self.voltage = voltage.map { Double($0) / 1000.0 }
+        self.amperage = amperage.map { Double($0) / 1000.0 }
+        self.maxCapacity = (maxCapacity ?? 0) > 0 ? maxCapacity : nil
+        self.designCapacity = (designCapacity ?? 0) > 0 ? designCapacity : nil
+        self.nominalChargeCapacity = (nominalChargeCapacity ?? 0) > 0 ? nominalChargeCapacity : nil
+        self.appleRawMaxCapacity = (appleRawMaxCapacity ?? 0) > 0 ? appleRawMaxCapacity : nil
+
+        let effectiveCapacity: Int? = self.nominalChargeCapacity
+            ?? self.appleRawMaxCapacity
+            ?? self.maxCapacity
+
+        if let cap = effectiveCapacity, let design = self.designCapacity, design > 0, cap > 0 {
+            if cap <= 100, design > 1000 {
+                // MaxCapacity is a percentage (Apple Silicon) and no mAh alternatives exist
+                self.healthPercent = nil
+            } else {
+                self.healthPercent = min(Double(cap) / Double(design) * 100.0, 100.0)
+            }
+        }
+    }
+}
+
+// MARK: - Battery Metrics Computed Properties
+
+extension BatteryMetricsObject {
+    var effectiveMaxCapacityMAh: Int? {
+        let candidate = self.nominalChargeCapacity ?? self.appleRawMaxCapacity ?? self.maxCapacity
+        guard let cap = candidate, cap > 0 else { return nil }
+        if cap <= 100, let design = self.designCapacity, design > 1000 {
+            return nil
+        }
+        return cap
+    }
+}
+
+// MARK: - Battery Metrics Formatting
+
+extension BatteryMetricsObject {
+    var temperatureFormatted: String {
+        guard let t = self.temperature else { return "—" }
+        let measurement = Measurement(value: t, unit: UnitTemperature.celsius)
+        let formatter = MeasurementFormatter()
+        formatter.unitOptions = .naturalScale
+        formatter.numberFormatter.maximumFractionDigits = 1
+        formatter.numberFormatter.minimumFractionDigits = 1
+        return formatter.string(from: measurement)
+    }
+
+    var voltageFormatted: String {
+        guard let v = self.voltage else { return "—" }
+        return String(format: "%.1fV", v)
+    }
+
+    var amperageFormatted: String {
+        guard let a = self.amperage else { return "—" }
+        return String(format: "%d mA", Int(abs(a * 1000)))
+    }
+
+    var powerWatts: Double? {
+        guard let v = self.voltage, let a = self.amperage else { return nil }
+        return abs(v * a)
+    }
+
+    var powerFormatted: String {
+        guard let w = self.powerWatts else { return "—" }
+        return String(format: "%.1fW", w)
+    }
+
+    var isDischarging: Bool {
+        (self.amperage ?? -1) < 0
+    }
+
+    var capacityFormatted: String {
+        guard let max = self.effectiveMaxCapacityMAh, let design = self.designCapacity else { return "—" }
+        return "\(max.formatted()) / \(design.formatted()) mAh \("DashboardCapacityLowercaseSuffix".localise())"
+    }
+}
+
+// MARK: - Battery Metrics Status Helpers
+
+extension BatteryMetricsObject {
+    var temperatureStatus: (label: String, color: Color)? {
+        guard let t = self.temperature else { return nil }
+        if t < 35 {
+            return ("DashboardStatusNormal".localise(), SemanticColor.success)
+        }
+        if t <= 45 {
+            return ("DashboardStatusWarm".localise(), SemanticColor.warning)
+        }
+        return ("DashboardStatusHot".localise(), SemanticColor.error)
+    }
+
+    var powerStatus: (label: String, color: Color)? {
+        self.powerStatusForState(isCharging: false)
+    }
+
+    func powerStatusForState(isCharging: Bool) -> (label: String, color: Color)? {
+        guard let w = self.powerWatts else { return nil }
+        if isCharging {
+            if w < 30 {
+                return ("DashboardStatusSlow".localise(), SemanticColor.warning)
+            }
+            if w <= 60 {
+                return ("DashboardStatusNormal".localise(), SemanticColor.success)
+            }
+            return ("DashboardStatusFast".localise(), SemanticColor.success)
+        }
+        if w < 15 {
+            return ("DashboardStatusEfficient".localise(), SemanticColor.success)
+        }
+        if w <= 30 {
+            return ("DashboardStatusModerate".localise(), SemanticColor.warning)
+        }
+        return ("DashboardStatusHeavy".localise(), SemanticColor.error)
+    }
+
+    var amperageColor: Color {
+        guard let a = self.amperage else { return Color("BBTitle") }
+        if a >= 0 {
+            return SemanticColor.success
+        }
+        let draw = abs(a)
+        if draw > 3.0 {
+            return SemanticColor.error
+        }
+        if draw > 2.0 {
+            return SemanticColor.warning
+        }
+        return Color("BBTitle")
+    }
+}
+
+// MARK: - Battery Condition Display
+
+extension BatteryCondition {
+    var displayName: String {
+        switch self {
+        case .optimal: "Good"
+        case .suboptimal: "Fair"
+        case .malfunctioning: "Service"
+        case .unknown: "Unknown"
+        }
     }
 }
 
@@ -152,6 +320,22 @@ struct BatteryRemaining: Equatable, Sendable {
         } else {
             formatted = nil
         }
+    }
+
+    var formattedShort: String? {
+        guard let h = self.hours, let m = self.minutes else { return nil }
+        let hLabel = "TimestampHourAbbriviatedLabel".localise()
+        let mLabel = "TimestampMinuteAbbriviatedLabel".localise()
+        if h > 0, m > 0 {
+            return "\(h)\(hLabel) \(m)\(mLabel)"
+        }
+        if h > 0 {
+            return "\(h)\(hLabel)"
+        }
+        if m > 0 {
+            return "\(m)\(mLabel)"
+        }
+        return nil
     }
 }
 

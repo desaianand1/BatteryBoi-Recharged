@@ -211,8 +211,11 @@ actor IOKitBluetoothService {
                 return value
             }
 
+            let single = readKey(Constants.Bluetooth.kvcBatterySingle)
+                ?? readKey(Constants.Bluetooth.kvcBatteryCombined)
+
             return (
-                single: readKey(Constants.Bluetooth.kvcBatterySingle),
+                single: single,
                 left: readKey(Constants.Bluetooth.kvcBatteryLeft),
                 right: readKey(Constants.Bluetooth.kvcBatteryRight),
                 chargingCase: readKey(Constants.Bluetooth.kvcBatteryCase)

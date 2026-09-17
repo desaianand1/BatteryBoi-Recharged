@@ -94,6 +94,8 @@ nonisolated enum ChargingAnimation {
     static let trackMaxOpacity: Double = 0.12
     static let burstMaxScale: Double = 1.15
     static let burstStartOpacity: Double = 0.4
+    static let notchGlowDuration: Double = 0.5
+    static let shimmerMinLength: Double = 0.02
 }
 
 enum DesignAnimation {

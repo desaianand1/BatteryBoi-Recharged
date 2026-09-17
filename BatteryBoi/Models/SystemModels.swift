@@ -42,7 +42,7 @@ enum SystemDeviceTypes: String, Codable {
             case .imac: "iMac"
             case .macMini: "Mac Mini"
             case .macPro: "Mac Pro"
-            case .macStudio: "Mac Pro"
+            case .macStudio: "Mac Studio"
             case .unknown: "AlertDeviceUnknownTitle".localise()
             }
         }

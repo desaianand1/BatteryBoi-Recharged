@@ -76,6 +76,7 @@
 		B9853CC227E7499E948F4DBE /* CapsuleTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C1C148BA51B446A927398DD /* CapsuleTabBar.swift */; };
 		800B9058C22C4E13A8A18851 /* SettingsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9736B48BC8DC4EFEB85A99BE /* SettingsTabView.swift */; };
 		FD9DC8AFB0E84DAA8C3B1407 /* DeviceCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968BEF4AB7A443B688E8C306 /* DeviceCardView.swift */; };
+		05600A3FEA1B45BF2A163FF3 /* MacBatteryDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D982D3F551608181F8D9C229 /* MacBatteryDashboardView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -186,6 +187,7 @@
 		2C1C148BA51B446A927398DD /* CapsuleTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapsuleTabBar.swift; sourceTree = "<group>"; };
 		9736B48BC8DC4EFEB85A99BE /* SettingsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTabView.swift; sourceTree = "<group>"; };
 		968BEF4AB7A443B688E8C306 /* DeviceCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceCardView.swift; sourceTree = "<group>"; };
+		D982D3F551608181F8D9C229 /* MacBatteryDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacBatteryDashboardView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -404,6 +406,7 @@
 				2C1C148BA51B446A927398DD /* CapsuleTabBar.swift */,
 				9736B48BC8DC4EFEB85A99BE /* SettingsTabView.swift */,
 				968BEF4AB7A443B688E8C306 /* DeviceCardView.swift */,
+				D982D3F551608181F8D9C229 /* MacBatteryDashboardView.swift */,
 				D540748087DD0FBD17E51AC2 /* OnboardingView.swift */,
 				8BA23429F303D6EB77F4B904 /* OnboardingWelcomeView.swift */,
 				B434599867D1109FB7DBBA7D /* OnboardingPermissionsView.swift */,
@@ -605,6 +608,7 @@
 				B9853CC227E7499E948F4DBE /* CapsuleTabBar.swift in Sources */,
 				800B9058C22C4E13A8A18851 /* SettingsTabView.swift in Sources */,
 				FD9DC8AFB0E84DAA8C3B1407 /* DeviceCardView.swift in Sources */,
+				05600A3FEA1B45BF2A163FF3 /* MacBatteryDashboardView.swift in Sources */,
 				D8D9E5B32A7DFF3E00E295FA /* MenuView.swift in Sources */,
 				D851F7FF2AB0FC20003FCA79 /* HUDView.swift in Sources */,
 				D83DD3F52A9908E600FCC534 /* UpdateManager.swift in Sources */,

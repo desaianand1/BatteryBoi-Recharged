@@ -24,6 +24,8 @@ struct IOKitBatteryMetrics {
     let condition: String // "Normal", "Replace Soon", "Service Battery"
     let maxCapacity: Int
     let designCapacity: Int
+    let nominalChargeCapacity: Int?
+    let appleRawMaxCapacity: Int?
     let temperature: Double? // Celsius
     let voltage: Int? // mV
     let amperage: Int? // mA (negative = discharging)
@@ -91,6 +93,8 @@ actor IOKitBatteryService {
         let cycleCount = dict["CycleCount"] as? Int ?? 0
         let maxCapacity = dict["MaxCapacity"] as? Int ?? 0
         let designCapacity = dict["DesignCapacity"] as? Int ?? 0
+        let nominalChargeCapacity = dict["NominalChargeCapacity"] as? Int
+        let appleRawMaxCapacity = dict["AppleRawMaxCapacity"] as? Int
 
         // BatteryHealthCondition: nil = Normal, otherwise "Check Battery" or "Service Battery"
         let healthCondition = dict["BatteryHealthCondition"] as? String ?? "Normal"
@@ -106,6 +110,8 @@ actor IOKitBatteryService {
             condition: healthCondition,
             maxCapacity: maxCapacity,
             designCapacity: designCapacity,
+            nominalChargeCapacity: nominalChargeCapacity,
+            appleRawMaxCapacity: appleRawMaxCapacity,
             temperature: temperature,
             voltage: voltage,
             amperage: amperage
@@ -173,17 +179,34 @@ actor IOKitBatteryService {
         CFRunLoopAddSource(CFRunLoopGetMain(), source, .defaultMode)
     }
 
+    // MARK: - Battery Presence Check
+
+    /// Checks whether AppleSmartBattery exists in the IORegistry — the most reliable
+    /// battery-presence signal. Laptops have it, desktops don't.
+    nonisolated func systemHasBattery() -> Bool {
+        let service = IOServiceGetMatchingService(
+            kIOMainPortDefault,
+            IOServiceMatching("AppleSmartBattery")
+        )
+        guard service != IO_OBJECT_NULL else { return false }
+        IOObjectRelease(service)
+        return true
+    }
+
     // MARK: - Wattage Calculation
 
-    /// Calculates the battery watt-hours from max capacity and voltage.
+    /// Calculates the battery watt-hours from capacity (mAh) and voltage.
     nonisolated func getWattHours() -> Double? {
         guard let metrics = getBatteryMetrics(),
-              let voltage = metrics.voltage,
-              metrics.maxCapacity > 0
+              let voltage = metrics.voltage
         else { return nil }
 
-        // maxCapacity is in mAh, voltage is in mV
-        // Wh = (mAh / 1000) * (mV / 1000)
-        return (Double(metrics.maxCapacity) / 1000.0) * (Double(voltage) / 1000.0)
+        // MaxCapacity is a percentage on Apple Silicon — prefer mAh sources
+        let capacityMAh = metrics.nominalChargeCapacity
+            ?? metrics.appleRawMaxCapacity
+            ?? (metrics.maxCapacity > 100 ? metrics.maxCapacity : nil)
+        guard let cap = capacityMAh else { return nil }
+
+        return (Double(cap) / 1000.0) * (Double(voltage) / 1000.0)
     }
 }

@@ -9,9 +9,13 @@ final class AppManager: AppManagerProtocol {
 
     var menu: SystemMenuView = .settings
 
+    let appDeviceType: SystemDeviceTypes
+
     private var counterTask: Task<Void, Never>?
 
     init() {
+        self.appDeviceType = Self.detectDeviceType()
+
         // Start the uptime counter
         counterTask = Task { [weak self] in
             while !Task.isCancelled {
@@ -115,7 +119,7 @@ final class AppManager: AppManagerProtocol {
 
     }
 
-    var appDeviceType: SystemDeviceTypes {
+    private static func detectDeviceType() -> SystemDeviceTypes {
         let platform = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
         guard platform != IO_OBJECT_NULL else { return .unknown }
         defer { IOObjectRelease(platform) }
@@ -123,7 +127,6 @@ final class AppManager: AppManagerProtocol {
         if let model = IORegistryEntryCreateCFProperty(platform, "model" as CFString, kCFAllocatorDefault, 0)
             .takeRetainedValue() as? Data
         {
-            // Truncate null termination before decoding
             let cleanedModel = model.prefix(while: { $0 != 0 })
             guard let typeString = String(bytes: cleanedModel, encoding: .utf8)?.lowercased() else {
                 return .unknown
@@ -142,13 +145,14 @@ final class AppManager: AppManagerProtocol {
                 return .macStudio
             } else if typeString.contains("macpro") {
                 return .macPro
+            } else if IOKitBatteryService.shared.systemHasBattery() {
+                return .macbook
             } else {
                 return .unknown
             }
         }
 
         return .unknown
-
     }
 
     func appDistribution() async -> SystemDistribution {

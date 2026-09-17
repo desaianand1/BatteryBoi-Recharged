@@ -178,6 +178,8 @@ struct DeviceCard: View {
         HStack(spacing: Spacing.xs) {
             if let device = self.device, device.connected == .disconnected {
                 Text("BluetoothNotConnectedLabel".localise())
+            } else if self.isMac {
+                Text(self.macSubtitleText)
             } else if let percent = self.percent {
                 Text("\(Int(percent))%")
             } else {
@@ -192,6 +194,30 @@ struct DeviceCard: View {
         }
         .font(Typography.caption)
         .foregroundStyle(Color("BBSubtitle"))
+    }
+
+    private var macSubtitleText: String {
+        if self.battery.percentage >= 100 {
+            return "DashboardFullyChargedLabel".localise()
+        }
+
+        let stateLabel = self.battery.charging.state == .charging
+            ? "DashboardChargingLabel".localise()
+            : "DashboardOnBatteryLabel".localise()
+
+        if self.battery.charging.state == .charging {
+            if let fullDate = self.battery.untilFull {
+                let formatter = DateFormatter()
+                formatter.timeStyle = .short
+                return "\(stateLabel) · "
+                    + "DashboardFullAtLabel".localise([formatter.string(from: fullDate)])
+            }
+        } else if let short = self.battery.remaining?.formattedShort {
+            return "\(stateLabel) · "
+                + "DashboardRemainingLabel".localise([short])
+        }
+
+        return stateLabel
     }
 
     private func twsBadge(_ label: String, percent: Double) -> some View {

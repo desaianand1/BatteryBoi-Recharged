@@ -294,6 +294,7 @@ final class WindowService: WindowServiceProtocol {
 
     func toggleExpanded() {
         if state == .revealed {
+            self.opacity = 1.0
             windowSetState(.detailed)
         } else if state == .detailed {
             windowSetState(.revealed)
@@ -437,6 +438,7 @@ final class WindowService: WindowServiceProtocol {
     private func showAlert(_ type: HUDAlertTypes, device: BluetoothObject?) {
         dismissalTask?.cancel()
         dismissalTask = nil
+        self.opacity = 1.0
 
         guard let window = windowExists(type) else {
             BLogger.window.error("Failed to create window for alert: \(type)")
@@ -490,6 +492,8 @@ final class WindowService: WindowServiceProtocol {
             if currentAlert != nil {
                 currentAlert = nil
                 currentDevice = nil
+                self.opacity = 1.0
+                self.hover = false
 
                 state = .hidden
 

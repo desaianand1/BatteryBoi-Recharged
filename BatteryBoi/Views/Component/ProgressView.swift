@@ -11,6 +11,7 @@ struct RadialProgressBar: View {
     private let percent: Double
     private let isCharging: Bool
     private let isMini: Bool
+    private let showChargeNotch: Bool
 
     @State private var glowOpacity: Double = 0.0
     @State private var shimmerPhase: Double = 0.0
@@ -18,6 +19,7 @@ struct RadialProgressBar: View {
     @State private var trackBreathOpacity: Double = 0.08
     @State private var burstScale: CGFloat = 1.0
     @State private var burstOpacity: Double = 0.0
+    @State private var notchGlowActive: Bool = false
 
     init(
         _ progress: Binding<Double>,
@@ -25,7 +27,8 @@ struct RadialProgressBar: View {
         line: CGFloat = 10,
         percent: Double,
         isCharging: Bool,
-        isMini: Bool = false
+        isMini: Bool = false,
+        showChargeNotch: Bool = false
     ) {
         _progress = progress
         _size = State(initialValue: size)
@@ -33,6 +36,24 @@ struct RadialProgressBar: View {
         self.percent = percent
         self.isCharging = isCharging
         self.isMini = isMini
+        self.showChargeNotch = showChargeNotch
+    }
+
+    private var showDot: Bool {
+        if self.isMini {
+            return true
+        }
+        if self.isCharging {
+            return self.percent < 100
+        }
+        return self.percent < 20
+    }
+
+    private var shimmerLength: Double {
+        let base = 0.04
+        let minLength = ChargingAnimation.shimmerMinLength
+        guard self.position > 0 else { return minLength }
+        return max(minLength, min(base, self.position * 0.5))
     }
 
     private var tier: BatteryTier {
@@ -56,7 +77,9 @@ struct RadialProgressBar: View {
                 .stroke(
                     AngularGradient(
                         gradient: Gradient(colors: self.tier.gradientColors),
-                        center: .center
+                        center: .center,
+                        startAngle: .degrees(0),
+                        endAngle: .degrees(max(self.position, 0.001) * 360)
                     ),
                     style: StrokeStyle(lineWidth: self.line, lineCap: .round)
                 )
@@ -68,11 +91,27 @@ struct RadialProgressBar: View {
                     radius: 8
                 )
 
+            if self.showChargeNotch, !self.isMini {
+                let notchFraction = Double(Constants.BatteryThresholds.chargeLimit) / 100.0
+                let notchAngle = notchFraction * 360.0
+                RoundedRectangle(cornerRadius: 1, style: .continuous)
+                    .fill(Color.white.opacity(0.20))
+                    .frame(width: 2, height: 6)
+                    .offset(y: -(self.size.height / 2))
+                    .rotationEffect(.degrees(notchAngle))
+                    .shadow(
+                        color: self.notchGlowActive
+                            ? BatteryTier.chargingBoltColor.opacity(0.6) : .clear,
+                        radius: 4
+                    )
+                    .allowsHitTesting(false)
+            }
+
             if !self.isMini, self.isCharging, self.percent < 100, !self.reduceMotion, self.position > 0 {
                 Circle()
                     .trim(
-                        from: max(0, self.shimmerPhase * self.position - 0.04),
-                        to: min(self.position, self.shimmerPhase * self.position + 0.04)
+                        from: max(0, self.shimmerPhase * self.position - self.shimmerLength),
+                        to: min(self.position, self.shimmerPhase * self.position + self.shimmerLength)
                     )
                     .stroke(
                         Color.white.opacity(0.2),
@@ -81,12 +120,14 @@ struct RadialProgressBar: View {
                     .rotationEffect(.degrees(-90))
             }
 
-            Circle()
-                .fill(self.tier.dotColor)
-                .frame(width: self.line, height: self.line)
-                .scaleEffect(self.isMini ? 1.0 : self.dotScale)
-                .rotationEffect(.degrees(Double(self.position) * 360 - 90))
-                .offset(y: -(self.size.height / 2))
+            if self.showDot {
+                Circle()
+                    .fill(self.tier.dotColor)
+                    .frame(width: self.line, height: self.line)
+                    .scaleEffect(self.isMini ? 1.0 : self.dotScale)
+                    .offset(y: -(self.size.height / 2))
+                    .rotationEffect(.degrees(Double(self.position) * 360))
+            }
 
             if !self.isMini, self.burstOpacity > 0 {
                 Circle()
@@ -123,6 +164,19 @@ struct RadialProgressBar: View {
         .onChange(of: self.percent) { oldPercent, newPercent in
             if oldPercent < 100, newPercent >= 100, !self.isMini, !self.reduceMotion {
                 self.triggerFullBurst()
+            }
+            // Transition glow state when crossing the 100% boundary in either direction
+            if (oldPercent < 100) != (newPercent < 100) {
+                self.startChargingAnimations()
+            }
+            if self.showChargeNotch, !self.isMini, !self.reduceMotion,
+               oldPercent < Double(Constants.BatteryThresholds.chargeLimit),
+               newPercent >= Double(Constants.BatteryThresholds.chargeLimit)
+            {
+                self.notchGlowActive = true
+                withAnimation(.easeOut(duration: ChargingAnimation.notchGlowDuration)) {
+                    self.notchGlowActive = false
+                }
             }
         }
         .accessibilityHidden(true)
@@ -303,7 +357,8 @@ struct RadialProgressContainer: View {
                 self.$progress,
                 size: .init(width: 80, height: 80),
                 percent: self.currentPercent,
-                isCharging: self.isCharging
+                isCharging: self.isCharging,
+                showChargeNotch: self.env.settings.chargeEighty == .enabled
             )
 
             ZStack(alignment: .center) {

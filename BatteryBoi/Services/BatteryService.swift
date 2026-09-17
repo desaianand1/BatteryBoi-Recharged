@@ -79,6 +79,10 @@ final class BatteryService: BatteryServiceProtocol {
     private func startMonitoring() {
         powerStatus()
 
+        saver = fetchPowerSaveModeStatus()
+        metrics = fetchPowerProfilerDetails()
+        powerThermalCheck()
+
         IOKitBatteryService.shared.startPowerSourceNotifications { [weak self] in
             Task { @MainActor [weak self] in
                 self?.powerStatus()
@@ -292,7 +296,17 @@ final class BatteryService: BatteryServiceProtocol {
         guard let metrics = IOKitBatteryService.shared.getBatteryMetrics() else {
             return nil
         }
-        return BatteryMetricsObject(cycleCount: metrics.cycleCount, condition: metrics.condition)
+        return BatteryMetricsObject(
+            cycleCount: metrics.cycleCount,
+            condition: metrics.condition,
+            temperature: metrics.temperature,
+            voltage: metrics.voltage,
+            amperage: metrics.amperage,
+            maxCapacity: metrics.maxCapacity,
+            designCapacity: metrics.designCapacity,
+            nominalChargeCapacity: metrics.nominalChargeCapacity,
+            appleRawMaxCapacity: metrics.appleRawMaxCapacity
+        )
     }
 
     func fetchPowerHourWattage() -> Double? {

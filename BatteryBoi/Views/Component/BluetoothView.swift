@@ -136,6 +136,14 @@ struct DeviceDetailView: View {
     }
 
     var body: some View {
+        if self.isMacDevice {
+            MacBatteryDashboardView(onBack: self.onBack)
+        } else {
+            self.bluetoothDetailContent
+        }
+    }
+
+    private var bluetoothDetailContent: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Button(action: self.onBack) {
                 HStack(spacing: Spacing.xs) {
@@ -167,11 +175,7 @@ struct DeviceDetailView: View {
             }
 
             VStack(alignment: .leading, spacing: Spacing.smd) {
-                if self.isMacDevice {
-                    self.macDetailRows
-                } else {
-                    self.bluetoothDetailRows
-                }
+                self.bluetoothDetailRows
             }
             .padding(Spacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -180,7 +184,7 @@ struct DeviceDetailView: View {
                     .fill(Color("BBSurface"))
             )
 
-            if !self.isMacDevice, let device = self.device {
+            if let device = self.device {
                 if let error = self.connectionError {
                     BluetoothConnectionFailedView(
                         deviceName: self.name,
@@ -213,37 +217,6 @@ struct DeviceDetailView: View {
             self.connectionError = nil
         }
         .animation(DesignAnimation.easeOut(reduceMotion: self.reduceMotion), value: self.connectionError)
-    }
-
-    private var macDetailRows: some View {
-        VStack(alignment: .leading, spacing: Spacing.smd) {
-            self.detailRow(
-                "arrow.triangle.2.circlepath",
-                "DeviceDetailCyclesLabel".localise(),
-                self.battery.metrics?.cycles.formatted ?? "BatteryUnavailableLabel".localise()
-            )
-            self.detailRow(
-                "heart.fill",
-                "DeviceDetailHealthLabel".localise(),
-                self.battery.metrics?.health.rawValue ?? "BatteryUnavailableLabel".localise()
-            )
-            self.detailRow(
-                self.battery.thermal == .optimal ? "thermometer.medium" : "thermometer.high",
-                "DeviceDetailThermalLabel".localise(),
-                self.battery.thermal == .optimal
-                    ? "DeviceDetailOptimalLabel".localise()
-                    : "AlertOverheatingTitle".localise(),
-                effect: self.battery.thermal == .optimal ? .none : .pulse
-            )
-            self.detailRow(
-                self.battery.charging.state == .charging ? "bolt.fill" : "battery.100percent",
-                "DeviceDetailPowerLabel".localise(),
-                self.battery.charging.state == .charging
-                    ? "DeviceDetailACPowerLabel".localise()
-                    : "DeviceDetailBatteryPowerLabel".localise(),
-                effect: self.battery.charging.state == .charging ? .pulse : .none
-            )
-        }
     }
 
     @ViewBuilder

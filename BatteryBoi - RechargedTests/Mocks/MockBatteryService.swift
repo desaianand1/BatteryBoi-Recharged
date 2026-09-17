@@ -88,6 +88,10 @@ import Foundation
         func simulateThermalChange(_ newThermal: BatteryThermalState) {
             thermal = newThermal
         }
+
+        func simulateMetricsChange(_ newMetrics: BatteryMetricsObject?) {
+            self.metrics = newMetrics
+        }
     }
 
 #endif

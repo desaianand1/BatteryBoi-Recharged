@@ -238,34 +238,11 @@ final class BluetoothService: BluetoothServiceProtocol {
     }
 
     private func handleDeviceUpdated() {
-        // Debounce rapid callbacks to prevent race conditions
         bluetoothUpdateDebounceTask?.cancel()
         bluetoothUpdateDebounceTask = Task { [weak self] in
-            try? await Task.sleep(for: .milliseconds(100))
+            try? await Task.sleep(for: .milliseconds(500))
             guard let self, !Task.isCancelled else { return }
-
-            var didUpdate = false
-            for item in IOBluetoothDevice.pairedDevices() {
-                if let device = item as? IOBluetoothDevice {
-                    if let index = list
-                        .firstIndex(where: { $0.address == device.addressString?.normalizedBluetoothAddress })
-                    {
-                        let status: BluetoothState = device.isConnected() ? .connected : .disconnected
-                        var update = list[index]
-
-                        if update.connected != status {
-                            update.updated = Date()
-                            update.connected = status
-                            list[index] = update
-                            didUpdate = true
-                        }
-                    }
-                }
-            }
-
-            if didUpdate {
-                updateDerivedState()
-            }
+            await self.bluetoothListNative()
         }
     }
 }

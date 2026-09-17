@@ -223,3 +223,63 @@
 // Accessibility - Settings interaction
 "AccessibilityOpenSettings" = "Double tap to open settings";
 "AccessibilityCloseSettings" = "Double tap to close settings";
+
+// Mac Battery Dashboard
+"DashboardNoBatteryTitle" = "No Battery";
+"DashboardNoBatteryBody" = "This Mac does not have a battery.";
+"DashboardChargingLabel" = "Charging";
+"DashboardOnBatteryLabel" = "On Battery";
+"DashboardFullyChargedLabel" = "Fully Charged";
+"DashboardFullAtLabel" = "Full at %@";
+"DashboardRemainingLabel" = "%@ remaining";
+"DashboardCalculatingLabel" = "Calculating…";
+"DashboardPowerLabel" = "Power Draw";
+"DashboardTemperatureLabel" = "Temperature";
+"DashboardCyclesLabel" = "Cycles";
+"DashboardCyclesLowercaseSuffix" = "cycles";
+"DashboardCapacityLowercaseSuffix" = "capacity";
+"DashboardHealthTitle" = "Battery Health";
+"DashboardConditionGood" = "Good";
+"DashboardConditionFair" = "Fair";
+"DashboardConditionService" = "Service";
+"DashboardHealthAdvisoryAmber" = "Consider servicing your battery.";
+"DashboardHealthAdvisoryRed" = "Service recommended.";
+"DashboardMoreDetailsLabel" = "More Details";
+"DashboardVoltageLabel" = "Voltage";
+"DashboardCurrentLabel" = "Current";
+"DashboardChargeLimitLabel" = "Charge Limit";
+"DashboardPowerSourceLabel" = "Power Source";
+"DashboardACPowerLabel" = "AC Power";
+"DashboardBatteryPowerLabel" = "Battery";
+"DashboardBatterySettingsLabel" = "Battery Settings…";
+"DashboardUnavailableValue" = "—";
+"DashboardMetricsSectionHeader" = "BATTERY DETAILS";
+"DashboardStatusNormal" = "Normal";
+"DashboardStatusWarm" = "Warm";
+"DashboardStatusHot" = "Hot";
+"DashboardStatusEfficient" = "Efficient";
+"DashboardStatusModerate" = "Moderate";
+"DashboardStatusHeavy" = "Heavy";
+"DashboardChargingPowerLabel" = "Charging Power";
+"DashboardStatusSlow" = "Slow";
+"DashboardStatusFast" = "Fast";
+
+// About Tab
+"AboutAppName" = "BatteryBoi";
+"AboutBatterySummaryHeader" = "Battery";
+"AboutBatterySummaryGreat" = "Your battery is in great shape.";
+"AboutBatterySummaryNormal" = "Your battery is performing normally.";
+"AboutBatterySummaryFair" = "Consider servicing your battery soon.";
+"AboutBatterySummaryPoor" = "Your battery may need replacement.";
+"AboutBatterySummaryUnavailable" = "Battery health information unavailable.";
+"AboutLinksHeader" = "Links";
+"AboutWebsiteLabel" = "Website";
+"AboutGitHubLabel" = "GitHub";
+"AboutRateLabel" = "Rate BatteryBoi";
+"AboutBuyMeCoffeeLabel" = "Buy Me a Coffee";
+"AboutKoFiLabel" = "Ko-fi";
+"AboutCheckUpdatesLabel" = "Check for Updates";
+"AboutUpToDateLabel" = "Up to Date";
+"AboutCreditsOriginal" = "Original BatteryBoi by thebarbican19";
+"AboutHealthLabel" = "%d%% Health";
+"AboutCyclesLabel" = "%d cycles";
