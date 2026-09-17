@@ -1,7 +1,7 @@
 ## General Rules
 
 - Comments: only explain *why*, not *what*. No tautologies, no purple prose.
-- Tests: arrange/act/assert, test behaviors not implementation, cover happy path + edge cases.
+- Tests: arrange/act/assert, test behaviors not implementation, cover happy path + edge cases. no testing trivial code, language semantic or third-party frameworks. no pointless tests, only meaningful behavior tests.
 - Use skill `swiftui-expert` for all SwiftUI code, refactors, or UI overhauls.
 - Use skill `swift-testing-expert` for unit testing.
 - Use skill `xcode-build-skill` for builds, release optimization, and build-time best practices.
@@ -14,7 +14,7 @@
 
 ### Sparkle
 
-- This app uses Sparkle for auto-updates at runtime.
+- This app uses Sparkle for auto-updates at runtime for direct distribution.
 - Documentation provided at `docs/sparkle/`
 
 ## CI CD and Developer setup
@@ -25,19 +25,14 @@
 
 - All secrets are managed via [Doppler](https://doppler.com) — see `doppler.yaml` and `.env.example`
 - Environments: `dev` (local), `ci` (GitHub Actions), `prd` (production releases)
-- `task dev`, `task test`, `task check`, `task ci` need NO Doppler setup
-- `task build`, `task release`, `task certs:sync` require Doppler (`doppler run --`)
 
 ## Taskfile
 
 - This app uses a Taskfile.yml for all developer setup, scripting and automation
 - `task fix` — format + lint autofix (run before committing)
 - `task check` — lint strict + format check (matches CI, no secrets needed)
-- `task ci` — full CI pipeline locally: lint strict + format + test (no secrets needed)
-- `task dev` — ad-hoc debug build, no signing certs required
 - `task test` — run tests via Fastlane (no secrets required)
 - `task build` — build with signing (requires Doppler)
-- `task release` — build, sign, notarize, create DMG (requires Doppler)
 - `task clean` — remove build artifacts and DerivedData
 
 ## Build
@@ -54,7 +49,7 @@
 ## Architecture
 
 - Full details: `docs/architecture-decisions.md` | Roadmap: `docs/improvements-prd.md` (index) → `docs/prd/` (sub-PRDs)
-- Services are `@Observable @MainActor`, accessed via protocol interfaces, DI via `ServiceContainer`
+- Services are `@Observable @MainActor`, accessed via protocol interfaces, DI via `ServiceCoordinator`
 - IOKit on background actors (`IOKitBatteryService`, `IOKitBluetoothService`)
 - IOBluetooth `@objc` callbacks use `BluetoothBridge` — never put on actors directly
 - HUD uses `NSPanel` not `MenuBarExtra`/`NSWindow` — see architecture doc Decision #6
