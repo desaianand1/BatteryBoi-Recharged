@@ -292,7 +292,7 @@ struct HUDMaskView: View {
                     LinearKeyframe(Constants.CornerRadius.maskCircle, duration: RevealTiming.pillExpansion)
                 }
                 KeyframeTrack(\.opacity) {
-                    SpringKeyframe(1.0, duration: 0.15, spring: DesignAnimation.hudSpring)
+                    LinearKeyframe(1.0, duration: 0.15)
                 }
             }
 
