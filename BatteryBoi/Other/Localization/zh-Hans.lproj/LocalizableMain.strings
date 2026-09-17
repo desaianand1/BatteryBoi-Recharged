@@ -31,7 +31,7 @@
 "TimestampNowLabel" = "刚刚";
 
 "SettingsWebsiteLabel" = "主页";
-"SettingsQuitLabel" = "退出";
+"SettingsQuitLabel" = "Quit BatteryBoi";
 "SettingsPinnedLabel" = "置顶显示";
 "SettingsEightyLabel" = "充电至80%";
 "SettingsRateLabel" = "为BatteryBoi评分";
@@ -39,10 +39,11 @@
 "SettingsCheckUpdatesLabel" = "检查更新";
 "SettingsNewUpdateLabel" = "安装更新";
 "SettingsDisplayLabel" = "显示设置";
-"SettingsDisplayCycleLabel" = "电池循环";
-"SettingsDisplayPercentLabel" = "百分比";
-"SettingsDisplayEstimateLabel" = "可用时间";
-"SettingsDisplayNoneLabel" = "无";
+"SettingsDisplayCycleLabel" = "Charge Cycles";
+"SettingsDisplayPercentLabel" = "Battery %";
+"SettingsDisplayEstimateLabel" = "Time Remaining";
+"SettingsDisplayNoneLabel" = "Icon Only";
+"SettingsDisplayMenuBarHiddenLabel" = "Hidden";
 "SettingsEnabledLabel" = "启用";
 "SettingsDisabledLabel" = "禁用";
 
@@ -125,6 +126,7 @@
 
 // Window Position
 "SettingsTilePositionLabel" = "位置";
+"SettingsNotificationsHeader" = "Notifications";
 "WindowPositionTopLeft" = "左上";
 "WindowPositionTopMiddle" = "上方居中";
 "WindowPositionTopRight" = "右上";
@@ -135,3 +137,11 @@
 // Device Detail (Brand & Case)
 "DeviceDetailBrandLabel" = "Brand";
 "DeviceDetailCaseLabel" = "Case";
+"SettingsTileMenuBarLabel" = "Menu Bar";
+"SettingsMenuBarIconLabel" = "Menu Bar Icon";
+"SettingsMenuBarIconSubtitle" = "Info shown inside the menu bar battery icon";
+"SettingsGeneralHeader" = "General";
+"SettingsPinnedSubtitle" = "Keep the HUD always visible";
+"SettingsEightySubtitle" = "Alert when battery reaches 80%";
+"SettingsEfficiencySubtitle" = "Reduce energy usage when on battery";
+"SettingsLoginRequiresApprovalSubtitle" = "Enable in System Settings";

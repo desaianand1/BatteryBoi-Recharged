@@ -31,7 +31,7 @@
 "TimestampNowLabel" = "A Few Moments Ago";
 
 "SettingsWebsiteLabel" = "Support Development";
-"SettingsQuitLabel" = "Quit";
+"SettingsQuitLabel" = "Quit BatteryBoi";
 "SettingsPinnedLabel" = "Pin to Screen";
 "SettingsEightyLabel" = "Charge to 80%";
 "SettingsRateLabel" = "Rate BatteryBoi";
@@ -39,12 +39,12 @@
 "SettingsCheckUpdatesLabel" = "Check for Updates";
 "SettingsNewUpdateLabel" = "Install New Update";
 "SettingsDisplayLabel" = "Display";
-"SettingsDisplayCycleLabel" = "Cycle Count";
-"SettingsDisplayPercentLabel" = "Percentage";
-"SettingsDisplayEstimateLabel" = "Time";
-"SettingsDisplayNoneLabel" = "Empty";
+"SettingsDisplayCycleLabel" = "Charge Cycles";
+"SettingsDisplayPercentLabel" = "Battery %";
+"SettingsDisplayEstimateLabel" = "Time Remaining";
+"SettingsDisplayNoneLabel" = "Icon Only";
 "SettingsDisplayHiddenLabel" = "Hidden";
-"SettingsDisplayMenuBarHiddenLabel" = "Menu Bar: Hidden";
+"SettingsDisplayMenuBarHiddenLabel" = "Hidden";
 "SettingsEnabledLabel" = "Enabled";
 "SettingsDisabledLabel" = "Disabled";
 
@@ -180,12 +180,21 @@
 
 // Settings Tiles
 "SettingsTileDisplayLabel" = "Display";
+"SettingsTileMenuBarLabel" = "Menu Bar";
+"SettingsMenuBarIconLabel" = "Menu Bar Icon";
+"SettingsMenuBarIconSubtitle" = "Info shown inside the menu bar battery icon";
+"SettingsGeneralHeader" = "General";
+"SettingsPinnedSubtitle" = "Keep the HUD always visible";
+"SettingsEightySubtitle" = "Alert when battery reaches 80%";
+"SettingsEfficiencySubtitle" = "Reduce energy usage when on battery";
+"SettingsLoginRequiresApprovalSubtitle" = "Enable in System Settings";
 "SettingsTileSoundLabel" = "Sound";
 "SettingsTileAlertsLabel" = "Alerts";
 "SettingsTilePinLabel" = "Pin";
 "SettingsTileOnLabel" = "On";
 "SettingsTileOffLabel" = "Off";
 "SettingsTilePositionLabel" = "Position";
+"SettingsNotificationsHeader" = "Notifications";
 "WindowPositionTopLeft" = "Top Left";
 "WindowPositionTopMiddle" = "Top Middle";
 "WindowPositionTopRight" = "Top Right";

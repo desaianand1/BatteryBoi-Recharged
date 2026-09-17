@@ -52,276 +52,11 @@ struct BluetoothIcon: View {
     }
 }
 
-struct BluetoothItem: View {
-    @Environment(AppEnvironment.self) private var env
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    private var manager: any AppManagerProtocol {
-        env.app
-    }
-
-    private var battery: any BatteryServiceProtocol {
-        env.battery
-    }
-
-    @Binding var hover: Bool
-
-    @State var item: BluetoothObject?
-    @State var isSelected: Bool = true
-    @State private var isConnecting: Bool = false
-    @State private var connectionError: BluetoothConnectionState?
-    @State private var connectionDotOpacity: Double = 1.0
-
-    @Namespace private var animation
-
-    init(_ item: BluetoothObject?, hover: Binding<Bool>) {
-        _item = State(initialValue: item)
-        _hover = hover
-
-    }
-
-    private var easeOutAnimation: Animation? {
-        reduceMotion ? nil : Animation.easeOut
-    }
-
-    private var deviceName: String {
-        if let item {
-            return item.device ?? item.type.type.rawValue
-        }
-        return manager.appDeviceType.name
-    }
-
-    private var batteryInfo: String {
-        if let item {
-            if item.connected == .disconnected {
-                return "BluetoothNotConnectedLabel".localise()
-            } else if let left = item.battery.left, let right = item.battery.right {
-                return "BluetoothBatteryLeftRightAccessibility".localise([Int(left), Int(right)])
-            } else if let percent = item.battery.percent {
-                return "AlertSomePercentTitle".localise([Int(percent)])
-            } else {
-                return "DeviceDetailConnectedLabel".localise()
-            }
-        }
-        return "AlertSomePercentTitle".localise([Int(battery.percentage)])
-    }
-
-    var body: some View {
-        Button(
-            action: {
-                guard !isConnecting else { return }
-
-                if let animation = easeOutAnimation {
-                    withAnimation(animation) {
-                        env.window.currentDevice = item
-                    }
-                } else {
-                    env.window.currentDevice = item
-                }
-
-                // Handle connection for disconnected devices
-                if let item, item.connected == .disconnected {
-                    isConnecting = true
-                    connectionError = nil
-
-                    Task {
-                        let result = env.bluetooth.updateConnection(item, state: .connected)
-                        await MainActor.run {
-                            isConnecting = false
-                            if result != .connected {
-                                connectionError = result
-                            }
-                        }
-                    }
-                }
-            },
-            label: {
-                HStack(alignment: .center) {
-                    BluetoothIcon(item, isSelected: self.isSelected, animation: self.animation)
-
-                    VStack(alignment: .leading) {
-                        if let item {
-                            Text(item.device ?? item.type.type.rawValue)
-                                .font(Typography.headingLarge)
-                                .foregroundColor(self.isSelected ? Color("BBSurface") : Color("BBTitle"))
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                                .padding(0)
-
-                            HStack(spacing: Spacing.xs) {
-                                // Show connecting state with spinner
-                                if isConnecting {
-                                    ProgressView()
-                                        .scaleEffect(0.6)
-                                        .frame(width: 12, height: 12)
-                                    Text("BluetoothConnectingLabel".localise())
-                                } else if item.connected == .disconnected {
-                                    Text("BluetoothNotConnectedLabel".localise())
-                                } else {
-                                    // Show left/right battery for AirPods-style devices
-                                    if let left = item.battery.left, let right = item.battery.right {
-                                        Text("BluetoothBatteryLeftRightDisplay".localise([Int(left), Int(right)]))
-                                    } else if let percent = item.battery.percent {
-                                        Text("AlertSomePercentTitle".localise([Int(percent)]))
-                                    } else {
-                                        Text("DeviceDetailConnectedLabel".localise())
-                                    }
-                                }
-
-                                Circle()
-                                    .fill(
-                                        self.isConnecting
-                                            ? SemanticColor.warning
-                                            :
-                                            (item.connected == .connected ? SemanticColor.success : SemanticColor
-                                                .info)
-                                    )
-                                    .frame(width: 6, height: 6)
-                                    .opacity(self.isConnecting ? self.connectionDotOpacity : 1.0)
-                            }
-                            .font(Typography.small)
-                            .foregroundColor(Color("BBSubtitle"))
-
-                        } else {
-                            Text(manager.appDeviceType.name)
-                                .font(Typography.headingLarge)
-                                .foregroundColor(self.isSelected ? Color("BBSurface") : Color("BBTitle"))
-                                .padding(0)
-
-                            // Always show battery percentage for Mac device
-                            Text("AlertSomePercentTitle".localise([Int(battery.percentage)]))
-                                .font(Typography.small)
-                                .foregroundColor(Color("BBSubtitle"))
-
-                        }
-
-                    }
-
-                }
-                .frame(minHeight: 60)
-                .padding(.leading, 16)
-                .padding(.trailing, 26)
-                .background(
-                    RoundedRectangle(cornerRadius: Constants.CornerRadius.button, style: .continuous)
-                        .fill(self.isSelected ? Color("BBTitle") : Color("BBSurface"))
-
-                )
-            }
-        )
-        .buttonStyle(HoverButtonStyle())
-        .onChange(of: self.env.window.currentDevice) { _, newValue in
-            if let animation = self.easeOutAnimation {
-                withAnimation(animation) {
-                    self.isSelected = newValue == self.item
-                }
-            } else {
-                self.isSelected = newValue == self.item
-            }
-        }
-        .onAppear {
-            self.isSelected = self.env.window.currentDevice == self.item
-        }
-        .onChange(of: self.isConnecting) { _, connecting in
-            if connecting, !self.reduceMotion {
-                self.connectionDotOpacity = 0.3
-                withAnimation(.easeInOut(duration: 0.4).repeatForever(autoreverses: true)) {
-                    self.connectionDotOpacity = 1.0
-                }
-            } else {
-                self.connectionDotOpacity = 1.0
-            }
-        }
-        .accessibilityLabel(self.deviceName)
-        .accessibilityValue(batteryInfo)
-        .accessibilityHint("AccessibilityDoubleTapSelect".localise())
-        .accessibilityAddTraits(env.window.currentDevice == item ? .isSelected : [])
-
-    }
-
-}
-
-// MARK: - Device Row (compact for devices column)
-
-struct DeviceRow: View {
-    @Environment(AppEnvironment.self) private var env
-
-    private var battery: any BatteryServiceProtocol {
-        self.env.battery
-    }
-
-    private var manager: any AppManagerProtocol {
-        self.env.app
-    }
-
-    let device: BluetoothObject?
-    let onSelect: () -> Void
-
-    @Namespace private var animation
-
-    private var name: String {
-        if let device = self.device {
-            return device.device ?? device.type.type.rawValue
-        }
-        return self.manager.appDeviceType.name
-    }
-
-    private var batteryText: String {
-        if let device = self.device {
-            if device.connected == .disconnected {
-                return "BluetoothNotConnectedLabel".localise()
-            } else if let percent = device.battery.percent {
-                return "AlertSomePercentTitle".localise([Int(percent)])
-            } else {
-                return "DeviceDetailConnectedLabel".localise()
-            }
-        }
-        return "AlertSomePercentTitle".localise([Int(self.battery.percentage)])
-    }
-
-    var body: some View {
-        Button(action: self.onSelect) {
-            HStack(spacing: Spacing.sm) {
-                BluetoothIcon(self.device, isSelected: false, animation: self.animation)
-
-                VStack(alignment: .leading, spacing: Spacing.xxs) {
-                    Text(self.name)
-                        .font(Typography.heading)
-                        .foregroundStyle(Color("BBTitle"))
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-
-                    HStack(spacing: Spacing.xs) {
-                        Text(self.batteryText)
-                            .font(Typography.caption)
-                            .foregroundStyle(Color("BBSubtitle"))
-
-                        if let device = self.device {
-                            Circle()
-                                .fill(device.connected == .connected ? SemanticColor.success : SemanticColor.info)
-                                .frame(width: 5, height: 5)
-                        }
-                    }
-                }
-
-                Spacer()
-            }
-            .padding(.vertical, Spacing.xsm)
-            .padding(.horizontal, Spacing.smd)
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color("BBSurface"))
-            )
-        }
-        .buttonStyle(HoverButtonStyle())
-        .accessibilityLabel(self.name)
-        .accessibilityValue(self.batteryText)
-    }
-}
-
 // MARK: - Devices Column
 
 struct DevicesColumnView: View {
     @Environment(AppEnvironment.self) private var env
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var bluetooth: any BluetoothServiceProtocol {
         self.env.bluetooth
@@ -330,23 +65,22 @@ struct DevicesColumnView: View {
     let onSelectDevice: (BluetoothObject?) -> Void
 
     var body: some View {
-        VStack(spacing: Spacing.xs) {
-            DeviceRow(device: nil, onSelect: { self.onSelectDevice(nil) })
+        VStack(spacing: Spacing.sm) {
+            DeviceCard(device: nil, onSelect: { self.onSelectDevice(nil) })
 
             if self.bluetooth.permissionStatus == .denied || self.bluetooth.permissionStatus == .restricted {
                 BluetoothPermissionDeniedView()
             } else if self.bluetooth.connected.isEmpty {
-                Text("DeviceDetailNoOtherDevicesLabel".localise())
-                    .font(Typography.caption)
-                    .foregroundStyle(Color("BBSubtitle"))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, Spacing.sm)
+                DevicesEmptyStateView()
             } else {
                 ForEach(self.bluetooth.connected, id: \.address) { device in
-                    DeviceRow(device: device, onSelect: { self.onSelectDevice(device) })
+                    DeviceCard(device: device, onSelect: { self.onSelectDevice(device) })
                 }
             }
         }
+        .padding(.vertical, Spacing.sm)
+        .padding(.bottom, Spacing.lg)
+        .animation(DesignAnimation.spring(reduceMotion: self.reduceMotion), value: self.bluetooth.connected.count)
     }
 }
 
@@ -630,34 +364,6 @@ struct DeviceDetailView: View {
         )
         .buttonStyle(HoverButtonStyle())
         .disabled(self.isConnecting)
-    }
-}
-
-struct BluetoothEmptyStateView: View {
-    var body: some View {
-        HStack(alignment: .center, spacing: Spacing.smd) {
-            Image(systemName: "airpodspro")
-                .font(Typography.icon)
-                .foregroundColor(Color("BBSubtitle").opacity(0.6))
-
-            VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text("BluetoothNoDevicesTitle".localise())
-                    .font(Typography.headingLarge)
-                    .foregroundColor(Color("BBTitle"))
-
-                Text("BluetoothNoDevicesBody".localise())
-                    .font(Typography.small)
-                    .foregroundColor(Color("BBSubtitle"))
-                    .lineLimit(2)
-            }
-        }
-        .padding(.horizontal, Spacing.lg)
-        .padding(.vertical, Spacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
-                .fill(Color("BBSurface"))
-        )
-        .accessibilityElement(children: .combine)
     }
 }
 

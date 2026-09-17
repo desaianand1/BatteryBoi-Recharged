@@ -137,7 +137,7 @@ enum SettingsActionType {
         case .appInstallUpdate: "arrow.triangle.2.circlepath"
         case .appWebsite: "globe"
         case .appQuit: "power"
-        case .appDevices: "rectangle.3.group"
+        case .appDevices: "macbook.and.iphone"
         case .appSettings: "gearshape.fill"
         case .appPinned: "pin.fill"
         case .appRate: "star.fill"

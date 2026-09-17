@@ -31,7 +31,7 @@
 "TimestampNowLabel" = "Pred nekaj trenutki";
 
 "SettingsWebsiteLabel" = "Spletna stran";
-"SettingsQuitLabel" = "Izhod";
+"SettingsQuitLabel" = "Quit BatteryBoi";
 "SettingsPinnedLabel" = "Pripni na zaslon";
 "SettingsEightyLabel" = "Polni do 80%";
 "SettingsRateLabel" = "Oceni BatteryBoi";
@@ -39,10 +39,11 @@
 "SettingsCheckUpdatesLabel" = "Preveri posodobitve";
 "SettingsNewUpdateLabel" = "Namesti posodobitev";
 "SettingsDisplayLabel" = "Prikaz";
-"SettingsDisplayCycleLabel" = "Število ciklov";
-"SettingsDisplayPercentLabel" = "Procenti";
-"SettingsDisplayEstimateLabel" = "Čas";
-"SettingsDisplayNoneLabel" = "Prazno";
+"SettingsDisplayCycleLabel" = "Charge Cycles";
+"SettingsDisplayPercentLabel" = "Battery %";
+"SettingsDisplayEstimateLabel" = "Time Remaining";
+"SettingsDisplayNoneLabel" = "Icon Only";
+"SettingsDisplayMenuBarHiddenLabel" = "Hidden";
 "SettingsEnabledLabel" = "Omogočeno";
 "SettingsDisabledLabel" = "Onemogočeno";
 
@@ -125,6 +126,7 @@
 
 // Window Position
 "SettingsTilePositionLabel" = "Položaj";
+"SettingsNotificationsHeader" = "Notifications";
 "WindowPositionTopLeft" = "Zgoraj Levo";
 "WindowPositionTopMiddle" = "Zgoraj Sredina";
 "WindowPositionTopRight" = "Zgoraj Desno";
@@ -135,3 +137,11 @@
 // Device Detail (Brand & Case)
 "DeviceDetailBrandLabel" = "Brand";
 "DeviceDetailCaseLabel" = "Case";
+"SettingsTileMenuBarLabel" = "Menu Bar";
+"SettingsMenuBarIconLabel" = "Menu Bar Icon";
+"SettingsMenuBarIconSubtitle" = "Info shown inside the menu bar battery icon";
+"SettingsGeneralHeader" = "General";
+"SettingsPinnedSubtitle" = "Keep the HUD always visible";
+"SettingsEightySubtitle" = "Alert when battery reaches 80%";
+"SettingsEfficiencySubtitle" = "Reduce energy usage when on battery";
+"SettingsLoginRequiresApprovalSubtitle" = "Enable in System Settings";

@@ -10,13 +10,14 @@ struct ExpandedPanelView: View {
 
     @State private var selectedDetail: BluetoothObject?
     @State private var showingDetail: Bool = false
+    @State private var selectedTab: ExpandedTab = .devices
 
     var body: some View {
         VStack(spacing: 0) {
             Rectangle()
                 .fill(Color("BBSubtitle").opacity(0.15))
                 .frame(height: 1)
-                .padding(.horizontal, Spacing.md)
+                .padding(.horizontal, Spacing.lg)
 
             if self.showingDetail {
                 DeviceDetailView(
@@ -35,24 +36,43 @@ struct ExpandedPanelView: View {
                 .padding(.vertical, Spacing.md)
                 .transition(self.reduceMotion ? .identity : .move(edge: .trailing).combined(with: .opacity))
             } else {
-                HStack(alignment: .top, spacing: Spacing.sm) {
-                    ScrollView(.vertical, showsIndicators: false) {
-                        DevicesColumnView(onSelectDevice: { device in
-                            self.selectedDetail = device
-                            if self.reduceMotion {
-                                self.showingDetail = true
-                            } else {
-                                withAnimation(.easeOut(duration: RevealTiming.expandDuration)) {
-                                    self.showingDetail = true
-                                }
-                            }
-                        })
-                    }
-                    .frame(minWidth: 160, maxWidth: 240)
+                VStack(spacing: 0) {
+                    CapsuleTabBar(selection: self.$selectedTab)
+                        .padding(.top, Spacing.sm)
+                        .padding(.bottom, Spacing.xs)
 
-                    SettingsTileGrid()
+                    Group {
+                        switch self.selectedTab {
+                        case .devices:
+                            ScrollView(.vertical, showsIndicators: false) {
+                                DevicesColumnView(onSelectDevice: { device in
+                                    self.selectedDetail = device
+                                    if self.reduceMotion {
+                                        self.showingDetail = true
+                                    } else {
+                                        withAnimation(.easeOut(duration: RevealTiming.expandDuration)) {
+                                            self.showingDetail = true
+                                        }
+                                    }
+                                })
+                            }
+                        case .settings:
+                            ScrollView(.vertical, showsIndicators: false) {
+                                SettingsTabView()
+                            }
+                        case .about:
+                            ScrollView(.vertical, showsIndicators: false) {
+                                AboutTabView()
+                            }
+                        }
+                    }
+                    .id(self.selectedTab)
+                    .transition(.opacity)
+                    .animation(DesignAnimation.spring(reduceMotion: self.reduceMotion), value: self.selectedTab)
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.vertical, Spacing.sm)
                 }
-                .padding(Spacing.md)
+                .padding(.bottom, Spacing.sm)
                 .transition(self.reduceMotion ? .identity : .opacity)
             }
         }

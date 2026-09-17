@@ -31,7 +31,7 @@
 "TimestampNowLabel" = "Недавно";
 
 "SettingsWebsiteLabel" = "Сайт";
-"SettingsQuitLabel" = "Выйти";
+"SettingsQuitLabel" = "Quit BatteryBoi";
 "SettingsPinnedLabel" = "Закрепить на экране";
 "SettingsEightyLabel" = "Зарядка до 80%";
 "SettingsRateLabel" = "Оценить BatteryBoi";
@@ -39,10 +39,11 @@
 "SettingsCheckUpdatesLabel" = "Проверить";
 "SettingsNewUpdateLabel" = "Установить новое обновление";
 "SettingsDisplayLabel" = "Отображение";
-"SettingsDisplayCycleLabel" = "Количество циклов зарядки";
-"SettingsDisplayPercentLabel" = "Процент";
-"SettingsDisplayEstimateLabel" = "Время";
-"SettingsDisplayNoneLabel" = "Пусто";
+"SettingsDisplayCycleLabel" = "Charge Cycles";
+"SettingsDisplayPercentLabel" = "Battery %";
+"SettingsDisplayEstimateLabel" = "Time Remaining";
+"SettingsDisplayNoneLabel" = "Icon Only";
+"SettingsDisplayMenuBarHiddenLabel" = "Hidden";
 "SettingsDisplayHiddenLabel" = "Скрыть";
 "SettingsEnabledLabel" = "Включено";
 "SettingsDisabledLabel" = "Выключено";
@@ -132,6 +133,7 @@
 
 // Window Position
 "SettingsTilePositionLabel" = "Позиция";
+"SettingsNotificationsHeader" = "Notifications";
 "WindowPositionTopLeft" = "Сверху Слева";
 "WindowPositionTopMiddle" = "Сверху По Центру";
 "WindowPositionTopRight" = "Сверху Справа";
@@ -142,3 +144,11 @@
 // Device Detail (Brand & Case)
 "DeviceDetailBrandLabel" = "Brand";
 "DeviceDetailCaseLabel" = "Case";
+"SettingsTileMenuBarLabel" = "Menu Bar";
+"SettingsMenuBarIconLabel" = "Menu Bar Icon";
+"SettingsMenuBarIconSubtitle" = "Info shown inside the menu bar battery icon";
+"SettingsGeneralHeader" = "General";
+"SettingsPinnedSubtitle" = "Keep the HUD always visible";
+"SettingsEightySubtitle" = "Alert when battery reaches 80%";
+"SettingsEfficiencySubtitle" = "Reduce energy usage when on battery";
+"SettingsLoginRequiresApprovalSubtitle" = "Enable in System Settings";

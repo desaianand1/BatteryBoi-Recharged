@@ -30,15 +30,16 @@
 "TimestampNowLabel" = "Hace unos momentos";
 
 "SettingsWebsiteLabel" = "Sitio web";
-"SettingsQuitLabel" = "Salir";
+"SettingsQuitLabel" = "Quit BatteryBoi";
 "SettingsThemeLabel" = "Apariencia";
 "SettingsEfficiencyLabel" = "Bajo consumo";
 "SettingsCheckUpdatesLabel" = "Buscar actualizaciones";
 "SettingsNewUpdateLabel" = "Instalar nueva actualización";
 "SettingsDisplayLabel" = "Mostrar";
-"SettingsDisplayPercentLabel" = "Porcentaje";
-"SettingsDisplayEstimateLabel" = "Tiempo";
-"SettingsDisplayNoneLabel" = "Vacío";
+"SettingsDisplayPercentLabel" = "Battery %";
+"SettingsDisplayEstimateLabel" = "Time Remaining";
+"SettingsDisplayNoneLabel" = "Icon Only";
+"SettingsDisplayMenuBarHiddenLabel" = "Hidden";
 "SettingsDisplayRemovedLabel" = "Ícono de la Barra de Menú Oculto";
 "SettingsEnabledLabel" = "Activado";
 "SettingsDisabledLabel" = "Desactivado";
@@ -100,7 +101,7 @@
 "SettingsPinnedLabel" = "Fijar en pantalla";
 "SettingsEightyLabel" = "Cargar hasta 80%";
 "SettingsRateLabel" = "Valorar BatteryBoi";
-"SettingsDisplayCycleLabel" = "Conteo de ciclos";
+"SettingsDisplayCycleLabel" = "Charge Cycles";
 "SettingsDisplayHiddenLabel" = "Oculto";
 "SettingsDevicesLabel" = "Dispositivos";
 "SettingsSettingsLabel" = "Ajustes";
@@ -125,6 +126,7 @@
 
 // Window Position
 "SettingsTilePositionLabel" = "Posición";
+"SettingsNotificationsHeader" = "Notifications";
 "WindowPositionTopLeft" = "Arriba Izquierda";
 "WindowPositionTopMiddle" = "Arriba Centro";
 "WindowPositionTopRight" = "Arriba Derecha";
@@ -135,3 +137,11 @@
 // Device Detail (Brand & Case)
 "DeviceDetailBrandLabel" = "Brand";
 "DeviceDetailCaseLabel" = "Case";
+"SettingsTileMenuBarLabel" = "Menu Bar";
+"SettingsMenuBarIconLabel" = "Menu Bar Icon";
+"SettingsMenuBarIconSubtitle" = "Info shown inside the menu bar battery icon";
+"SettingsGeneralHeader" = "General";
+"SettingsPinnedSubtitle" = "Keep the HUD always visible";
+"SettingsEightySubtitle" = "Alert when battery reaches 80%";
+"SettingsEfficiencySubtitle" = "Reduce energy usage when on battery";
+"SettingsLoginRequiresApprovalSubtitle" = "Enable in System Settings";

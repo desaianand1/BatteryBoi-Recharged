@@ -246,6 +246,36 @@ extension View {
     }
 }
 
+// MARK: - Settings Row Hover Modifier
+
+struct SettingsRowHoverModifier: ViewModifier {
+    @State private var isHovered: Bool = false
+
+    func body(content: Content) -> some View {
+        content
+            .onHover { self.isHovered = $0 }
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.white.opacity(self.isHovered ? 0.05 : 0))
+            )
+            .animation(.easeInOut(duration: 0.15), value: self.isHovered)
+    }
+}
+
+extension View {
+    func settingsRowHover() -> some View {
+        self.modifier(SettingsRowHoverModifier())
+    }
+}
+
+// MARK: - Haptic Utility
+
+enum HapticUtility {
+    static func toggle() {
+        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .default)
+    }
+}
+
 // MARK: - Hover Button Style
 
 struct HoverButtonStyle: ButtonStyle {
@@ -272,6 +302,51 @@ struct HoverButtonStyle: ButtonStyle {
                     NSCursor.pop()
                 }
             }
+    }
+}
+
+// MARK: - Surface Card
+
+struct SurfaceCard: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .clipShape(RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous))
+            .background(
+                RoundedRectangle(cornerRadius: Constants.CornerRadius.container, style: .continuous)
+                    .fill(Color("BBSurface"))
+            )
+    }
+}
+
+extension View {
+    func surfaceCard() -> some View {
+        self.modifier(SurfaceCard())
+    }
+}
+
+// MARK: - Settings Row Icon
+
+struct SettingsRowIcon: View {
+    let systemName: String
+    var color: Color = .init("BBSubtitle")
+
+    var body: some View {
+        Image(systemName: self.systemName)
+            .font(.system(size: 14, weight: .medium))
+            .symbolRenderingMode(.hierarchical)
+            .foregroundStyle(self.color)
+            .frame(width: 22, alignment: .center)
+    }
+}
+
+// MARK: - Settings Divider
+
+struct SettingsDivider: View {
+    var body: some View {
+        Rectangle()
+            .fill(Color("BBSubtitle").opacity(0.15))
+            .frame(height: 1)
+            .padding(.horizontal, Spacing.md)
     }
 }
 

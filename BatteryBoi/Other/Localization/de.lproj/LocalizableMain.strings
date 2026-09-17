@@ -32,7 +32,7 @@
 "TimestampNowLabel" = "Eben gerade";
 
 "SettingsWebsiteLabel" = "Unterstütze die Entwicklung";
-"SettingsQuitLabel" = "Beenden";
+"SettingsQuitLabel" = "Quit BatteryBoi";
 "SettingsPinnedLabel" = "An Bildschirm anheften";
 "SettingsEightyLabel" = "Lade bis 80%";
 "SettingsRateLabel" = "Bewerte BatteryBoi";
@@ -40,10 +40,11 @@
 "SettingsCheckUpdatesLabel" = "Nach Updates suchen";
 "SettingsNewUpdateLabel" = "Neues Update installieren";
 "SettingsDisplayLabel" = "Anzeige";
-"SettingsDisplayCycleLabel" = "Anzahl Ladezyklen";
-"SettingsDisplayPercentLabel" = "Prozentsatz";
-"SettingsDisplayEstimateLabel" = "Zeit";
-"SettingsDisplayNoneLabel" = "Leer";
+"SettingsDisplayCycleLabel" = "Charge Cycles";
+"SettingsDisplayPercentLabel" = "Battery %";
+"SettingsDisplayEstimateLabel" = "Time Remaining";
+"SettingsDisplayNoneLabel" = "Icon Only";
+"SettingsDisplayMenuBarHiddenLabel" = "Hidden";
 "SettingsEnabledLabel" = "Aktiviert";
 "SettingsDisabledLabel" = "Deaktiviert";
 
@@ -127,6 +128,7 @@
 
 // Window Position
 "SettingsTilePositionLabel" = "Position";
+"SettingsNotificationsHeader" = "Notifications";
 "WindowPositionTopLeft" = "Oben Links";
 "WindowPositionTopMiddle" = "Oben Mitte";
 "WindowPositionTopRight" = "Oben Rechts";
@@ -137,3 +139,11 @@
 // Device Detail (Brand & Case)
 "DeviceDetailBrandLabel" = "Brand";
 "DeviceDetailCaseLabel" = "Case";
+"SettingsTileMenuBarLabel" = "Menu Bar";
+"SettingsMenuBarIconLabel" = "Menu Bar Icon";
+"SettingsMenuBarIconSubtitle" = "Info shown inside the menu bar battery icon";
+"SettingsGeneralHeader" = "General";
+"SettingsPinnedSubtitle" = "Keep the HUD always visible";
+"SettingsEightySubtitle" = "Alert when battery reaches 80%";
+"SettingsEfficiencySubtitle" = "Reduce energy usage when on battery";
+"SettingsLoginRequiresApprovalSubtitle" = "Enable in System Settings";

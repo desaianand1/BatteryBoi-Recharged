@@ -29,6 +29,7 @@ class HUDPanel: NSPanel {
         self.level = .floating
         self.becomesKeyOnlyIfNeeded = true
         self.animationBehavior = .utilityWindow
+        self.appearance = NSAppearance(named: .darkAqua)
     }
 }
 
@@ -137,6 +138,7 @@ final class WindowService: WindowServiceProtocol {
     }
 
     func setPosition(_ position: WindowPosition) {
+        guard position != self.position else { return }
         self.position = position
         savePosition(position)
 
@@ -156,7 +158,7 @@ final class WindowService: WindowServiceProtocol {
             context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
             window.animator().setFrame(snapFrame, display: true)
         } completionHandler: { [weak self] in
-            self?.isSnapping = false
+            MainActor.assumeIsolated { self?.isSnapping = false }
         }
     }
 
@@ -319,12 +321,15 @@ final class WindowService: WindowServiceProtocol {
         let newX = currentFrame.midX - (newSize.width / 2)
         let newFrame = NSRect(x: newX, y: newY, width: newSize.width, height: newSize.height)
 
+        self.isSnapping = true
         NSAnimationContext.runAnimationGroup { context in
             context.duration = state == .detailed
                 ? RevealTiming.expandDuration
                 : RevealTiming.collapseDuration
             context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
             window.animator().setFrame(newFrame, display: true)
+        } completionHandler: { [weak self] in
+            MainActor.assumeIsolated { self?.isSnapping = false }
         }
     }
 
@@ -605,7 +610,7 @@ final class WindowService: WindowServiceProtocol {
                 context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
                 window.animator().setFrame(snapFrame, display: true)
             } completionHandler: { [weak self] in
-                self?.isSnapping = false
+                MainActor.assumeIsolated { self?.isSnapping = false }
             }
         }
 
