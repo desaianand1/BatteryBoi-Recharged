@@ -457,6 +457,36 @@ final class BatteryMetricsExtendedTests: XCTestCase {
         XCTAssertEqual(legacy?.color, explicit?.color)
     }
 
+    // MARK: - Design Capacity Edge Cases
+
+    @MainActor
+    func testHealthPercentNilWhenDesignCapacityNegative() {
+        let m = BatteryMetricsObject(
+            cycleCount: 100, condition: "Normal",
+            temperature: 25.0, voltage: 12000, amperage: -500,
+            maxCapacity: 3000, designCapacity: -1
+        )
+        XCTAssertNil(m.healthPercent)
+    }
+
+    // MARK: - Power Status Zero Watts
+
+    @MainActor
+    func testPowerStatusForStateZeroWatts() {
+        let m = BatteryMetricsObject(
+            cycleCount: 0, condition: "Normal",
+            temperature: nil, voltage: 0, amperage: 0,
+            maxCapacity: 0, designCapacity: 0
+        )
+        let discharging = m.powerStatusForState(isCharging: false)
+        XCTAssertNotNil(discharging)
+        XCTAssertEqual(discharging?.color, SemanticColor.success)
+
+        let charging = m.powerStatusForState(isCharging: true)
+        XCTAssertNotNil(charging)
+        XCTAssertEqual(charging?.color, SemanticColor.warning)
+    }
+
     // MARK: - Backward Compatibility
 
     @MainActor

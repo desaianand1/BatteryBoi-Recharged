@@ -57,36 +57,6 @@ struct BluetoothDeviceTypeTests {
 
 final class BluetoothModelsTests: XCTestCase {
 
-    // MARK: - BluetoothDeviceSubtype Tests
-
-    @MainActor
-    func testSubtypeAirpodsMax() {
-        let subtype: BluetoothDeviceSubtype = .airpodsMax
-        XCTAssertEqual(subtype.rawValue, "0x200A")
-        XCTAssertEqual(subtype.icon, "headphones")
-    }
-
-    @MainActor
-    func testSubtypeAirpodsPro() {
-        let subtype: BluetoothDeviceSubtype = .airpodsProVersionOne
-        XCTAssertEqual(subtype.rawValue, "0x200E")
-        XCTAssertEqual(subtype.icon, "airpods.gen3")
-    }
-
-    @MainActor
-    func testSubtypeAirpodsVersionOne() {
-        let subtype: BluetoothDeviceSubtype = .airpodsVersionOne
-        XCTAssertEqual(subtype.rawValue, "0x2002")
-        XCTAssertEqual(subtype.icon, "airpods")
-    }
-
-    @MainActor
-    func testSubtypeAirpodsVersionTwo() {
-        let subtype: BluetoothDeviceSubtype = .airpodsVersionTwo
-        XCTAssertEqual(subtype.rawValue, "0x200F")
-        XCTAssertEqual(subtype.icon, "airpods")
-    }
-
     // MARK: - BluetoothDeviceObject Tests
 
     @MainActor
@@ -192,24 +162,6 @@ final class BluetoothModelsTests: XCTestCase {
         XCTAssertNotEqual(a, b)
     }
 
-    // MARK: - BluetoothState Tests
-
-    @MainActor
-    func testBluetoothStateConnected() {
-        let state: BluetoothState = .connected
-        XCTAssertEqual(state.rawValue, 1)
-        XCTAssertEqual(state.status, "Connected")
-        XCTAssertTrue(state.boolean)
-    }
-
-    @MainActor
-    func testBluetoothStateDisconnected() {
-        let state: BluetoothState = .disconnected
-        XCTAssertEqual(state.rawValue, 0)
-        XCTAssertEqual(state.status, "Not Connected")
-        XCTAssertFalse(state.boolean)
-    }
-
     // MARK: - BluetoothObject Tests
 
     @MainActor
@@ -278,27 +230,6 @@ final class BluetoothModelsTests: XCTestCase {
 
         // Address should be normalized to lowercase with dashes
         XCTAssertEqual(device.address, "aa-bb-cc-dd-ee-ff")
-    }
-
-    // MARK: - BluetoothDeviceType Computed Property Tests
-
-    @MainActor
-    func testAllDeviceTypeNamesAreNonEmpty() {
-        for type in BluetoothDeviceType.allCases {
-            XCTAssertFalse(type.name.isEmpty, "\(type) should have a non-empty name")
-        }
-    }
-
-    @MainActor
-    func testOtherDeviceTypeHasEmptyIcon() {
-        XCTAssertEqual(BluetoothDeviceType.other.icon, "")
-    }
-
-    @MainActor
-    func testKnownDeviceTypesHaveNonEmptyIcons() {
-        for type in BluetoothDeviceType.allCases where type != .other {
-            XCTAssertFalse(type.icon.isEmpty, "\(type) should have a non-empty icon")
-        }
     }
 
     // MARK: - Test Helpers Tests

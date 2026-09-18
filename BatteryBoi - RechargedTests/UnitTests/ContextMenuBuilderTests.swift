@@ -130,6 +130,38 @@ final class ContextMenuBuilderTests: XCTestCase {
         XCTAssertTrue(header.title.contains("Charging"))
     }
 
+    // MARK: - Settings Menu Item
+
+    @MainActor
+    func testSettingsMenuItemPresent() {
+        let menu = buildMenu()
+        let settingsItem = findItem(menu, titleContaining: "Settings")
+
+        XCTAssertNotNil(settingsItem)
+        XCTAssertEqual(settingsItem?.keyEquivalent, ",")
+        XCTAssertTrue(settingsItem?.keyEquivalentModifierMask.contains(.command) ?? false)
+    }
+
+    @MainActor
+    func testSettingsMenuItemPositionAfterTogglesBeforeSupport() {
+        let menu = buildMenu()
+        let nonSeparators = menu.items.filter { !$0.isSeparatorItem }
+
+        let sfxIndex = nonSeparators.firstIndex { $0.title.contains("Sound") }
+        let settingsIndex = nonSeparators.firstIndex { $0.title.contains("Settings") }
+        let quitIndex = nonSeparators.firstIndex { $0.title.contains("Quit") ?? $0.title.contains("quit") }
+
+        XCTAssertNotNil(settingsIndex)
+
+        if let si = settingsIndex, let sfxi = sfxIndex {
+            XCTAssertGreaterThan(si, sfxi, "Settings should appear after Sound Effects toggle")
+        }
+
+        if let si = settingsIndex, let qi = quitIndex {
+            XCTAssertLessThan(si, qi, "Settings should appear before Quit")
+        }
+    }
+
     // MARK: - Check for Updates visibility
 
     @MainActor
