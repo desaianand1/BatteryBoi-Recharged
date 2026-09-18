@@ -73,6 +73,12 @@ struct DevicesColumnView: View {
             } else if self.bluetooth.connected.isEmpty {
                 DevicesEmptyStateView()
             } else {
+                Text("BluetoothConnectedDevicesHeader".localise())
+                    .font(Typography.caption)
+                    .foregroundStyle(Color("BBSubtitle"))
+                    .tracking(0.5)
+                    .padding(.horizontal, Spacing.xs)
+
                 ForEach(self.bluetooth.connected, id: \.address) { device in
                     DeviceCard(device: device, onSelect: { self.onSelectDevice(device) })
                 }

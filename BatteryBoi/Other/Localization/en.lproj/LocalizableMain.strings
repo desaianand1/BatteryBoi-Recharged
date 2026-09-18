@@ -117,6 +117,9 @@
 "SettingsDevicesLabel" = "Devices";
 "SettingsSettingsLabel" = "Settings";
 
+// Section headers
+"BluetoothConnectedDevicesHeader" = "CONNECTED DEVICES";
+
 // Empty states
 "BluetoothNoDevicesTitle" = "No Devices Connected";
 "BluetoothNoDevicesBody" = "Connect Bluetooth devices to monitor their battery.";
