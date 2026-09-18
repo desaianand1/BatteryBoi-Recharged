@@ -1,3 +1,16 @@
+## [12.61.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.60.0...v12.61.0) (2026-09-18)
+
+### Features
+
+* **hud:** add connected devices section header in Devices tab ([c96b873](https://github.com/desaianand1/BatteryBoi-Recharged/commit/c96b873804c5c0b77aa483e85b5593ad68d87993))
+* **hud:** programmatic tab navigation via NavigationRequest ([22b2843](https://github.com/desaianand1/BatteryBoi-Recharged/commit/22b28436e9452cb5bd43074912333d840b6af686))
+* **hud:** redesign About tab with links card, system info copy, and legal ([0cde49d](https://github.com/desaianand1/BatteryBoi-Recharged/commit/0cde49d0d3dc3b0f21744ee30f8ab01f17f285ad))
+
+### Bug Fixes
+
+* **config:** escape all xcconfig URLs to prevent comment-delimiter truncation ([5637366](https://github.com/desaianand1/BatteryBoi-Recharged/commit/5637366c4a0766c7aa69af6851bbac831fdd861f))
+* **hud:** prevent locale-aware thousands separator in copyright year ([9aed24d](https://github.com/desaianand1/BatteryBoi-Recharged/commit/9aed24da693c69d537359ec6aadef6cd4cdcd9f0))
+
 ## [12.60.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.59.0...v12.60.0) (2026-09-17)
 
 ### Features
