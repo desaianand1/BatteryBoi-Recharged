@@ -50,6 +50,8 @@
 		C1A0B0C02C08000000000006 /* SoundEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C08000000000005 /* SoundEffects.swift */; };
 		C1A0B0C02C08000000000008 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C08000000000007 /* AppDelegate.swift */; };
 		C1A0B0C02C09000000000001 /* OnboardingServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C09000000000002 /* OnboardingServiceProtocol.swift */; };
+		C1A0B0C02C10000000000003 /* BatteryDisplayHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C10000000000001 /* BatteryDisplayHelpers.swift */; };
+		C1A0B0C02C10000000000004 /* SystemInfoCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C10000000000002 /* SystemInfoCollector.swift */; };
 		D83CD7452AA8F693004223D7 /* BluetoothView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83CD7442AA8F693004223D7 /* BluetoothView.swift */; };
 		D83DD3F52A9908E600FCC534 /* UpdateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83DD3F42A9908E600FCC534 /* UpdateManager.swift */; };
 		D84F4E182A85A66900668582 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = D84F4E172A85A66900668582 /* Sparkle */; };
@@ -144,6 +146,8 @@
 		C1A0B0C02C08000000000005 /* SoundEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundEffects.swift; sourceTree = "<group>"; };
 		C1A0B0C02C08000000000007 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C1A0B0C02C09000000000002 /* OnboardingServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingServiceProtocol.swift; sourceTree = "<group>"; };
+		C1A0B0C02C10000000000001 /* BatteryDisplayHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryDisplayHelpers.swift; sourceTree = "<group>"; };
+		C1A0B0C02C10000000000002 /* SystemInfoCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemInfoCollector.swift; sourceTree = "<group>"; };
 		D540748087DD0FBD17E51AC2 /* OnboardingView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		D83CD7442AA8F693004223D7 /* BluetoothView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothView.swift; sourceTree = "<group>"; };
 		D83DD3F42A9908E600FCC534 /* UpdateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateManager.swift; sourceTree = "<group>"; };
@@ -222,12 +226,14 @@
 		C1A0B0C02C01000000000001 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				C1A0B0C02C10000000000001 /* BatteryDisplayHelpers.swift */,
 				C1A0B0C02C03000000000003 /* Constants.swift */,
 				C1A0B0C02C03000000000005 /* DesignTokens.swift */,
 				C1A0B0C02C03000000000001 /* Logger.swift */,
 				C1A0B0C02C07000000000002 /* ObservationStream.swift */,
 				C1A0B0C02C01000000000002 /* ProcessRunner.swift */,
 				C1A0B0C02C08000000000005 /* SoundEffects.swift */,
+				C1A0B0C02C10000000000002 /* SystemInfoCollector.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -570,6 +576,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C1A0B0C02C10000000000003 /* BatteryDisplayHelpers.swift in Sources */,
+				C1A0B0C02C10000000000004 /* SystemInfoCollector.swift in Sources */,
 				C1A0B0C02C01000000000003 /* ProcessRunner.swift in Sources */,
 				C1A0B0C02C03000000000002 /* Logger.swift in Sources */,
 				C1A0B0C02C03000000000004 /* Constants.swift in Sources */,

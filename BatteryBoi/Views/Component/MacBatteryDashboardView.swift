@@ -386,13 +386,6 @@ struct MacBatteryDashboardView: View {
     // MARK: - Helpers
 
     private var thermometerIcon: String {
-        guard let t = self.metrics?.temperature else { return "thermometer.medium" }
-        if t < 35 {
-            return "thermometer.low"
-        }
-        if t <= 45 {
-            return "thermometer.medium"
-        }
-        return "thermometer.high"
+        BatteryDisplayHelpers.thermometerIcon(for: self.metrics?.temperature)
     }
 }

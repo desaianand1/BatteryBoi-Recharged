@@ -4,6 +4,8 @@ struct AboutTabView: View {
     @Environment(AppEnvironment.self) private var env
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    @State private var copiedFeedback: Bool = false
+
     private var battery: any BatteryServiceProtocol {
         self.env.battery
     }
@@ -20,11 +22,7 @@ struct AboutTabView: View {
                 self.batterySummaryCard
             }
 
-            self.linksSection
-
-            #if DIRECT_DISTRIBUTION
-                self.updateSection
-            #endif
+            self.linksCard
 
             self.creditsFooter
         }
@@ -84,61 +82,19 @@ struct AboutTabView: View {
                     }
                 }
 
-                Text(self.batterySummaryAdvisory(healthPct))
+                Text(BatteryDisplayHelpers.batterySummaryAdvisory(healthPct))
                     .font(Typography.body)
-                    .foregroundStyle(self.batterySummaryColor(healthPct))
+                    .foregroundStyle(BatteryDisplayHelpers.batterySummaryColor(healthPct))
             }
             .padding(Spacing.md)
         }
     }
 
-    private func batterySummaryAdvisory(_ healthPct: Double?) -> String {
-        guard let pct = healthPct else {
-            return "AboutBatterySummaryUnavailable".localise()
-        }
-        if pct >= 90 {
-            return "AboutBatterySummaryGreat".localise()
-        }
-        if pct >= 80 {
-            return "AboutBatterySummaryNormal".localise()
-        }
-        if pct >= 70 {
-            return "AboutBatterySummaryFair".localise()
-        }
-        return "AboutBatterySummaryPoor".localise()
-    }
+    // MARK: - Links Card
 
-    private func batterySummaryColor(_ healthPct: Double?) -> Color {
-        guard let pct = healthPct else { return Color("BBSubtitle") }
-        if pct >= 80 {
-            return Color("BBSubtitle")
-        }
-        if pct >= 70 {
-            return SemanticColor.warning
-        }
-        return SemanticColor.error
-    }
-
-    // MARK: - Links
-
-    private var linksSection: some View {
-        SettingsSection(header: "AboutLinksHeader".localise()) {
-            SettingsDisclosureRow(
-                icon: "globe",
-                title: "AboutWebsiteLabel".localise(),
-                subtitle: ""
-            ) { self.openInfoPlistURL("GITHUB_REPO_URL") }
-
-            SettingsDivider()
-
-            SettingsDisclosureRow(
-                icon: "chevron.left.forwardslash.chevron.right",
-                title: "AboutGitHubLabel".localise(),
-                subtitle: ""
-            ) { self.openInfoPlistURL("GITHUB_REPO_URL") }
-
-            SettingsDivider()
-
+    private var linksCard: some View {
+        SettingsSection {
+            // Rate on App Store
             SettingsDisclosureRow(
                 icon: "star.fill",
                 title: "AboutRateLabel".localise(),
@@ -147,6 +103,25 @@ struct AboutTabView: View {
 
             SettingsDivider()
 
+            // Website
+            SettingsDisclosureRow(
+                icon: "globe",
+                title: "AboutWebsiteLabel".localise(),
+                subtitle: ""
+            ) { self.openInfoPlistURL("WEBSITE_URL") }
+
+            SettingsDivider()
+
+            // Source Code
+            SettingsDisclosureRow(
+                icon: "chevron.left.forwardslash.chevron.right",
+                title: "AboutSourceCodeLabel".localise(),
+                subtitle: ""
+            ) { self.openInfoPlistURL("GITHUB_REPO_URL") }
+
+            SettingsDivider()
+
+            // Buy Me a Coffee
             SettingsDisclosureRow(
                 icon: "cup.and.saucer.fill",
                 title: "AboutBuyMeCoffeeLabel".localise(),
@@ -155,60 +130,143 @@ struct AboutTabView: View {
 
             SettingsDivider()
 
+            // Ko-fi
             SettingsDisclosureRow(
                 icon: "heart.fill",
                 title: "AboutKoFiLabel".localise(),
                 subtitle: ""
             ) { self.openInfoPlistURL("DONATE_KOFI_URL") }
+
+            self.sectionDivider
+
+            // Report an Issue
+            self.reportIssueRow
+
+            #if DIRECT_DISTRIBUTION
+                SettingsDivider()
+                self.checkForUpdatesRow
+            #endif
+
+            self.sectionDivider
+
+            // Legal
+            self.legalRow
         }
     }
 
-    // MARK: - Update Section
+    // MARK: - Report an Issue
+
+    private var reportIssueRow: some View {
+        Button {
+            self.openInfoPlistURL("SUPPORT_ISSUES_URL")
+        } label: {
+            HStack(spacing: Spacing.smd) {
+                SettingsRowIcon(systemName: "ladybug")
+
+                Text("AboutReportIssueLabel".localise())
+                    .font(Typography.heading)
+                    .foregroundStyle(Color("BBTitle"))
+
+                Spacer()
+
+                Button {
+                    self.copySystemInfo()
+                } label: {
+                    Image(systemName: self.copiedFeedback ? "checkmark" : "doc.on.doc")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(self.copiedFeedback ? SemanticColor.success : Color("BBSubtitle"))
+                        .frame(width: 24, height: 24)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Copy system info")
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(Color("BBSubtitle").opacity(0.5))
+            }
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, Spacing.smd)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(HoverButtonStyle())
+    }
+
+    // MARK: - Check for Updates
 
     #if DIRECT_DISTRIBUTION
-        private var updateSection: some View {
-            SettingsSection {
-                Button {
-                    self.updates.updateCheck()
-                } label: {
-                    HStack(spacing: Spacing.smd) {
-                        SettingsRowIcon(systemName: "arrow.triangle.2.circlepath")
+        private var checkForUpdatesRow: some View {
+            Button {
+                self.updates.updateCheck()
+            } label: {
+                HStack(spacing: Spacing.smd) {
+                    SettingsRowIcon(systemName: "arrow.triangle.2.circlepath")
 
-                        Text("AboutCheckUpdatesLabel".localise())
-                            .font(Typography.heading)
-                            .foregroundStyle(Color("BBTitle"))
+                    Text("AboutCheckUpdatesLabel".localise())
+                        .font(Typography.heading)
+                        .foregroundStyle(Color("BBTitle"))
 
-                        Spacer()
+                    Spacer()
 
-                        if self.updates.state == .checking {
-                            ProgressView()
-                                .scaleEffect(0.6)
-                                .frame(width: 14, height: 14)
-                        } else {
-                            Text(self.updates.versionDisplay)
-                                .font(Typography.caption)
-                                .foregroundStyle(Color("BBSubtitle"))
-                        }
+                    if self.updates.state == .checking {
+                        ProgressView()
+                            .scaleEffect(0.6)
+                            .frame(width: 14, height: 14)
+                    } else {
+                        Text(self.updates.versionDisplay)
+                            .font(Typography.caption)
+                            .foregroundStyle(Color("BBSubtitle"))
                     }
-                    .padding(.horizontal, Spacing.md)
-                    .padding(.vertical, Spacing.smd)
-                    .contentShape(Rectangle())
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(Color("BBSubtitle").opacity(0.5))
                 }
-                .buttonStyle(HoverButtonStyle())
-                .disabled(self.updates.state == .checking)
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.smd)
+                .contentShape(Rectangle())
             }
+            .buttonStyle(HoverButtonStyle())
+            .disabled(self.updates.state == .checking)
         }
     #endif
+
+    // MARK: - Legal
+
+    private var legalRow: some View {
+        HStack(spacing: 0) {
+            Spacer()
+            Button("AboutPrivacyLabel".localise()) { self.openInfoPlistURL("PRIVACY_POLICY_URL") }
+                .buttonStyle(.plain)
+            Text(" · ")
+            Button("AboutTermsLabel".localise()) { self.openInfoPlistURL("TERMS_URL") }
+                .buttonStyle(.plain)
+            Text(" · ")
+            Button("AboutDataPolicyLabel".localise()) { self.openInfoPlistURL("DATA_POLICY_URL") }
+                .buttonStyle(.plain)
+            Spacer()
+        }
+        .font(Typography.caption)
+        .foregroundStyle(Color("BBSubtitle"))
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.smd)
+    }
 
     // MARK: - Credits
 
     private var creditsFooter: some View {
         VStack(alignment: .center, spacing: Spacing.xs) {
-            Text("AboutCreditsOriginal".localise())
+            Button("AboutMadeByLabel".localise()) { self.openInfoPlistURL("DEV_WEBSITE_URL") }
+                .buttonStyle(.plain)
                 .font(Typography.caption)
                 .foregroundStyle(Color("BBSubtitle").opacity(0.6))
 
-            Text("AboutBodyFooter".localise())
+            Button("AboutCreditsOriginal".localise()) { self.openInfoPlistURL("ORIGINAL_AUTHOR_URL") }
+                .buttonStyle(.plain)
+                .font(Typography.caption)
+                .foregroundStyle(Color("BBSubtitle").opacity(0.6))
+
+            Text("AboutCopyrightLabel".localise([Calendar.current.component(.year, from: Date())]))
                 .font(Typography.caption)
                 .foregroundStyle(Color("BBSubtitle").opacity(0.6))
         }
@@ -218,11 +276,38 @@ struct AboutTabView: View {
 
     // MARK: - Helpers
 
+    private var sectionDivider: some View {
+        Rectangle()
+            .fill(Color("BBSubtitle").opacity(0.15))
+            .frame(height: 2)
+    }
+
     private func openInfoPlistURL(_ key: String) {
         guard let str = Bundle.main.infoDictionary?[key] as? String,
               !str.isEmpty, let url = URL(string: str)
         else { return }
         NSWorkspace.shared.open(url)
+    }
+
+    private func copySystemInfo() {
+        let info = SystemInfoCollector.collect(
+            battery: self.battery,
+            bluetooth: self.env.bluetooth,
+            app: self.env.app,
+            update: self.updates
+        )
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(info, forType: .string)
+
+        withAnimation(DesignAnimation.spring(reduceMotion: self.reduceMotion)) {
+            self.copiedFeedback = true
+        }
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            withAnimation(DesignAnimation.spring(reduceMotion: self.reduceMotion)) {
+                self.copiedFeedback = false
+            }
+        }
     }
 }
 

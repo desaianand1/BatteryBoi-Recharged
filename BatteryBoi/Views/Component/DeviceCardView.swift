@@ -197,27 +197,12 @@ struct DeviceCard: View {
     }
 
     private var macSubtitleText: String {
-        if self.battery.percentage >= 100 {
-            return "DashboardFullyChargedLabel".localise()
-        }
-
-        let stateLabel = self.battery.charging.state == .charging
-            ? "DashboardChargingLabel".localise()
-            : "DashboardOnBatteryLabel".localise()
-
-        if self.battery.charging.state == .charging {
-            if let fullDate = self.battery.untilFull {
-                let formatter = DateFormatter()
-                formatter.timeStyle = .short
-                return "\(stateLabel) · "
-                    + "DashboardFullAtLabel".localise([formatter.string(from: fullDate)])
-            }
-        } else if let short = self.battery.remaining?.formattedShort {
-            return "\(stateLabel) · "
-                + "DashboardRemainingLabel".localise([short])
-        }
-
-        return stateLabel
+        BatteryDisplayHelpers.macBatterySubtitle(
+            percentage: self.battery.percentage,
+            chargingState: self.battery.charging.state,
+            untilFull: self.battery.untilFull,
+            remaining: self.battery.remaining
+        )
     }
 
     private func twsBadge(_ label: String, percent: Double) -> some View {
