@@ -129,25 +129,6 @@ enum SettingsActionType {
     case customiseTheme
     case customiseNotifications
     case customiseCharge
-
-    var icon: String {
-        switch self {
-        case .appEfficiencyMode: "leaf.fill"
-        case .appUpdateCheck: "arrow.triangle.2.circlepath"
-        case .appInstallUpdate: "arrow.triangle.2.circlepath"
-        case .appWebsite: "globe"
-        case .appQuit: "power"
-        case .appDevices: "macbook.and.iphone"
-        case .appSettings: "gearshape.fill"
-        case .appPinned: "pin.fill"
-        case .appRate: "star.fill"
-        case .customiseDisplay: "percent"
-        case .customiseTheme: "paintbrush.fill"
-        case .customiseNotifications: "bell.fill"
-        case .customiseSoundEffects: "speaker.wave.2.fill"
-        case .customiseCharge: "bolt.fill"
-        }
-    }
 }
 
 // MARK: - Theme
