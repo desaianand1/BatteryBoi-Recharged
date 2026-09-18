@@ -1,0 +1,90 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the bug clearly and concisely.
+      placeholder: "The HUD didn't appear when I unplugged the charger..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce this?
+      placeholder: |
+        1. Open the app
+        2. Unplug charger
+        3. ...
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual behavior
+      placeholder: "Expected: HUD shows 'Charging stopped' alert. Actual: Nothing happened."
+
+  - type: textarea
+    id: system-info
+    attributes:
+      label: System information
+      description: "Paste the output from BatteryBoi → About tab → 📋 Copy System Info button (or fill manually)"
+      placeholder: |
+        BatteryBoi 2.1.0 (42)
+        macOS 15.2 (24C101)
+        MacBook Pro (Apple M3 Pro)
+        16 GB RAM · Retina 2560×1600 @ 2x
+        Battery: 87% · Charging · Health 89% (764 cycles) · Good
+        Thermal: Nominal · Power: 25.6W (AC Adapter)
+        Connected BT Devices: 3
+        Locale: en_US · Timezone: America/Los_Angeles
+        Distribution: Direct
+      render: text
+    validations:
+      required: true
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: How often does this happen?
+      options:
+        - Every time
+        - Often (more than half the time)
+        - Sometimes
+        - Rarely
+        - Only happened once
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or screen recordings
+      description: Drag and drop images/videos here if helpful.
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Crash logs or console output
+      description: "If the app crashed, paste any crash logs. You can find them in Console.app > Crash Reports."
+      render: text
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I'm running the latest version of BatteryBoi
+          required: true
+        - label: I searched existing issues and this hasn't been reported
+          required: true
