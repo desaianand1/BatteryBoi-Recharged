@@ -5,12 +5,23 @@
 //  Configuration settings file format documentation can be found at:
 //  https://help.apple.com/xcode/#/dev745c5c974
 
-// Donate URLs (optional - leave empty to hide donate buttons)
-DONATE_BUYMEACOFFEE_URL = https://buymeacoffee.com/ananddesai
-DONATE_KOFI_URL = https://ko-fi.com/ananddesai
-
-// GitHub repository for updates
+// Public URLs
+WEBSITE_URL = https:/$()/batteryboi.app
 GITHUB_REPO_URL = https:/$()/github.com/desaianand1/BatteryBoi-Recharged
+DONATE_BUYMEACOFFEE_URL = https:/$()/buymeacoffee.com/ananddesai
+DONATE_KOFI_URL = https:/$()/ko-fi.com/ananddesai
+
+// Developer & Credits
+DEV_WEBSITE_URL = https:/$()/nirnshard.com
+ORIGINAL_AUTHOR_URL = https:/$()/github.com/thebarbican19
+
+// Legal (paths on main website)
+PRIVACY_POLICY_URL = https:/$()/batteryboi.app/privacy
+TERMS_URL = https:/$()/batteryboi.app/terms
+DATA_POLICY_URL = https:/$()/batteryboi.app/data-policy
+
+// Support
+SUPPORT_ISSUES_URL = https:/$()/github.com/desaianand1/BatteryBoi-Recharged/issues/new/choose
 
 // Sentry Configuration (leave empty to disable crash/performance monitoring)
 SENTRY_DSN = https:/$()/4ac9d12af2db3e82231ce3ead4ddee4d@o4509241922289664.ingest.de.sentry.io/4510811629289552

@@ -15,12 +15,26 @@
 			</array>
 		</dict>
 	</array>
+	<key>WEBSITE_URL</key>
+	<string>$(WEBSITE_URL)</string>
+	<key>GITHUB_REPO_URL</key>
+	<string>$(GITHUB_REPO_URL)</string>
 	<key>DONATE_BUYMEACOFFEE_URL</key>
 	<string>$(DONATE_BUYMEACOFFEE_URL)</string>
 	<key>DONATE_KOFI_URL</key>
 	<string>$(DONATE_KOFI_URL)</string>
-	<key>GITHUB_REPO_URL</key>
-	<string>$(GITHUB_REPO_URL)</string>
+	<key>DEV_WEBSITE_URL</key>
+	<string>$(DEV_WEBSITE_URL)</string>
+	<key>ORIGINAL_AUTHOR_URL</key>
+	<string>$(ORIGINAL_AUTHOR_URL)</string>
+	<key>PRIVACY_POLICY_URL</key>
+	<string>$(PRIVACY_POLICY_URL)</string>
+	<key>TERMS_URL</key>
+	<string>$(TERMS_URL)</string>
+	<key>DATA_POLICY_URL</key>
+	<string>$(DATA_POLICY_URL)</string>
+	<key>SUPPORT_ISSUES_URL</key>
+	<string>$(SUPPORT_ISSUES_URL)</string>
 	<key>MDItemKeywords</key>
 	<string>Battery,Power,BatteryBoi,Energy</string>
 	<key>SUFeedURL</key>
