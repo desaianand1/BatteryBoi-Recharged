@@ -8,6 +8,11 @@
 import CoreGraphics
 import Foundation
 
+enum NavigationRequest: Equatable {
+    case tab(ExpandedTab)
+    case deviceDetail(String?)
+}
+
 /// Protocol defining the window management service interface.
 /// Enables dependency injection and testability for HUD window management.
 @MainActor
@@ -35,6 +40,9 @@ protocol WindowServiceProtocol: AnyObject {
 
     /// Queued alerts waiting to be shown after the current alert dismisses
     var alertQueue: [(type: HUDAlertTypes, device: BluetoothObject?)] { get }
+
+    /// Pending navigation request for programmatic tab/detail switches
+    var navigationRequest: NavigationRequest? { get set }
 
     // MARK: - Methods
 
@@ -71,4 +79,7 @@ protocol WindowServiceProtocol: AnyObject {
 
     /// Set the window anchor position, persist it, and animate the window if visible
     func setPosition(_ position: WindowPosition)
+
+    /// Navigate to a specific tab or device detail, opening/expanding the HUD as needed
+    func navigate(to request: NavigationRequest)
 }

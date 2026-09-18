@@ -75,6 +75,7 @@ final class WindowService: WindowServiceProtocol {
 
     var position: WindowPosition = .topMiddle
     var opacity: CGFloat = 1.0
+    var navigationRequest: NavigationRequest?
 
     // MARK: - Alert State
 
@@ -103,6 +104,9 @@ final class WindowService: WindowServiceProtocol {
     private var stateTransitionTask: Task<Void, Never>?
     private var debounceDeferralTask: Task<Void, Never>?
     private var mouseEventTask: Task<Void, Never>?
+    // swiftformat:disable:next docComments
+    // Separate from stateTransitionTask to avoid cancellation by handleStateChange
+    private var navigationTask: Task<Void, Never>?
 
     private var lastMouseEventTime: Date = .distantPast
     private var lastOpenedTime: Date = .distantPast
@@ -167,6 +171,9 @@ final class WindowService: WindowServiceProtocol {
         stateTransitionTask?.cancel()
         debounceDeferralTask?.cancel()
         mouseEventTask?.cancel()
+        navigationTask?.cancel()
+        navigationTask = nil
+        navigationRequest = nil
         tearDownDragState()
         dismissRemainingTime = nil
         dismissStartTime = nil
@@ -223,6 +230,7 @@ final class WindowService: WindowServiceProtocol {
         stateTransitionTask?.cancel()
         debounceDeferralTask?.cancel()
         mouseEventTask?.cancel()
+        navigationTask?.cancel()
     }
 
     // MARK: - Private Methods
@@ -299,6 +307,40 @@ final class WindowService: WindowServiceProtocol {
         } else if state == .detailed {
             windowSetState(.revealed)
         }
+    }
+
+    func navigate(to request: NavigationRequest) {
+        navigationTask?.cancel()
+        self.navigationRequest = request
+
+        if !state.visible {
+            windowOpen(.userInitiated, device: nil)
+            // windowOpen → showAlert → windowSetState(.progress) → handleStateChange(.progress)
+            // schedules progress→revealed on stateTransitionTask. Cancel that — go straight to .detailed.
+            stateTransitionTask?.cancel()
+            dismissalTask?.cancel()
+            navigationTask = Task {
+                try? await Task.sleep(for: .seconds(Constants.Timers.hudProgressDelay))
+                guard !Task.isCancelled else { return }
+                self.opacity = 1.0
+                applyStateChange(.detailed, animated: true)
+            }
+        } else if state == .progress {
+            stateTransitionTask?.cancel()
+            dismissalTask?.cancel()
+            navigationTask = Task {
+                try? await Task.sleep(for: .seconds(Constants.Timers.hudProgressDelay))
+                guard !Task.isCancelled else { return }
+                self.opacity = 1.0
+                applyStateChange(.detailed, animated: true)
+            }
+        } else if state == .revealed {
+            stateTransitionTask?.cancel()
+            dismissalTask?.cancel()
+            self.opacity = 1.0
+            applyStateChange(.detailed, animated: true)
+        }
+        // .detailed: no state change needed — .onChange in view handles tab switch
     }
 
     private func resizeWindow(for state: HUDState) {
@@ -492,6 +534,9 @@ final class WindowService: WindowServiceProtocol {
             if currentAlert != nil {
                 currentAlert = nil
                 currentDevice = nil
+                navigationTask?.cancel()
+                navigationTask = nil
+                navigationRequest = nil
                 self.opacity = 1.0
                 self.hover = false
 

@@ -76,6 +76,29 @@ struct ExpandedPanelView: View {
                 .transition(self.reduceMotion ? .identity : .opacity)
             }
         }
+        .onAppear { self.consumeNavigationRequest() }
+        .onChange(of: self.env.window.navigationRequest) { _, request in
+            guard request != nil else { return }
+            self.consumeNavigationRequest()
+        }
+    }
+
+    private func consumeNavigationRequest() {
+        guard let request = self.env.window.navigationRequest else { return }
+        withAnimation(DesignAnimation.spring(reduceMotion: self.reduceMotion)) {
+            switch request {
+            case let .tab(tab):
+                self.selectedTab = tab
+                self.showingDetail = false
+            case let .deviceDetail(address):
+                self.selectedTab = .devices
+                self.selectedDetail = address.flatMap { addr in
+                    self.bluetooth.connected.first { $0.address == addr }
+                }
+                self.showingDetail = address != nil
+            }
+        }
+        self.env.window.navigationRequest = nil
     }
 }
 

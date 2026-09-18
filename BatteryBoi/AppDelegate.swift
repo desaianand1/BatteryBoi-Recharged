@@ -291,6 +291,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
         menu.addItem(.separator())
 
+        // Settings
+        let settingsItem = NSMenuItem(
+            title: "SettingsSettingsLabel".localise(),
+            action: #selector(contextMenuSettings),
+            keyEquivalent: ","
+        )
+        settingsItem.keyEquivalentModifierMask = .command
+        settingsItem.target = target
+        settingsItem.image = NSImage(
+            systemSymbolName: "gearshape",
+            accessibilityDescription: nil
+        )?.withSymbolConfiguration(iconConfig)
+        menu.addItem(settingsItem)
+
+        menu.addItem(.separator())
+
         // Check for Updates (direct distribution only)
         if state.isDirectDistribution {
             let updateItem = NSMenuItem(
@@ -325,6 +341,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         menu.addItem(quitItem)
 
         return menu
+    }
+
+    @objc
+    func contextMenuSettings() {
+        self.env.window.navigate(to: .tab(.settings))
     }
 
     @objc

@@ -98,6 +98,7 @@ import Foundation
 
         func handleSleep() {
             handleSleepCallCount += 1
+            navigationRequest = nil
         }
 
         func handleWake() {
@@ -128,6 +129,24 @@ import Foundation
             }
         }
 
+        // MARK: - Navigation
+
+        var navigationRequest: NavigationRequest?
+        var navigateCallCount = 0
+        var lastNavigateRequest: NavigationRequest?
+
+        func navigate(to request: NavigationRequest) {
+            navigateCallCount += 1
+            lastNavigateRequest = request
+            navigationRequest = request
+            if !state.visible {
+                open(.userInitiated, device: nil)
+            }
+            if state != .detailed {
+                state = .detailed
+            }
+        }
+
         // MARK: - Alert Tracking
 
         var currentAlert: HUDAlertTypes?
@@ -143,6 +162,7 @@ import Foundation
         func simulateDismissal() {
             currentAlert = nil
             currentDevice = nil
+            navigationRequest = nil
             state = .hidden
 
             if let next = alertQueue.first {
