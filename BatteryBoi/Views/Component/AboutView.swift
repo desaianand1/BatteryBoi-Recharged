@@ -266,7 +266,7 @@ struct AboutTabView: View {
                 .font(Typography.caption)
                 .foregroundStyle(Color("BBSubtitle").opacity(0.6))
 
-            Text("AboutCopyrightLabel".localise([Calendar.current.component(.year, from: Date())]))
+            Text("© \(Calendar.current.component(.year, from: Date())) Nirnshard")
                 .font(Typography.caption)
                 .foregroundStyle(Color("BBSubtitle").opacity(0.6))
         }
