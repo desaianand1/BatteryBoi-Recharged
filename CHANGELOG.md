@@ -1,3 +1,10 @@
+## [12.62.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.61.0...v12.62.0) (2026-09-19)
+
+### Features
+
+* add Keep Awake service, HUD interaction policy, and flash event model ([43591c0](https://github.com/desaianand1/BatteryBoi-Recharged/commit/43591c0040d4a6ce39ab4cc2f3083ec71971762b))
+* **hud:** improve ring dot visibility, shimmer proportionality, and notch contrast ([9334924](https://github.com/desaianand1/BatteryBoi-Recharged/commit/9334924692124a87aa1a8c84634891e3a2173cc5))
+
 ## [12.61.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.60.0...v12.61.0) (2026-09-18)
 
 ### Features
