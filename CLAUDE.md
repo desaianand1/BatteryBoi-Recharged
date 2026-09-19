@@ -2,6 +2,7 @@
 
 - Comments: only explain *why*, not *what*. No tautologies, no purple prose.
 - Tests: arrange/act/assert, test behaviors not implementation, cover happy path + edge cases. no testing trivial code, language semantic or third-party frameworks. no pointless tests, only meaningful behavior tests.
+- Commits: concise, conventional commits that explain features, intent, decisions and rationale, not specs or code (unless relevant or important)
 - Use skill `swiftui-expert` for all SwiftUI code, refactors, or UI overhauls.
 - Use skill `swift-testing-expert` for unit testing.
 - Use skill `xcode-build-skill` for builds, release optimization, and build-time best practices.
