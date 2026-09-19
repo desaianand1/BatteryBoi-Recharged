@@ -46,14 +46,22 @@ struct RadialProgressBar: View {
         if self.isCharging {
             return self.percent < 100
         }
-        return self.percent < 20
+        if self.percent < 20 {
+            return true
+        }
+        if self.showChargeNotch, self.percent >= 75,
+           self.percent < Double(Constants.BatteryThresholds.chargeLimit)
+        {
+            return true
+        }
+        return false
     }
 
     private var shimmerLength: Double {
-        let base = 0.04
         let minLength = ChargingAnimation.shimmerMinLength
         guard self.position > 0 else { return minLength }
-        return max(minLength, min(base, self.position * 0.5))
+        let proportional = self.position * 0.4
+        return max(minLength, min(0.04, proportional))
     }
 
     private var tier: BatteryTier {
@@ -95,7 +103,7 @@ struct RadialProgressBar: View {
                 let notchFraction = Double(Constants.BatteryThresholds.chargeLimit) / 100.0
                 let notchAngle = notchFraction * 360.0
                 RoundedRectangle(cornerRadius: 1, style: .continuous)
-                    .fill(Color.white.opacity(0.20))
+                    .fill(Color.white.opacity(0.30))
                     .frame(width: 2, height: 6)
                     .offset(y: -(self.size.height / 2))
                     .rotationEffect(.degrees(notchAngle))
@@ -125,6 +133,7 @@ struct RadialProgressBar: View {
                     .fill(self.tier.dotColor)
                     .frame(width: self.line, height: self.line)
                     .scaleEffect(self.isMini ? 1.0 : self.dotScale)
+                    .shadow(color: self.isMini ? .clear : self.tier.dotColor.opacity(0.5), radius: 4)
                     .offset(y: -(self.size.height / 2))
                     .rotationEffect(.degrees(Double(self.position) * 360))
             }
