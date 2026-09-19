@@ -169,6 +169,13 @@ nonisolated enum Constants {
         static let validBatteryRange = 1 ... 100
     }
 
+    /// Keep Awake feature constants.
+    enum KeepAwake {
+        static let lowBatteryAutoDisable: Double = 10
+        static let expiryWarningMinutes: Double = 5
+        static let defaultDuration: KeepAwakeDuration = .thirtyMinutes
+    }
+
     /// Corner radius constants for UI elements.
     enum CornerRadius {
         /// Button corner radius.

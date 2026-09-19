@@ -293,3 +293,31 @@
 "AboutCreditsOriginal" = "Original BatteryBoi by Joe Barbour";
 "AboutHealthLabel" = "%d%% Health";
 "AboutCyclesLabel" = "%d cycles";
+
+// Keep Awake
+"KeepAwakeLabel" = "Keep Awake";
+"KeepAwakeSubtitle" = "Prevents your display from sleeping";
+"KeepAwakeDurationLabel" = "Duration";
+"KeepAwakeStatusOnLabel" = "On";
+"KeepAwakeDuration15Label" = "15 Minutes";
+"KeepAwakeDuration30Label" = "30 Minutes";
+"KeepAwakeDuration1HLabel" = "1 Hour";
+"KeepAwakeDuration2HLabel" = "2 Hours";
+"KeepAwakeDurationIndefiniteLabel" = "Until I Turn Off";
+"KeepAwakeRemainingHMLabel" = "%dh %dm left";
+"KeepAwakeRemainingMinLabel" = "%d min left";
+"KeepAwakeBatteryWarningSubtitle" = "Uses more battery";
+"KeepAwakePowerSaveConflictSubtitle" = "Low Power mode is also enabled";
+"FlashKeepAwakeExpiringLabel" = "Keep Awake · %d min left";
+"FlashKeepAwakeDisabledLowBatteryLabel" = "Keep Awake Off · Low Battery";
+"KeepAwakeMenuLabel" = "Keep Awake (%@)";
+"AccessibilityKeepAwakeToggle" = "Keep Awake, prevents display sleep";
+"AccessibilityKeepAwakeActive" = "Active, %@ remaining";
+"AccessibilityKeepAwakeActiveIndefinite" = "Active, on until turned off";
+"AccessibilityKeepAwakeInactive" = "Inactive";
+
+// Transient Flashes
+"FlashOverheatingLabel" = "Overheating · Throttling";
+"FlashChargeLimitReachedLabel" = "Limit Reached · Unplug";
+"FlashChargingLabel" = "Charging";
+"FlashOnBatteryLabel" = "On Battery";

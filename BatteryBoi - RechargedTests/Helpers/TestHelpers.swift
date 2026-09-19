@@ -21,7 +21,8 @@ import Foundation
         events: MockEventService = MockEventService(),
         app: MockAppManager = MockAppManager(),
         update: MockUpdateManager = MockUpdateManager(),
-        onboarding: MockOnboardingService = MockOnboardingService()
+        onboarding: MockOnboardingService = MockOnboardingService(),
+        keepAwake: MockKeepAwakeService = MockKeepAwakeService()
     ) -> AppEnvironment {
         AppEnvironment(
             battery: battery,
@@ -32,7 +33,8 @@ import Foundation
             event: events,
             app: app,
             update: update,
-            onboarding: onboarding
+            onboarding: onboarding,
+            keepAwake: keepAwake
         )
     }
 

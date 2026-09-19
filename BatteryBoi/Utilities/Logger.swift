@@ -11,4 +11,5 @@ nonisolated enum BLogger {
     static let window = Logger(label: "com.nirnshard.batteryboirecharged.window")
     static let settings = Logger(label: "com.nirnshard.batteryboirecharged.settings")
     static let updates = Logger(label: "com.nirnshard.batteryboirecharged.updates")
+    static let services = Logger(label: "com.nirnshard.batteryboirecharged.services")
 }

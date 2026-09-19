@@ -6,63 +6,47 @@
 @testable import BatteryBoi___Recharged
 @preconcurrency import XCTest
 
+/// AppEnvironment is @Observable @MainActor — its synthesized deinit triggers
+/// the StopLookupScope heap corruption crash via swift_task_deinitOnExecutorMainActorBackDeploy
+/// when deployment target < macOS 15.4. Async tests with scoped `do` blocks let the runtime
+/// marshal deallocation correctly. See ServiceCoordinator's nonisolated(unsafe) comment.
 final class AppEnvironmentTests: XCTestCase {
 
     // MARK: - Testing Init Tests
 
     @MainActor
-    func testTestingInitAcceptsMocks() {
-        let mockBattery = MockBatteryService()
-        let mockBluetooth = MockBluetoothService()
-        let mockSettings = MockSettingsService()
-        let mockWindow = MockWindowService()
-        let mockStats = MockStatsService()
-        let mockEvents = MockEventService()
-        let mockApp = MockAppManager()
-        let mockUpdate = MockUpdateManager()
+    func testTestingInitAcceptsMocks() async {
+        do {
+            let env = makeTestEnvironment()
 
-        let env = AppEnvironment(
-            battery: mockBattery,
-            bluetooth: mockBluetooth,
-            settings: mockSettings,
-            window: mockWindow,
-            stats: mockStats,
-            event: mockEvents,
-            app: mockApp,
-            update: mockUpdate
-        )
-
-        XCTAssertTrue(env.battery is MockBatteryService)
-        XCTAssertTrue(env.bluetooth is MockBluetoothService)
-        XCTAssertTrue(env.settings is MockSettingsService)
-        XCTAssertTrue(env.window is MockWindowService)
-        XCTAssertTrue(env.stats is MockStatsService)
-        XCTAssertTrue(env.event is MockEventService)
-        XCTAssertTrue(env.app is MockAppManager)
-        XCTAssertTrue(env.update is MockUpdateManager)
+            XCTAssertTrue(env.battery is MockBatteryService)
+            XCTAssertTrue(env.bluetooth is MockBluetoothService)
+            XCTAssertTrue(env.settings is MockSettingsService)
+            XCTAssertTrue(env.window is MockWindowService)
+            XCTAssertTrue(env.stats is MockStatsService)
+            XCTAssertTrue(env.event is MockEventService)
+            XCTAssertTrue(env.app is MockAppManager)
+            XCTAssertTrue(env.update is MockUpdateManager)
+            XCTAssertTrue(env.keepAwake is MockKeepAwakeService)
+        }
+        await Task.yield()
     }
 
     // MARK: - Start Tests
 
     @MainActor
-    func testStartSetsMenuToSettingsWhenNoDevices() {
-        let mockBluetooth = MockBluetoothService()
-        mockBluetooth.connected = []
+    func testStartSetsMenuToSettingsWhenNoDevices() async {
+        do {
+            let mockBluetooth = MockBluetoothService()
+            mockBluetooth.connected = []
 
-        let env = AppEnvironment(
-            battery: MockBatteryService(),
-            bluetooth: mockBluetooth,
-            settings: MockSettingsService(),
-            window: MockWindowService(),
-            stats: MockStatsService(),
-            event: MockEventService(),
-            app: MockAppManager(),
-            update: MockUpdateManager()
-        )
+            let env = makeTestEnvironment(bluetooth: mockBluetooth)
 
-        env.start()
+            env.start()
 
-        XCTAssertEqual(env.app.menu, .settings)
+            XCTAssertEqual(env.app.menu, .settings)
+        }
+        await Task.yield()
     }
 
     // MARK: - Ownership Tests
@@ -82,33 +66,30 @@ final class AppEnvironmentTests: XCTestCase {
     }
 
     @MainActor
-    func testEnvironmentAcceptsMockOnboarding() {
-        let mockOnboarding = MockOnboardingService()
-        let env = makeTestEnvironment(onboarding: mockOnboarding)
+    func testEnvironmentAcceptsMockOnboarding() async {
+        do {
+            let mockOnboarding = MockOnboardingService()
+            let env = makeTestEnvironment(onboarding: mockOnboarding)
 
-        XCTAssertTrue(env.onboarding is MockOnboardingService)
+            XCTAssertTrue(env.onboarding is MockOnboardingService)
+        }
+        await Task.yield()
     }
 
     // MARK: - Start Tests (Devices)
 
     @MainActor
-    func testStartSetsMenuToDevicesWhenDevicesConnected() {
-        let mockBluetooth = MockBluetoothService()
-        mockBluetooth.connected = [BluetoothObject.testDevice()]
+    func testStartSetsMenuToDevicesWhenDevicesConnected() async {
+        do {
+            let mockBluetooth = MockBluetoothService()
+            mockBluetooth.connected = [BluetoothObject.testDevice()]
 
-        let env = AppEnvironment(
-            battery: MockBatteryService(),
-            bluetooth: mockBluetooth,
-            settings: MockSettingsService(),
-            window: MockWindowService(),
-            stats: MockStatsService(),
-            event: MockEventService(),
-            app: MockAppManager(),
-            update: MockUpdateManager()
-        )
+            let env = makeTestEnvironment(bluetooth: mockBluetooth)
 
-        env.start()
+            env.start()
 
-        XCTAssertEqual(env.app.menu, .devices)
+            XCTAssertEqual(env.app.menu, .devices)
+        }
+        await Task.yield()
     }
 }

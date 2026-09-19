@@ -26,6 +26,7 @@ enum SystemDefaultsKeys: String {
     case profileChecked = "sd_profiles_checked"
     case profilePayload = "sd_profiles_payload"
     case onboardingCompleted = "sd_onboarding_completed"
+    case keepAwakeDuration = "sd_keep_awake_duration"
 
     var name: String {
         switch self {
@@ -52,6 +53,7 @@ enum SystemDefaultsKeys: String {
         case .profileChecked: "Profile Validated"
         case .profilePayload: "Profile Payload"
         case .onboardingCompleted: "Onboarding Completed"
+        case .keepAwakeDuration: "Keep Awake Duration"
         }
     }
 }

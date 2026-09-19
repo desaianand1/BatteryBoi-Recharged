@@ -299,6 +299,47 @@ struct SettingsReverseSyncDisplayModifier: ViewModifier {
     }
 }
 
+// MARK: - Keep Awake Sync Modifiers
+
+struct KeepAwakeForwardSyncModifier: ViewModifier {
+    @Environment(AppEnvironment.self) private var env
+    @Binding var keepAwakeEnabled: Bool
+    @Binding var keepAwakeDuration: KeepAwakeDuration
+    @Binding var isLoaded: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: self.keepAwakeEnabled) { _, new in
+                guard self.isLoaded else { return }
+                if new {
+                    self.env.keepAwake.activate()
+                } else {
+                    self.env.keepAwake.deactivate()
+                }
+            }
+            .onChange(of: self.keepAwakeDuration) { _, new in
+                guard self.isLoaded else { return }
+                self.env.keepAwake.duration = new
+            }
+    }
+}
+
+struct KeepAwakeReverseSyncModifier: ViewModifier {
+    @Environment(AppEnvironment.self) private var env
+    @Binding var keepAwakeEnabled: Bool
+    @Binding var keepAwakeDuration: KeepAwakeDuration
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: self.env.keepAwake.isActive) { _, new in
+                self.keepAwakeEnabled = new
+            }
+            .onChange(of: self.env.keepAwake.duration) { _, new in
+                self.keepAwakeDuration = new
+            }
+    }
+}
+
 // MARK: - Quit Keyboard Shortcut (moved from SettingsView)
 
 struct QuitKeyboardShortcutModifier: ViewModifier {
@@ -336,6 +377,8 @@ struct SettingsTabView: View {
     @State private var pinEnabled: Bool = false
     @State private var launchAtLogin: Bool = false
     @State private var powerSaveEnabled: Bool = false
+    @State private var keepAwakeEnabled: Bool = false
+    @State private var keepAwakeDuration: KeepAwakeDuration = .thirtyMinutes
     @State private var selectedDisplay: SettingsDisplayType = .percent
     @State private var selectedPosition: WindowPosition = .topMiddle
     @State private var didLoad: Bool = false
@@ -357,6 +400,15 @@ struct SettingsTabView: View {
             .modifier(SettingsReverseSyncChargeModifier(chargeAlertEnabled: self.$chargeAlertEnabled))
             .modifier(SettingsReverseSyncPinModifier(pinEnabled: self.$pinEnabled))
             .modifier(SettingsReverseSyncDisplayModifier(selectedDisplay: self.$selectedDisplay))
+            .modifier(KeepAwakeForwardSyncModifier(
+                keepAwakeEnabled: self.$keepAwakeEnabled,
+                keepAwakeDuration: self.$keepAwakeDuration,
+                isLoaded: self.$didLoad
+            ))
+            .modifier(KeepAwakeReverseSyncModifier(
+                keepAwakeEnabled: self.$keepAwakeEnabled,
+                keepAwakeDuration: self.$keepAwakeDuration
+            ))
     }
 
     private var settingsContent: some View {
@@ -430,6 +482,29 @@ struct SettingsTabView: View {
                 subtitle: "SettingsEfficiencySubtitle".localise(),
                 accentColor: .green
             )
+            SettingsDivider()
+            SettingsToggleRow(
+                icon: "cup.and.saucer.fill",
+                title: "KeepAwakeLabel".localise(),
+                isOn: self.$keepAwakeEnabled,
+                subtitle: "KeepAwakeSubtitle".localise(),
+                accentColor: .orange
+            )
+            .accessibilityLabel("AccessibilityKeepAwakeToggle".localise())
+            if self.keepAwakeEnabled {
+                SettingsDivider()
+                SettingsPickerRow(
+                    icon: "timer",
+                    title: "KeepAwakeDurationLabel".localise(),
+                    selection: self.$keepAwakeDuration,
+                    options: KeepAwakeDuration.allCases.map { ($0, $0.displayName) }
+                )
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+            if self.keepAwakeEnabled {
+                self.keepAwakeStatusRow
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
         }
     }
 
@@ -480,6 +555,40 @@ struct SettingsTabView: View {
         }
     }
 
+    private var keepAwakeStatusRow: some View {
+        HStack(spacing: Spacing.sm) {
+            if let formatted = self.env.keepAwake.remainingFormatted {
+                Text(formatted)
+                    .font(Typography.caption)
+                    .foregroundStyle(Color("BBSubtitle"))
+                    .contentTransition(.numericText())
+            }
+            Spacer()
+            if self.env.battery.charging.state == .battery {
+                Label {
+                    Text("KeepAwakeBatteryWarningSubtitle".localise())
+                        .font(Typography.caption)
+                } icon: {
+                    Image(systemName: "bolt.trianglebadge.exclamationmark.fill")
+                        .font(.system(size: 10))
+                }
+                .foregroundStyle(.orange)
+            }
+            if self.env.settings.enabledPowerSave {
+                Label {
+                    Text("KeepAwakePowerSaveConflictSubtitle".localise())
+                        .font(Typography.caption)
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 10))
+                }
+                .foregroundStyle(Color("BBSubtitle"))
+            }
+        }
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.xs)
+    }
+
     private var actionsSection: some View {
         SettingsSection {
             SettingsDisclosureRow(
@@ -508,6 +617,8 @@ struct SettingsTabView: View {
             self.pinEnabled = self.settings.pinned == .enabled
             self.launchAtLogin = self.settings.autoLaunch == .enabled
             self.powerSaveEnabled = self.settings.enabledPowerSave
+            self.keepAwakeEnabled = self.env.keepAwake.isActive
+            self.keepAwakeDuration = self.env.keepAwake.duration
             self.selectedDisplay = self.settings.display
             self.selectedPosition = self.window.position
             self.didLoad = true

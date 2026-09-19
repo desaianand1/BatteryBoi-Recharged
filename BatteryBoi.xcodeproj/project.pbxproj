@@ -52,6 +52,9 @@
 		C1A0B0C02C09000000000001 /* OnboardingServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C09000000000002 /* OnboardingServiceProtocol.swift */; };
 		C1A0B0C02C10000000000003 /* BatteryDisplayHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C10000000000001 /* BatteryDisplayHelpers.swift */; };
 		C1A0B0C02C10000000000004 /* SystemInfoCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C10000000000002 /* SystemInfoCollector.swift */; };
+		C1A0B0C02C11000000000002 /* KeepAwakeServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C11000000000001 /* KeepAwakeServiceProtocol.swift */; };
+		C1A0B0C02C11000000000004 /* KeepAwakeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C11000000000003 /* KeepAwakeService.swift */; };
+		C1A0B0C02C11000000000006 /* HUDInteractionPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0B0C02C11000000000005 /* HUDInteractionPolicy.swift */; };
 		D83CD7452AA8F693004223D7 /* BluetoothView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83CD7442AA8F693004223D7 /* BluetoothView.swift */; };
 		D83DD3F52A9908E600FCC534 /* UpdateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83DD3F42A9908E600FCC534 /* UpdateManager.swift */; };
 		D84F4E182A85A66900668582 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = D84F4E172A85A66900668582 /* Sparkle */; };
@@ -148,6 +151,9 @@
 		C1A0B0C02C09000000000002 /* OnboardingServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingServiceProtocol.swift; sourceTree = "<group>"; };
 		C1A0B0C02C10000000000001 /* BatteryDisplayHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryDisplayHelpers.swift; sourceTree = "<group>"; };
 		C1A0B0C02C10000000000002 /* SystemInfoCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemInfoCollector.swift; sourceTree = "<group>"; };
+		C1A0B0C02C11000000000001 /* KeepAwakeServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeepAwakeServiceProtocol.swift; sourceTree = "<group>"; };
+		C1A0B0C02C11000000000003 /* KeepAwakeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeepAwakeService.swift; sourceTree = "<group>"; };
+		C1A0B0C02C11000000000005 /* HUDInteractionPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDInteractionPolicy.swift; sourceTree = "<group>"; };
 		D540748087DD0FBD17E51AC2 /* OnboardingView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		D83CD7442AA8F693004223D7 /* BluetoothView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothView.swift; sourceTree = "<group>"; };
 		D83DD3F42A9908E600FCC534 /* UpdateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateManager.swift; sourceTree = "<group>"; };
@@ -229,6 +235,7 @@
 				C1A0B0C02C10000000000001 /* BatteryDisplayHelpers.swift */,
 				C1A0B0C02C03000000000003 /* Constants.swift */,
 				C1A0B0C02C03000000000005 /* DesignTokens.swift */,
+				C1A0B0C02C11000000000005 /* HUDInteractionPolicy.swift */,
 				C1A0B0C02C03000000000001 /* Logger.swift */,
 				C1A0B0C02C07000000000002 /* ObservationStream.swift */,
 				C1A0B0C02C01000000000002 /* ProcessRunner.swift */,
@@ -245,6 +252,7 @@
 				C1A0B0C02C02000000000001 /* BatteryServiceProtocol.swift */,
 				C1A0B0C02C02000000000002 /* BluetoothServiceProtocol.swift */,
 				C1A0B0C02C06000000000004 /* EventServiceProtocol.swift */,
+				C1A0B0C02C11000000000001 /* KeepAwakeServiceProtocol.swift */,
 				C1A0B0C02C09000000000002 /* OnboardingServiceProtocol.swift */,
 				C1A0B0C02C02000000000003 /* SettingsServiceProtocol.swift */,
 				C1A0B0C02C06000000000002 /* StatsServiceProtocol.swift */,
@@ -264,6 +272,7 @@
 				C1A0B0C02C04000000000008 /* EventService.swift */,
 				C1A0B0C02C03000000000007 /* IOKitBatteryService.swift */,
 				C1A0B0C02C03000000000009 /* IOKitBluetoothService.swift */,
+				C1A0B0C02C11000000000003 /* KeepAwakeService.swift */,
 				C1A0B0C02C04000000000006 /* ServiceCoordinator.swift */,
 				C1A0B0C02C04000000000010 /* SettingsService.swift */,
 				C1A0B0C02C04000000000014 /* StatsService.swift */,
@@ -602,6 +611,9 @@
 				C1A0B0C02C06000000000005 /* AppManagerProtocol.swift in Sources */,
 				C1A0B0C02C06000000000007 /* UpdateManagerProtocol.swift in Sources */,
 				C1A0B0C02C09000000000001 /* OnboardingServiceProtocol.swift in Sources */,
+				C1A0B0C02C11000000000002 /* KeepAwakeServiceProtocol.swift in Sources */,
+				C1A0B0C02C11000000000004 /* KeepAwakeService.swift in Sources */,
+				C1A0B0C02C11000000000006 /* HUDInteractionPolicy.swift in Sources */,
 				C1A0B0C02C02000000000015 /* AppEnvironment.swift in Sources */,
 				C1A0B0C02C05000000000001 /* BatteryModels.swift in Sources */,
 				C1A0B0C02C05000000000003 /* BluetoothModels.swift in Sources */,

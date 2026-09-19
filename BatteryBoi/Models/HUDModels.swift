@@ -234,3 +234,67 @@ struct StatsIcon {
     var color: Color
     var effect: HUDIconEffect
 }
+
+// MARK: - Flash Event
+
+struct FlashEvent: Equatable {
+    let text: String
+    let color: Color
+    let priority: AlertPriority
+    let duration: TimeInterval
+
+    static let defaultDuration: TimeInterval = 4.5
+    static let fadeIn: TimeInterval = 0.3
+    static let fadeOut: TimeInterval = 0.3
+
+    static func from(_ alert: HUDAlertTypes) -> Self? {
+        switch alert {
+        case .deviceOverheating:
+            Self(
+                text: "FlashOverheatingLabel".localise(),
+                color: SemanticColor.error,
+                priority: .critical,
+                duration: 5.0
+            )
+        case .chargingComplete:
+            Self(
+                text: "FlashChargeLimitReachedLabel".localise(),
+                color: .accentColor,
+                priority: .high,
+                duration: 5.0
+            )
+        case .chargingBegan:
+            Self(
+                text: "FlashChargingLabel".localise(),
+                color: BatteryTier.chargingBoltColor,
+                priority: .medium,
+                duration: 4.0
+            )
+        case .chargingStopped:
+            Self(
+                text: "FlashOnBatteryLabel".localise(),
+                color: Color("BBSubtitle"),
+                priority: .medium,
+                duration: 4.0
+            )
+        default:
+            nil
+        }
+    }
+
+    static func keepAwakeExpiring(minutes: Int) -> Self {
+        Self(
+            text: "FlashKeepAwakeExpiringLabel".localise([minutes]),
+            color: Color("BBSubtitle"),
+            priority: .medium,
+            duration: 4.5
+        )
+    }
+
+    static let keepAwakeDisabledLowBattery = Self(
+        text: "FlashKeepAwakeDisabledLowBatteryLabel".localise(),
+        color: SemanticColor.warning,
+        priority: .high,
+        duration: 5.0
+    )
+}

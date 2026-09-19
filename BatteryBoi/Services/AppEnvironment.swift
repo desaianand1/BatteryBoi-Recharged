@@ -23,6 +23,7 @@ final class AppEnvironment {
     let event: any EventServiceProtocol
 
     let onboarding: any OnboardingServiceProtocol
+    let keepAwake: any KeepAwakeServiceProtocol
 
     // MARK: - Services (Protocol Types)
 
@@ -44,6 +45,7 @@ final class AppEnvironment {
         let app = AppManager()
         let update = UpdateManager()
         let onboarding = OnboardingService()
+        let keepAwake = KeepAwakeService()
 
         let settings = SettingsService(
             window: { ref.env.window },
@@ -82,6 +84,7 @@ final class AppEnvironment {
         self.app = app
         self.update = update
         self.onboarding = onboarding
+        self.keepAwake = keepAwake
         self.coordinator = coordinator
 
         ref.env = self
@@ -99,6 +102,7 @@ final class AppEnvironment {
         app: any AppManagerProtocol,
         update: any UpdateManagerProtocol,
         onboarding: any OnboardingServiceProtocol = OnboardingService(),
+        keepAwake: any KeepAwakeServiceProtocol = KeepAwakeService(),
         coordinator: ServiceCoordinator? = nil
     ) {
         self.battery = battery
@@ -110,6 +114,7 @@ final class AppEnvironment {
         self.app = app
         self.update = update
         self.onboarding = onboarding
+        self.keepAwake = keepAwake
         self.coordinator = coordinator ?? ServiceCoordinator(
             battery: battery,
             bluetooth: bluetooth,

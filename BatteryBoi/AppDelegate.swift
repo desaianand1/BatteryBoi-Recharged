@@ -206,6 +206,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         var autoLaunchEnabled: Bool
         var pinnedEnabled: Bool
         var sfxEnabled: Bool
+        var keepAwakeActive: Bool
+        var keepAwakeRemainingFormatted: String?
+        var keepAwakeDurationDisplay: String
         var isDirectDistribution: Bool
     }
 
@@ -216,6 +219,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             autoLaunchEnabled: self.env.settings.autoLaunch == .enabled,
             pinnedEnabled: self.env.settings.pinned == .enabled,
             sfxEnabled: self.env.settings.soundEffects == .enabled,
+            keepAwakeActive: self.env.keepAwake.isActive,
+            keepAwakeRemainingFormatted: self.env.keepAwake.remainingFormatted,
+            keepAwakeDurationDisplay: self.env.keepAwake.duration.displayName,
             isDirectDistribution: self.env.settings.menu.contains(where: { $0.type == .appUpdateCheck })
         )
         let menu = Self.buildContextMenu(state: state, target: self)
@@ -288,6 +294,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             accessibilityDescription: nil
         )?.withSymbolConfiguration(iconConfig)
         menu.addItem(sfxItem)
+
+        // Keep Awake
+        let keepAwakeSuffix: String = if state.keepAwakeActive {
+            state.keepAwakeRemainingFormatted ?? "KeepAwakeStatusOnLabel".localise()
+        } else {
+            state.keepAwakeDurationDisplay
+        }
+        let keepAwakeItem = NSMenuItem(
+            title: "KeepAwakeMenuLabel".localise([keepAwakeSuffix]),
+            action: #selector(contextMenuToggleKeepAwake),
+            keyEquivalent: ""
+        )
+        keepAwakeItem.target = target
+        keepAwakeItem.state = state.keepAwakeActive ? .on : .off
+        keepAwakeItem.image = NSImage(
+            systemSymbolName: state.keepAwakeActive ? "cup.and.saucer.fill" : "cup.and.saucer",
+            accessibilityDescription: "KeepAwakeLabel".localise()
+        )?.withSymbolConfiguration(iconConfig)
+        menu.addItem(keepAwakeItem)
 
         menu.addItem(.separator())
 
@@ -364,6 +389,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     }
 
     @objc
+    func contextMenuToggleKeepAwake() {
+        if self.env.keepAwake.isActive {
+            self.env.keepAwake.deactivate()
+        } else {
+            self.env.keepAwake.activate()
+        }
+    }
+
+    @objc
     func contextMenuCheckForUpdates() {
         self.env.update.updateCheck()
     }
@@ -422,6 +456,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             self.env.battery.forceRefresh()
             self.env.bluetooth.forceRefresh()
             self.env.coordinator.handleWake()
+            self.env.keepAwake.handleWake()
         }
     }
 
@@ -436,6 +471,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     }
 
     func applicationWillTerminate(_: Notification) {
+        self.env.keepAwake.deactivate()
         self.env.coordinator.stopObserving()
 
         // Remove notification observers

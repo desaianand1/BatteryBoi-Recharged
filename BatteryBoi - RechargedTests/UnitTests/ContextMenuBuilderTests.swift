@@ -16,6 +16,9 @@ final class ContextMenuBuilderTests: XCTestCase {
         autoLaunchEnabled: Bool = false,
         pinnedEnabled: Bool = false,
         sfxEnabled: Bool = true,
+        keepAwakeActive: Bool = false,
+        keepAwakeRemainingFormatted: String? = nil,
+        keepAwakeDurationDisplay: String = "30 Minutes",
         isDirectDistribution: Bool = true
     ) -> NSMenu {
         let state = AppDelegate.ContextMenuState(
@@ -24,6 +27,9 @@ final class ContextMenuBuilderTests: XCTestCase {
             autoLaunchEnabled: autoLaunchEnabled,
             pinnedEnabled: pinnedEnabled,
             sfxEnabled: sfxEnabled,
+            keepAwakeActive: keepAwakeActive,
+            keepAwakeRemainingFormatted: keepAwakeRemainingFormatted,
+            keepAwakeDurationDisplay: keepAwakeDurationDisplay,
             isDirectDistribution: isDirectDistribution
         )
         return AppDelegate.buildContextMenu(state: state, target: NSObject())
