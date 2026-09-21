@@ -274,7 +274,7 @@ struct RadialProgressMiniContainer: View {
         ZStack {
             RadialProgressBar(
                 self.$progress,
-                size: .init(width: 28, height: 28),
+                size: .init(width: Constants.Progress.miniSize, height: Constants.Progress.miniSize),
                 line: 4,
                 percent: Double(self.percent),
                 isCharging: false,
@@ -287,7 +287,7 @@ struct RadialProgressMiniContainer: View {
                     .font(Typography.caption)
             }
         }
-        .frame(width: 28, height: 28)
+        .frame(width: Constants.Progress.miniSize, height: Constants.Progress.miniSize)
         .onAppear {
             if let device = self.device {
                 if let percent = device.battery.percent {
@@ -330,6 +330,7 @@ struct RadialProgressContainer: View {
     @State private var animate: Bool
     @State private var textVisible: Bool = false
     @State private var isHovered: Bool = false
+    @State private var showConnectionCheckmark: Bool = false
 
     init(_ animate: Bool) {
         _animate = State(initialValue: animate)
@@ -358,40 +359,45 @@ struct RadialProgressContainer: View {
 
     var body: some View {
         ZStack {
-            Circle()
-                .stroke(BatteryTier.trackColor, style: StrokeStyle(lineWidth: 16, lineCap: .round))
-                .padding(5)
+            if self.showConnectionCheckmark {
+                self.connectionCheckmarkView
+                    .transition(.opacity.combined(with: .scale(scale: 0.8)))
+            } else {
+                Circle()
+                    .stroke(BatteryTier.trackColor, style: StrokeStyle(lineWidth: 16, lineCap: .round))
+                    .padding(5)
 
-            RadialProgressBar(
-                self.$progress,
-                size: .init(width: 80, height: 80),
-                percent: self.currentPercent,
-                isCharging: self.isCharging,
-                showChargeNotch: self.env.settings.chargeEighty == .enabled
-            )
+                RadialProgressBar(
+                    self.$progress,
+                    size: .init(width: 80, height: 80),
+                    percent: self.currentPercent,
+                    isCharging: self.isCharging,
+                    showChargeNotch: self.env.settings.chargeEighty == .enabled
+                )
 
-            ZStack(alignment: .center) {
-                Text("\(self.percent ?? 0)")
-                    .foregroundColor(Color("BBTitle"))
-                    .font(Typography.progressLarge)
-                    .blur(radius: self.percent == nil ? 5.0 : (self.isHovered ? 4.0 : 0.0))
-                    .opacity(self.percent == nil ? 0.0 : (self.isHovered ? 0.0 : 1.0))
+                ZStack(alignment: .center) {
+                    Text("\(self.percent ?? 0)")
+                        .foregroundColor(Color("BBTitle"))
+                        .font(Typography.progressLarge)
+                        .blur(radius: self.percent == nil ? 5.0 : (self.isHovered ? 4.0 : 0.0))
+                        .opacity(self.percent == nil ? 0.0 : (self.isHovered ? 0.0 : 1.0))
 
-                Image(systemName: "gearshape.fill")
-                    .font(.system(size: 22, weight: .medium))
-                    .foregroundStyle(Color("BBSubtitle"))
-                    .blur(radius: self.isHovered ? 0.0 : 4.0)
-                    .opacity(self.isHovered ? 1.0 : 0.0)
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 22, weight: .medium))
+                        .foregroundStyle(Color("BBSubtitle"))
+                        .blur(radius: self.isHovered ? 0.0 : 4.0)
+                        .opacity(self.isHovered ? 1.0 : 0.0)
 
-                Text("AlertDeviceUnknownTitle".localise())
-                    .foregroundColor(Color("BBTitle").opacity(0.4))
-                    .font(Typography.heading)
-                    .blur(radius: (self.isHovered || self.percent != nil) ? 5.0 : 0.0)
-                    .opacity((self.isHovered || self.percent != nil) ? 0.0 : 1.0)
+                    Text("AlertDeviceUnknownTitle".localise())
+                        .foregroundColor(Color("BBTitle").opacity(0.4))
+                        .font(Typography.heading)
+                        .blur(radius: (self.isHovered || self.percent != nil) ? 5.0 : 0.0)
+                        .opacity((self.isHovered || self.percent != nil) ? 0.0 : 1.0)
+                }
+                .frame(width: Constants.Progress.containerSize)
+                .blur(radius: self.textRevealBlur)
+                .opacity(self.textRevealOpacity)
             }
-            .frame(width: Constants.Progress.containerSize)
-            .blur(radius: self.textRevealBlur)
-            .opacity(self.textRevealOpacity)
         }
         .frame(width: 90, height: 90)
         .padding(10)
@@ -471,15 +477,36 @@ struct RadialProgressContainer: View {
         .accessibilityAction { self.window.toggleExpanded() }
     }
 
+    @ViewBuilder
+    private var connectionCheckmarkView: some View {
+        let isDisconnect = self.window.currentAlert == .deviceRemoved
+        Image(systemName: isDisconnect ? "xmark.circle.fill" : "checkmark.circle.fill")
+            .font(.system(size: 42, weight: .medium))
+            .foregroundStyle(isDisconnect
+                ? Color.gray
+                : Color(red: 0.290, green: 0.871, blue: 0.502))
+            .symbolEffect(.bounce, options: .nonRepeating, value: self.showConnectionCheckmark)
+            .shadow(
+                color: (isDisconnect ? Color.gray : Color(red: 0.290, green: 0.871, blue: 0.502))
+                    .opacity(0.3),
+                radius: 8
+            )
+    }
+
     private func updatePercentOnly() {
         if let device = self.env.window.currentDevice {
             if let percent = device.battery.percent {
                 self.percent = Int(percent)
+                self.showConnectionCheckmark = false
             } else {
                 self.percent = nil
+                let isDeviceAlert = self.window.currentAlert == .deviceConnected
+                    || self.window.currentAlert == .deviceRemoved
+                self.showConnectionCheckmark = isDeviceAlert
             }
         } else {
             self.percent = Int(self.battery.percentage)
+            self.showConnectionCheckmark = false
         }
         if self.animate {
             self.progress = 0.0
@@ -504,15 +531,34 @@ struct RadialProgressContainer: View {
     private func updateProgressForDevice(_ device: BluetoothObject?) {
         if let device {
             if let devicePercent = device.battery.percent {
-                self.progress = devicePercent / 100
-                self.percent = Int(devicePercent)
+                if self.showConnectionCheckmark {
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        self.showConnectionCheckmark = false
+                    }
+                    Task {
+                        try? await Task.sleep(for: .milliseconds(200))
+                        guard !Task.isCancelled else { return }
+                        self.progress = 0.0
+                        self.percent = Int(devicePercent)
+                        withAnimation(.easeOut(duration: RevealTiming.arcSweep)) {
+                            self.progress = devicePercent / 100
+                        }
+                    }
+                } else {
+                    self.progress = devicePercent / 100
+                    self.percent = Int(devicePercent)
+                }
             } else {
                 self.progress = 0.0
                 self.percent = nil
+                let isDeviceAlert = self.window.currentAlert == .deviceConnected
+                    || self.window.currentAlert == .deviceRemoved
+                self.showConnectionCheckmark = isDeviceAlert
             }
         } else {
             self.progress = self.battery.percentage / 100
             self.percent = Int(self.battery.percentage)
+            self.showConnectionCheckmark = false
         }
     }
 }

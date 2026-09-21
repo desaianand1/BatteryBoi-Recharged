@@ -26,7 +26,6 @@
 "TimestampMinuteDaysLabel_Single" = "%d day";
 "TimestampHourAbbriviatedLabel" = "h";
 "TimestampMinuteAbbriviatedLabel" = "m";
-"TimestampDayAbbriviatedLabel" = "d";
 "TimestampNeverLabel" = "Never";
 "TimestampNowLabel" = "A Few Moments Ago";
 
@@ -43,37 +42,17 @@
 "SettingsDisplayPercentLabel" = "Battery %";
 "SettingsDisplayEstimateLabel" = "Time Remaining";
 "SettingsDisplayNoneLabel" = "Icon Only";
-"SettingsDisplayHiddenLabel" = "Hidden";
 "SettingsDisplayMenuBarHiddenLabel" = "Hidden";
 "SettingsEnabledLabel" = "Enabled";
 "SettingsDisabledLabel" = "Disabled";
 
 "SettingsAboutLabel" = "About";
-"SettingsCustomizationLabel" = "Customisation";
 "SettingsSoundEffectsLabel" = "Sound Effects";
-"SettingsTriggersLabel" = "Commands";
-"SettingsNotificationsLabel" = "Notifications";
-"SettingsPrereleasesLabel" = "Beta Releases";
-
-"SettingsCustomizationMenuLabel" = "Menu Bar Icon";
-"SettingsCustomizationThemeDarkLabel" = "Dark";
-"SettingsCustomizationThemeLightLabel" = "Light";
-"SettingsCustomizationThemeSystemLabel" = "System";
-"SettingsCustomizationThemeTitle" = "Appearance";
 
 "UpdateStatusCheckingLabel" = "Checking for Updates...";
 "UpdateStatusIdleLabel" = "Last Checked: %@"; // Last Checked: 4 hours ago
 "UpdateStatusEmptyLabel" = "No Updates Available";
 "UpdateStatusNewLabel" = "New Update Available!";
-
-"AboutTitle" = "BatteryBoi, Free, Forever, for Everyone...";
-"AboutBodyOne" = "In an app ecosystem dominated by subscriptions, BatteryBoi remains 100% free and open-source. Forever.";
-"AboutBodyTwo" = "This project is a community-maintained revival of the original BatteryBoi app. If you find it useful, please consider supporting development.";
-"AboutBodyThree" = "Your contributions help keep the updates and improvements coming.";
-"AboutBodyFooter" = "Maintained by Anand Desai, Nirnshard LLP";
-"AboutGithubAction" = "GitHub";
-"AboutDonateAction" = "Donate";
-"AboutShareAction" = "Share";
 
 "BluetoothDeviceHeadphonesLabel" = "Headphones";
 "BluetoothDeviceMouseLabel" = "Mouse";
@@ -83,37 +62,24 @@
 "BluetoothDeviceOtherLabel" = "Other";
 "BluetoothConnectLabel" = "Connect";
 "BluetoothDisconnectLabel" = "Disconnect";
-"BluetoothDisconnectedLabel" = "Not Paired";
 "BluetoothNotConnectedLabel" = "Disconnected";
-"BluetoothDistanceProximateLabel" = "On the Desk/Table";
-"BluetoothDistanceNearLabel" = "In the same Room";
-"BluetoothDistanceFarLabel" = "In another Realm";
 "BluetoothInvalidLabel" = "No Battery Information";
-"BluetoothBatteryLeftLabel" = "L: %d%%";
-"BluetoothBatteryRightLabel" = "R: %d%%";
 
 "OnboardingNotificationsTitle" = "Notifications";
 "OnboardingNotificationsBody" = "Get alerts for low battery and charging status";
-"OnboardingInsightsTitle" = "Battery Insights";
-"OnboardingInsightsBody" = "Track your battery health over time";
 "OnboardingBluetoothTitle" = "Bluetooth Access";
 "OnboardingBluetoothBody" = "Required to monitor Bluetooth device batteries";
 
 // Accessibility strings
 "AccessibilityPercentLabel" = "%d percent";
 "AccessibilityPercentChargingLabel" = "%d percent, charging";
-"AccessibilityBatteryLeftRightLabel" = "Left %d percent, Right %d percent";
-"AccessibilityBatteryLevelUnavailable" = "Battery level unavailable";
 "AccessibilityBatteryProgress" = "Battery progress";
 "AccessibilityBatteryNotification" = "Battery status notification";
-"AccessibilityDoubleTapActivate" = "Double tap to activate";
-"AccessibilityDoubleTapSelect" = "Double tap to select this device";
 "AccessibilityUpdateAvailable" = "Update available";
 "AccessibilityBatteryLevel" = "Battery level";
 "AccessibilityBatteryStatusHint" = "Shows current battery status";
 
 // Settings navigation
-"SettingsThemeLabel" = "Theme";
 "SettingsDevicesLabel" = "Devices";
 "SettingsSettingsLabel" = "Settings";
 
@@ -123,7 +89,6 @@
 // Empty states
 "BluetoothNoDevicesTitle" = "No Devices Connected";
 "BluetoothNoDevicesBody" = "Connect Bluetooth devices to monitor their battery.";
-"BatteryUnavailableLabel" = "N/A";
 
 // Bluetooth Permission States
 "BluetoothPermissionDeniedTitle" = "Bluetooth Access Required";
@@ -136,7 +101,6 @@
 "BluetoothRetryButton" = "Try Again";
 "BluetoothRetryHint" = "Double-tap to retry the connection";
 "BluetoothOpenSettingsHint" = "Double-tap to open Bluetooth settings";
-"BluetoothConnectingLabel" = "Connecting...";
 
 // Onboarding - Welcome
 "OnboardingWelcomeTitle" = "Welcome to BatteryBoi";
@@ -165,15 +129,8 @@
 "OnboardingCompleteButton" = "Open BatteryBoi";
 
 
-// Accessibility
-"AccessibilityQuitApplication" = "Quit application";
-"AccessibilityShowDevices" = "Show devices";
-"AccessibilityShowSettings" = "Show settings";
-"AccessibilityToggleMenu" = "Toggle menu";
-
 // Bluetooth Display
 "BluetoothBatteryLeftRightDisplay" = "L: %d%%  R: %d%%";
-"BluetoothBatteryLeftRightAccessibility" = "Left %d percent, Right %d percent";
 
 // Settings State
 "SettingsStateEnabled" = "Enabled";
@@ -182,7 +139,6 @@
 "SettingsStateRestricted" = "Restricted";
 
 // Settings Tiles
-"SettingsTileDisplayLabel" = "Display";
 "SettingsTileMenuBarLabel" = "Menu Bar";
 "SettingsMenuBarIconLabel" = "Menu Bar Icon";
 "SettingsMenuBarIconSubtitle" = "Info shown inside the menu bar battery icon";
@@ -191,11 +147,6 @@
 "SettingsEightySubtitle" = "Alert when battery reaches 80%";
 "SettingsEfficiencySubtitle" = "Reduce energy usage when on battery";
 "SettingsLoginRequiresApprovalSubtitle" = "Enable in System Settings";
-"SettingsTileSoundLabel" = "Sound";
-"SettingsTileAlertsLabel" = "Alerts";
-"SettingsTilePinLabel" = "Pin";
-"SettingsTileOnLabel" = "On";
-"SettingsTileOffLabel" = "Off";
 "SettingsTilePositionLabel" = "Position";
 "SettingsNotificationsHeader" = "Notifications";
 "WindowPositionTopLeft" = "Top Left";
@@ -210,22 +161,13 @@
 "DeviceDetailStatusLabel" = "Status";
 "DeviceDetailTypeLabel" = "Type";
 "DeviceDetailBatteryLabel" = "Battery";
-"DeviceDetailCyclesLabel" = "Cycles";
-"DeviceDetailHealthLabel" = "Health";
-"DeviceDetailThermalLabel" = "Thermal";
-"DeviceDetailPowerLabel" = "Power Source";
 "DeviceDetailConnectedLabel" = "Connected";
 "DeviceDetailDisconnectedLabel" = "Disconnected";
-"DeviceDetailOptimalLabel" = "Normal";
-"DeviceDetailACPowerLabel" = "AC Power";
-"DeviceDetailBatteryPowerLabel" = "Battery";
-"DeviceDetailNoOtherDevicesLabel" = "No other devices";
 "DeviceDetailBrandLabel" = "Brand";
 "DeviceDetailCaseLabel" = "Case";
 
 // Accessibility - Settings interaction
 "AccessibilityOpenSettings" = "Double tap to open settings";
-"AccessibilityCloseSettings" = "Double tap to close settings";
 
 // Mac Battery Dashboard
 "DashboardNoBatteryTitle" = "No Battery";
@@ -238,16 +180,10 @@
 "DashboardCalculatingLabel" = "Calculating…";
 "DashboardPowerLabel" = "Power Draw";
 "DashboardTemperatureLabel" = "Temperature";
-"DashboardCyclesLabel" = "Cycles";
 "DashboardCyclesLowercaseSuffix" = "cycles";
 "DashboardCapacityLowercaseSuffix" = "capacity";
-"DashboardHealthTitle" = "Battery Health";
-"DashboardConditionGood" = "Good";
-"DashboardConditionFair" = "Fair";
-"DashboardConditionService" = "Service";
 "DashboardHealthAdvisoryAmber" = "Consider servicing your battery.";
 "DashboardHealthAdvisoryRed" = "Service recommended.";
-"DashboardMoreDetailsLabel" = "More Details";
 "DashboardVoltageLabel" = "Voltage";
 "DashboardCurrentLabel" = "Current";
 "DashboardChargeLimitLabel" = "Charge Limit";
@@ -269,23 +205,18 @@
 
 // About Tab
 "AboutAppName" = "BatteryBoi";
-"AboutBatterySummaryHeader" = "Battery";
 "AboutBatterySummaryGreat" = "Your battery is in great shape.";
 "AboutBatterySummaryNormal" = "Your battery is performing normally.";
 "AboutBatterySummaryFair" = "Consider servicing your battery soon.";
 "AboutBatterySummaryPoor" = "Your battery may need replacement.";
 "AboutBatterySummaryUnavailable" = "Battery health information unavailable.";
-"AboutLinksHeader" = "Links";
 "AboutWebsiteLabel" = "Website";
-"AboutGitHubLabel" = "GitHub";
 "AboutRateLabel" = "Rate BatteryBoi";
 "AboutBuyMeCoffeeLabel" = "Buy Me a Coffee";
 "AboutKoFiLabel" = "Ko-fi";
 "AboutCheckUpdatesLabel" = "Check for Updates";
-"AboutUpToDateLabel" = "Up to Date";
 "AboutSourceCodeLabel" = "Source Code";
 "AboutReportIssueLabel" = "Report an Issue";
-"AboutCopiedLabel" = "Copied";
 "AboutPrivacyLabel" = "Privacy";
 "AboutTermsLabel" = "Terms";
 "AboutDataPolicyLabel" = "Data Policy";
@@ -312,9 +243,6 @@
 "FlashKeepAwakeDisabledLowBatteryLabel" = "Keep Awake Off · Low Battery";
 "KeepAwakeMenuLabel" = "Keep Awake (%@)";
 "AccessibilityKeepAwakeToggle" = "Keep Awake, prevents display sleep";
-"AccessibilityKeepAwakeActive" = "Active, %@ remaining";
-"AccessibilityKeepAwakeActiveIndefinite" = "Active, on until turned off";
-"AccessibilityKeepAwakeInactive" = "Inactive";
 
 // Transient Flashes
 "FlashOverheatingLabel" = "Overheating · Throttling";

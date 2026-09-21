@@ -220,13 +220,6 @@ enum HUDProgressLayout {
     case trailing
 }
 
-// MARK: - Stats Display Object
-
-struct StatsDisplayObject {
-    var standard: String?
-    var overlay: String?
-}
-
 // MARK: - Stats Icon
 
 struct StatsIcon {

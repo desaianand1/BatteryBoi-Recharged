@@ -94,16 +94,12 @@ struct SettingsActionObject: Hashable {
         switch type {
         case .appWebsite: title = "SettingsWebsiteLabel".localise()
         case .appQuit: title = "SettingsQuitLabel".localise()
-        case .appDevices: title = "SettingsDevicesLabel".localise()
-        case .appSettings: title = "SettingsSettingsLabel".localise()
         case .appEfficiencyMode: title = "SettingsEfficiencyLabel".localise()
         case .appRate: title = "SettingsRateLabel".localise()
         case .appUpdateCheck: title = "SettingsCheckUpdatesLabel".localise()
         case .appInstallUpdate: title = "SettingsNewUpdateLabel".localise()
         case .appPinned: title = "SettingsPinnedLabel".localise()
-        case .customiseTheme: title = "SettingsThemeLabel".localise()
         case .customiseDisplay: title = "SettingsDisplayLabel".localise()
-        case .customiseNotifications: title = "SettingsNotificationsLabel".localise()
         case .customiseSoundEffects: title = "SettingsSoundEffectsLabel".localise()
         case .customiseCharge: title = "SettingsEightyLabel".localise()
         }
@@ -117,8 +113,6 @@ struct SettingsActionObject: Hashable {
 enum SettingsActionType {
     case appWebsite
     case appQuit
-    case appDevices
-    case appSettings
     case appPinned
     case appUpdateCheck
     case appRate
@@ -126,8 +120,6 @@ enum SettingsActionType {
     case appInstallUpdate
     case customiseSoundEffects
     case customiseDisplay
-    case customiseTheme
-    case customiseNotifications
     case customiseCharge
 }
 

@@ -16,7 +16,7 @@ struct HUDIcon: View {
             Image(systemName: self.stats.statsIcon.name)
                 .resizable().scaledToFit()
                 .matchedGeometryEffect(id: "icon", in: self.animation)
-                .frame(width: 28, height: 28)
+                .frame(width: Constants.Progress.miniSize, height: Constants.Progress.miniSize)
                 .foregroundColor(self.stats.statsIcon.color)
                 .applySymbolEffect(self.stats.statsIcon.effect)
                 .offset(y: 1)
@@ -57,7 +57,21 @@ struct HUDSummary: View {
                     .foregroundColor(.white)
                     .lineLimit(2)
 
-                BoldStyledText(stats.subtitle)
+                ZStack(alignment: .leading) {
+                    BoldStyledText(stats.subtitle)
+                        .opacity(window.activeFlash == nil ? 1.0 : 0.0)
+
+                    if let flash = window.activeFlash {
+                        Text(flash.text)
+                            .font(Typography.body)
+                            .foregroundColor(flash.color)
+                            .transition(.opacity.animation(.easeInOut(duration: FlashEvent.fadeIn)))
+                    }
+                }
+                .animation(
+                    DesignAnimation.easeOut(duration: 0.3, reduceMotion: reduceMotion),
+                    value: window.activeFlash
+                )
 
                 if updates.available != nil {
                     UpdatePromptView()

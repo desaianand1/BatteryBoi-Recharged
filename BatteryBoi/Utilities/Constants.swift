@@ -73,25 +73,10 @@ nonisolated enum Constants {
         static let maxSecondsPerPercent: Double = 300.0
     }
 
-    /// Animation durations.
-    enum Animation {
-        /// Standard transition duration.
-        static let standard: Double = 0.3
-
-        /// Spring animation response.
-        static let springResponse: Double = 0.6
-
-        /// Spring animation damping.
-        static let springDamping: Double = 0.9
-    }
-
     /// Progress indicator sizing constants.
     enum Progress {
         /// Mini progress indicator size (for device icons).
         static let miniSize: CGFloat = 28
-
-        /// Normal progress indicator size.
-        static let normalSize: CGFloat = 80
 
         /// Container size for progress indicators.
         static let containerSize: CGFloat = 90
@@ -108,18 +93,6 @@ nonisolated enum Constants {
 
     /// Window constants.
     enum Window {
-        /// Default HUD width.
-        static let hudWidth: CGFloat = 440
-
-        /// Default HUD height.
-        static let hudHeight: CGFloat = 240
-
-        /// Menu bar icon width.
-        static let menuBarWidth: CGFloat = 45
-
-        /// Menu bar icon height.
-        static let menuBarHeight: CGFloat = 22
-
         /// Modal window title identifier.
         static let modalWindowTitle = "modalwindow"
 

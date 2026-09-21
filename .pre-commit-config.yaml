@@ -29,6 +29,19 @@ repos:
         language: system
         types: [swift]
 
+      - id: block-local-docs
+        name: Block local docs from commit
+        entry: >-
+          bash -c 'STAGED=$(git diff --cached --name-only -- "docs/*" |
+          grep -v "^docs/CI-CD-SETUP.md$" |
+          grep -v "^docs/download_on_app_store_badge.svg$");
+          if [ -n "$STAGED" ]; then
+          echo "ERROR: Local docs must not be committed:";
+          echo "$STAGED"; exit 1; fi'
+        language: system
+        always_run: true
+        pass_filenames: false
+
       - id: swiftlint
         name: SwiftLint
         entry: swiftlint lint --strict --quiet

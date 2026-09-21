@@ -99,18 +99,6 @@ struct ViewTextStyle: ViewModifier {
 }
 
 public extension String {
-    func append(_ string: String, seporator: String) -> String {
-        "\(self)\(seporator)\(string)"
-
-    }
-
-    func width(_ font: NSFont) -> CGFloat {
-        let attribute = NSAttributedString(string: self, attributes: [NSAttributedString.Key.font: font])
-
-        return attribute.size().width
-
-    }
-
     nonisolated func localise(_ params: [CVarArg]? = nil, comment: String? = nil) -> String {
         var key = self
         var output = NSLocalizedString(self, tableName: "LocalizableMain", comment: comment ?? "")
@@ -138,29 +126,7 @@ public extension String {
     }
 }
 
-public extension [String] {
-    func index(_ index: Int, fallback: String? = nil) -> String? {
-        if indices.contains(index) {
-            return self[index]
-
-        }
-
-        return fallback
-
-    }
-
-}
-
 public extension Date {
-    func string(_ format: String) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = format
-        formatter.locale = Locale.current
-
-        return formatter.string(from: self)
-
-    }
-
     var formatted: String {
         let components = Calendar.current.dateComponents([.day, .hour, .minute, .second], from: self, to: Date())
         if let days = components.day, days >= 1 {
