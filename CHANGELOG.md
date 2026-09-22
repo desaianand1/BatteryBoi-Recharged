@@ -1,3 +1,10 @@
+## [12.63.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.62.0...v12.63.0) (2026-09-22)
+
+### Features
+
+* **hud:** add flash events, HUD interaction policy, and eager BT retry ([64ed5ff](https://github.com/desaianand1/BatteryBoi-Recharged/commit/64ed5ff29889cf5fa5d061dd5c2f2ae0c8d982d1))
+* **hud:** redesign ring arc with glow layer, angular shimmer, and richer gradients ([fe6757a](https://github.com/desaianand1/BatteryBoi-Recharged/commit/fe6757a1f6d6f04164205b5191645e19dfd945e8))
+
 ## [12.62.0](https://github.com/desaianand1/BatteryBoi-Recharged/compare/v12.61.0...v12.62.0) (2026-09-19)
 
 ### Features
