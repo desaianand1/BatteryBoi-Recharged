@@ -72,7 +72,8 @@ final class AppEnvironment {
             bluetooth: bluetooth,
             settings: settings,
             window: window,
-            events: event
+            events: event,
+            keepAwake: keepAwake
         )
 
         self.battery = battery
@@ -120,7 +121,8 @@ final class AppEnvironment {
             bluetooth: bluetooth,
             settings: settings,
             window: window,
-            events: event
+            events: event,
+            keepAwake: keepAwake
         )
     }
 

@@ -18,6 +18,7 @@ final class ServiceCoordinator {
     private let settings: any SettingsServiceProtocol
     private let window: any WindowServiceProtocol
     private let events: any EventServiceProtocol
+    private let keepAwake: any KeepAwakeServiceProtocol
 
     // MARK: - Properties
 
@@ -34,6 +35,7 @@ final class ServiceCoordinator {
     private var notifiedBatteryThresholds: Set<Int> = []
     private var notifiedBluetoothThresholds: [String: Set<Int>] = [:]
     private var notifiedEventIdentifiers: Set<String> = []
+    private var lastFlashedConditions: Set<String> = []
     private var lastChargingState: BatteryChargingState?
     nonisolated(unsafe) private var chargingDebounceTask: Task<Void, Never>?
 
@@ -44,13 +46,15 @@ final class ServiceCoordinator {
         bluetooth: any BluetoothServiceProtocol,
         settings: any SettingsServiceProtocol,
         window: any WindowServiceProtocol,
-        events: any EventServiceProtocol
+        events: any EventServiceProtocol,
+        keepAwake: any KeepAwakeServiceProtocol
     ) {
         self.battery = battery
         self.bluetooth = bluetooth
         self.settings = settings
         self.window = window
         self.events = events
+        self.keepAwake = keepAwake
     }
 
     deinit {
@@ -72,6 +76,7 @@ final class ServiceCoordinator {
         observeBluetoothDevices()
         observeEvents()
         observeSettings()
+        observeKeepAwake()
     }
 
     func handleSleep() {
@@ -83,8 +88,10 @@ final class ServiceCoordinator {
         notifiedBatteryThresholds.removeAll()
         notifiedBluetoothThresholds.removeAll()
         notifiedEventIdentifiers.removeAll()
+        lastFlashedConditions.removeAll()
         lastChargingState = nil
         chargingDebounceTask?.cancel()
+        self.keepAwake.handleWake()
         startObserving()
     }
 
@@ -194,6 +201,28 @@ final class ServiceCoordinator {
         observationTasks.append(task)
     }
 
+    // MARK: - Keep Awake Observations
+
+    private func observeKeepAwake() {
+        let task = Task { [weak self] in
+            guard let self else { return }
+            var warnedExpiry = false
+            for await remaining in ObservationStream.changes({ self.keepAwake.remainingTime }) {
+                guard !Task.isCancelled else { break }
+                let warningThreshold = Constants.KeepAwake.expiryWarningMinutes * 60
+                if let remaining, remaining <= warningThreshold, remaining > 0, !warnedExpiry {
+                    warnedExpiry = true
+                    let minutes = max(Int(remaining / 60), 1)
+                    self.window.showFlash(.keepAwakeExpiring(minutes: minutes))
+                }
+                if remaining == nil || (remaining ?? 0) > warningThreshold {
+                    warnedExpiry = false
+                }
+            }
+        }
+        observationTasks.append(task)
+    }
+
     // MARK: - Settings Observations
 
     private func observeSettings() {
@@ -225,6 +254,13 @@ final class ServiceCoordinator {
                     triggerAlert(alertType, device: nil)
                     break
                 }
+            }
+
+            if current <= Constants.KeepAwake.lowBatteryAutoDisable,
+               self.keepAwake.isActive
+            {
+                self.keepAwake.deactivate()
+                self.window.showFlash(.keepAwakeDisabledLowBattery)
             }
         } else {
             if current >= 100, self.settings.chargeEighty == .disabled {
@@ -260,6 +296,10 @@ final class ServiceCoordinator {
                device.connected == .connected
             {
                 triggerAlert(.deviceConnected, device: device)
+
+                if device.battery.percent == nil {
+                    self.scheduleEagerBatteryRetry(for: device)
+                }
             }
         }
 
@@ -271,6 +311,19 @@ final class ServiceCoordinator {
 
         let currentAddresses = Set(current.map(\.address))
         notifiedBluetoothThresholds = notifiedBluetoothThresholds.filter { currentAddresses.contains($0.key) }
+    }
+
+    private func scheduleEagerBatteryRetry(for device: BluetoothObject) {
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(3))
+            guard let self, !Task.isCancelled else { return }
+            let updated = self.bluetooth.connected.first(where: { $0.address == device.address })
+            if let updated, updated.battery.percent != nil,
+               self.window.currentDevice?.address == device.address
+            {
+                self.window.updateCurrentDevice(updated)
+            }
+        }
     }
 
     func checkBluetoothBatteryLevels() {
@@ -317,6 +370,18 @@ final class ServiceCoordinator {
     // MARK: - Alert Triggering
 
     private func triggerAlert(_ type: HUDAlertTypes, device: BluetoothObject?) {
-        self.window.open(type, device: device)
+        let delivery = HUDInteractionPolicy.shouldDeliverAlert(
+            type, currentState: self.window.state, currentAlert: self.window.currentAlert
+        )
+        switch delivery {
+        case .deliver:
+            self.window.open(type, device: device)
+        case .queue:
+            self.window.enqueueAlert(type, device: device)
+        case .suppress:
+            break
+        case let .flash(event):
+            self.window.showFlash(event)
+        }
     }
 }

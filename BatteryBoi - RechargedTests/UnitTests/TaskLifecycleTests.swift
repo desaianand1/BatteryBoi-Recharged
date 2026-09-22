@@ -77,7 +77,8 @@ final class TaskLifecycleTests: XCTestCase {
             bluetooth: MockBluetoothService(),
             settings: MockSettingsService(),
             window: mockWindow,
-            events: MockEventService()
+            events: MockEventService(),
+            keepAwake: MockKeepAwakeService()
         )
 
         mockBattery.percentage = 30
@@ -103,7 +104,8 @@ final class TaskLifecycleTests: XCTestCase {
                 bluetooth: MockBluetoothService(),
                 settings: MockSettingsService(),
                 window: MockWindowService(),
-                events: MockEventService()
+                events: MockEventService(),
+                keepAwake: MockKeepAwakeService()
             )
             coordinator.startObserving()
             weakCoordinator = coordinator

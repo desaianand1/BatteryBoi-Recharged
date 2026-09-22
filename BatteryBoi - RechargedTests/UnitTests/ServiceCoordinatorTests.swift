@@ -27,9 +27,11 @@ final class ServiceCoordinatorTests: XCTestCase {
             let s = MockSettingsService()
             let w = MockWindowService()
             let e = MockEventService()
+            let ka = MockKeepAwakeService()
             let c = ServiceCoordinator(
                 battery: b, bluetooth: bt,
-                settings: s, window: w, events: e
+                settings: s, window: w, events: e,
+                keepAwake: ka
             )
             return (b, bt, s, w, e, c)
         }
@@ -378,6 +380,9 @@ final class ServiceCoordinatorTests: XCTestCase {
 
         mockBattery.thermal = .optimal
         try? await Task.sleep(for: .milliseconds(200))
+
+        // Simulate the HUD dismissing so the second alert can deliver fresh
+        mockWindow.simulateDismissal()
 
         mockBattery.thermal = .suboptimal
         try? await Task.sleep(for: .milliseconds(200))

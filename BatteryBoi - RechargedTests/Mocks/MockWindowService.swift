@@ -157,6 +157,40 @@ import Foundation
         var alertQueue: [(type: HUDAlertTypes, device: BluetoothObject?)] = []
         private let maxQueueSize = 5
 
+        // MARK: - Flash State
+
+        var activeFlash: FlashEvent?
+        var showFlashCallCount = 0
+        var lastFlashEvent: FlashEvent?
+        var flashHistory: [FlashEvent] = []
+
+        func showFlash(_ event: FlashEvent) {
+            showFlashCallCount += 1
+            lastFlashEvent = event
+            flashHistory.append(event)
+            activeFlash = event
+        }
+
+        var updateCurrentDeviceCallCount = 0
+        var lastUpdatedDevice: BluetoothObject?
+
+        func updateCurrentDevice(_ device: BluetoothObject) {
+            updateCurrentDeviceCallCount += 1
+            lastUpdatedDevice = device
+            if currentDevice?.address == device.address {
+                currentDevice = device
+            }
+        }
+
+        var enqueueAlertCallCount = 0
+
+        func enqueueAlert(_ type: HUDAlertTypes, device: BluetoothObject?) {
+            enqueueAlertCallCount += 1
+            if alertQueue.count < maxQueueSize {
+                alertQueue.append((type: type, device: device))
+            }
+        }
+
         // MARK: - Test Simulation
 
         func simulateDismissal() {

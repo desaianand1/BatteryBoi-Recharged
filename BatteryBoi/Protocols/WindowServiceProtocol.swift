@@ -82,4 +82,16 @@ protocol WindowServiceProtocol: AnyObject {
 
     /// Navigate to a specific tab or device detail, opening/expanding the HUD as needed
     func navigate(to request: NavigationRequest)
+
+    /// Currently active flash event for subtitle overlay
+    var activeFlash: FlashEvent? { get }
+
+    /// Display a transient flash event in the subtitle area (only fires in .revealed state)
+    func showFlash(_ event: FlashEvent)
+
+    /// Update the current device reference to trigger reactive UI updates
+    func updateCurrentDevice(_ device: BluetoothObject)
+
+    /// Queue an alert for delivery after the current alert dismisses
+    func enqueueAlert(_ type: HUDAlertTypes, device: BluetoothObject?)
 }

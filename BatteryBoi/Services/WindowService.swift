@@ -87,6 +87,12 @@ final class WindowService: WindowServiceProtocol {
     private(set) var alertQueue: [(type: HUDAlertTypes, device: BluetoothObject?)] = []
     private let maxQueueSize = 5
 
+    // MARK: - Flash State
+
+    private(set) var activeFlash: FlashEvent?
+    private var flashTask: Task<Void, Never>?
+    private var flashQueue: [FlashEvent] = []
+
     // MARK: - Dependencies
 
     private let settings: any SettingsServiceProtocol
@@ -137,6 +143,16 @@ final class WindowService: WindowServiceProtocol {
         windowOpen(type, device: device)
     }
 
+    func updateCurrentDevice(_ device: BluetoothObject) {
+        guard self.currentDevice?.address == device.address else { return }
+        self.currentDevice = device
+    }
+
+    func enqueueAlert(_ type: HUDAlertTypes, device: BluetoothObject?) {
+        guard alertQueue.count < maxQueueSize else { return }
+        alertQueue.append((type: type, device: device))
+    }
+
     func calculateFrame(moved: NSRect?) -> NSRect {
         windowHandleFrame(moved: moved)
     }
@@ -179,6 +195,7 @@ final class WindowService: WindowServiceProtocol {
         dismissStartTime = nil
         hoverStartTime = nil
         alertQueue.removeAll()
+        clearFlashState()
     }
 
     func handleWake() {
@@ -231,6 +248,7 @@ final class WindowService: WindowServiceProtocol {
         debounceDeferralTask?.cancel()
         mouseEventTask?.cancel()
         navigationTask?.cancel()
+        flashTask?.cancel()
     }
 
     // MARK: - Private Methods
@@ -245,7 +263,7 @@ final class WindowService: WindowServiceProtocol {
                 guard let self else { return }
 
                 let now = Date()
-                guard now.timeIntervalSince(self.lastOpenedTime) > Constants.Timers.clickGracePeriod else { return }
+                let revealAge = now.timeIntervalSince(self.lastOpenedTime)
 
                 guard now.timeIntervalSince(self.lastMouseEventTime) > Constants.Timers.mouseEventDebounce
                 else { return }
@@ -261,9 +279,17 @@ final class WindowService: WindowServiceProtocol {
                 } else {
                     if self.settings.pinned == .disabled {
                         if self.state == .detailed {
-                            self.windowSetState(.revealed)
+                            if HUDInteractionPolicy.shouldAllowDismiss(
+                                trigger: .clickOutside, currentState: self.state, revealAge: revealAge
+                            ) {
+                                self.windowSetState(.revealed)
+                            }
                         } else if self.state.visible {
-                            self.windowSetState(.dismissed)
+                            if HUDInteractionPolicy.shouldAllowDismiss(
+                                trigger: .clickOutside, currentState: self.state, revealAge: revealAge
+                            ) {
+                                self.windowSetState(.dismissed)
+                            }
                         }
                     } else {
                         self.windowSetState(.revealed)
@@ -276,6 +302,10 @@ final class WindowService: WindowServiceProtocol {
     private func handleStateChange(_ state: HUDState) {
         stateTransitionTask?.cancel()
         resizeWindow(for: state)
+
+        if state != .revealed {
+            clearFlashState()
+        }
 
         if state == .dismissed {
             dismissalTask?.cancel()
@@ -430,6 +460,13 @@ final class WindowService: WindowServiceProtocol {
             do {
                 try await Task.sleep(for: .seconds(timeout))
                 guard let self, !Task.isCancelled, state.visible else { return }
+                let revealAge = Date().timeIntervalSince(self.lastOpenedTime)
+                guard HUDInteractionPolicy.shouldAllowDismiss(
+                    trigger: .timeout, currentState: self.state, revealAge: revealAge
+                ) else {
+                    self.scheduleDismissal(remaining: 2.0)
+                    return
+                }
                 windowSetState(.dismissed)
             } catch {}
         }
@@ -518,15 +555,55 @@ final class WindowService: WindowServiceProtocol {
         windowSetState(.progress)
     }
 
-    private func enqueueAlert(_ type: HUDAlertTypes, device: BluetoothObject?) {
-        guard alertQueue.count < maxQueueSize else { return }
-        alertQueue.append((type: type, device: device))
-    }
-
     private func processAlertQueue() {
         guard let next = alertQueue.first else { return }
         alertQueue.removeFirst()
         windowOpen(next.type, device: next.device)
+    }
+
+    // MARK: - Flash Methods
+
+    func showFlash(_ event: FlashEvent) {
+        guard self.state == .revealed else { return }
+
+        if let current = self.activeFlash {
+            if event.priority >= current.priority {
+                self.flashTask?.cancel()
+                self.displayFlash(event)
+            } else {
+                if self.flashQueue.count < 3 {
+                    self.flashQueue.append(event)
+                }
+            }
+        } else {
+            self.displayFlash(event)
+        }
+    }
+
+    private func displayFlash(_ event: FlashEvent) {
+        self.activeFlash = event
+        self.flashTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(event.duration))
+            guard let self, !Task.isCancelled else { return }
+            self.activeFlash = nil
+            self.processFlashQueue()
+        }
+    }
+
+    private func processFlashQueue() {
+        guard let next = self.flashQueue.first else { return }
+        self.flashQueue.removeFirst()
+        if self.state == .revealed {
+            self.displayFlash(next)
+        } else {
+            self.flashQueue.removeAll()
+        }
+    }
+
+    private func clearFlashState() {
+        self.flashTask?.cancel()
+        self.activeFlash = nil
+        self.flashQueue.removeAll()
     }
 
     private func windowClose() {
