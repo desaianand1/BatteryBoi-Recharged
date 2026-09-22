@@ -82,20 +82,17 @@ nonisolated enum RevealTiming {
 nonisolated enum ChargingAnimation {
     static let glowPeriod: Double = 1.0
     static let shimmerPeriod: Double = 3.0
-    static let dotPulsePeriod: Double = 2.0
     static let trackBreathePeriod: Double = 4.0
     static let fullBurstDuration: Double = 1.2
     static let glowMinOpacity: Double = 0.3
     static let glowMaxOpacity: Double = 0.5
     static let glowStaticOpacity: Double = 0.4
-    static let dotMinScale: Double = 1.0
-    static let dotMaxScale: Double = 1.3
     static let trackMinOpacity: Double = 0.08
     static let trackMaxOpacity: Double = 0.12
     static let burstMaxScale: Double = 1.15
     static let burstStartOpacity: Double = 0.4
     static let notchGlowDuration: Double = 0.5
-    static let shimmerMinLength: Double = 0.02
+    static let shimmerPeakOpacity: Double = 0.4
 }
 
 enum DesignAnimation {
@@ -153,14 +150,18 @@ enum BatteryTier: Equatable {
         case .good:
             [
                 Color(red: 0.486, green: 1.0, blue: 0.0),
+                Color(red: 0.243, green: 1.0, blue: 0.267),
                 Color(red: 0.0, green: 1.0, blue: 0.533),
-                Color(red: 0.0, green: 0.902, blue: 0.463)
+                Color(red: 0.0, green: 0.951, blue: 0.498),
+                Color(red: 0.0, green: 0.902, blue: 0.463),
             ]
         case .full:
             [
                 Color(red: 0.0, green: 1.0, blue: 0.533),
+                Color(red: 0.179, green: 1.0, blue: 0.706),
                 Color(red: 0.357, green: 1.0, blue: 0.878),
-                Color(red: 0.0, green: 0.898, blue: 1.0)
+                Color(red: 0.179, green: 0.949, blue: 0.939),
+                Color(red: 0.0, green: 0.898, blue: 1.0),
             ]
         }
     }

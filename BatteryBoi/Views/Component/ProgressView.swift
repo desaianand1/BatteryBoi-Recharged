@@ -13,9 +13,11 @@ struct RadialProgressBar: View {
     private let isMini: Bool
     private let showChargeNotch: Bool
 
+    private let chargeLimit: Double
+    private let lowAlertThreshold: Double?
+
     @State private var glowOpacity: Double = 0.0
     @State private var shimmerPhase: Double = 0.0
-    @State private var dotScale: CGFloat = 1.0
     @State private var trackBreathOpacity: Double = 0.08
     @State private var burstScale: CGFloat = 1.0
     @State private var burstOpacity: Double = 0.0
@@ -28,7 +30,9 @@ struct RadialProgressBar: View {
         percent: Double,
         isCharging: Bool,
         isMini: Bool = false,
-        showChargeNotch: Bool = false
+        showChargeNotch: Bool = false,
+        chargeLimit: Double = Double(Constants.BatteryThresholds.chargeLimit),
+        lowAlertThreshold: Double? = nil
     ) {
         _progress = progress
         _size = State(initialValue: size)
@@ -37,31 +41,8 @@ struct RadialProgressBar: View {
         self.isCharging = isCharging
         self.isMini = isMini
         self.showChargeNotch = showChargeNotch
-    }
-
-    private var showDot: Bool {
-        if self.isMini {
-            return true
-        }
-        if self.isCharging {
-            return self.percent < 100
-        }
-        if self.percent < 20 {
-            return true
-        }
-        if self.showChargeNotch, self.percent >= 75,
-           self.percent < Double(Constants.BatteryThresholds.chargeLimit)
-        {
-            return true
-        }
-        return false
-    }
-
-    private var shimmerLength: Double {
-        let minLength = ChargingAnimation.shimmerMinLength
-        guard self.position > 0 else { return minLength }
-        let proportional = self.position * 0.4
-        return max(minLength, min(0.04, proportional))
+        self.chargeLimit = chargeLimit
+        self.lowAlertThreshold = lowAlertThreshold
     }
 
     private var tier: BatteryTier {
@@ -72,16 +53,48 @@ struct RadialProgressBar: View {
         self.reduceMotion ? nil : Animation.easeOut(duration: RevealTiming.arcSweep)
     }
 
+    private var revealAnimation: Animation? {
+        self.reduceMotion ? nil : Animation.spring(response: 0.6, dampingFraction: 0.75)
+    }
+
+    private var arcTrimEnd: Double {
+        self.position > 0.97 ? 1.0 : self.position
+    }
+
+    private var showNotch: Bool {
+        self.showChargeNotch && !self.isMini && self.isCharging && self.percent < 100
+    }
+
     var body: some View {
         ZStack {
+            // Inner shadow for track depth
+            if !self.isMini {
+                Circle()
+                    .stroke(Color.black.opacity(0.12), lineWidth: self.line + 2)
+            }
+
+            // Track
             Circle()
                 .stroke(
                     Color.white.opacity(self.isMini ? 0.08 : self.trackBreathOpacity),
                     style: StrokeStyle(lineWidth: self.line, lineCap: .round)
                 )
 
+            // Glow layer behind arc — butt caps prevent bleed into gap
+            if !self.isMini, self.glowOpacity > 0 {
+                Circle()
+                    .trim(from: 0.0, to: CGFloat(self.arcTrimEnd))
+                    .stroke(
+                        self.tier.dotColor.opacity(self.glowOpacity),
+                        style: StrokeStyle(lineWidth: self.line + 4, lineCap: .butt)
+                    )
+                    .blur(radius: 6)
+                    .rotationEffect(.degrees(-90))
+            }
+
+            // Progress arc
             Circle()
-                .trim(from: 0.0, to: CGFloat(self.position))
+                .trim(from: 0.0, to: CGFloat(self.arcTrimEnd))
                 .stroke(
                     AngularGradient(
                         gradient: Gradient(colors: self.tier.gradientColors),
@@ -92,50 +105,39 @@ struct RadialProgressBar: View {
                     style: StrokeStyle(lineWidth: self.line, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
-                .shadow(
-                    color: !self.isMini && (self.isCharging || self.percent >= 100)
-                        ? self.tier.dotColor.opacity(self.glowOpacity)
-                        : .clear,
-                    radius: 8
-                )
 
-            if self.showChargeNotch, !self.isMini {
-                let notchFraction = Double(Constants.BatteryThresholds.chargeLimit) / 100.0
-                let notchAngle = notchFraction * 360.0
-                RoundedRectangle(cornerRadius: 1, style: .continuous)
-                    .fill(Color.white.opacity(0.30))
-                    .frame(width: 2, height: 6)
-                    .offset(y: -(self.size.height / 2))
-                    .rotationEffect(.degrees(notchAngle))
-                    .shadow(
-                        color: self.notchGlowActive
-                            ? BatteryTier.chargingBoltColor.opacity(0.6) : .clear,
-                        radius: 4
-                    )
-                    .allowsHitTesting(false)
+            if self.showNotch {
+                self.notchView(
+                    at: self.chargeLimit / 100.0,
+                    color: BatteryTier.chargingBoltColor,
+                    glowActive: self.notchGlowActive
+                )
             }
 
-            if !self.isMini, self.isCharging, self.percent < 100, !self.reduceMotion, self.position > 0 {
+            // Shimmer — rotating bright band along the arc
+            if !self.isMini, self.isCharging, self.percent < 100, !self.reduceMotion {
                 Circle()
-                    .trim(
-                        from: max(0, self.shimmerPhase * self.position - self.shimmerLength),
-                        to: min(self.position, self.shimmerPhase * self.position + self.shimmerLength)
-                    )
                     .stroke(
-                        Color.white.opacity(0.2),
+                        AngularGradient(
+                            stops: [
+                                .init(color: .clear, location: 0.0),
+                                .init(color: .clear, location: 0.4),
+                                .init(color: .white.opacity(ChargingAnimation.shimmerPeakOpacity), location: 0.5),
+                                .init(color: .clear, location: 0.6),
+                                .init(color: .clear, location: 1.0),
+                            ],
+                            center: .center
+                        ),
                         style: StrokeStyle(lineWidth: self.line, lineCap: .round)
                     )
-                    .rotationEffect(.degrees(-90))
-            }
-
-            if self.showDot {
-                Circle()
-                    .fill(self.tier.dotColor)
-                    .frame(width: self.line, height: self.line)
-                    .scaleEffect(self.isMini ? 1.0 : self.dotScale)
-                    .shadow(color: self.isMini ? .clear : self.tier.dotColor.opacity(0.5), radius: 4)
-                    .offset(y: -(self.size.height / 2))
-                    .rotationEffect(.degrees(Double(self.position) * 360))
+                    .rotationEffect(.degrees(self.shimmerPhase * 360))
+                    .mask(
+                        Circle()
+                            .trim(from: 0.0, to: CGFloat(self.arcTrimEnd))
+                            .stroke(style: StrokeStyle(lineWidth: self.line, lineCap: .round))
+                            .rotationEffect(.degrees(-90))
+                    )
+                    .blendMode(.plusLighter)
             }
 
             if !self.isMini, self.burstOpacity > 0 {
@@ -149,7 +151,7 @@ struct RadialProgressBar: View {
         .frame(width: self.size.width, height: self.size.height, alignment: .center)
         .animation(.easeInOut(duration: 0.6), value: self.tier)
         .onAppear {
-            if let animation = self.progressAnimation {
+            if let animation = self.revealAnimation {
                 withAnimation(animation) {
                     self.position = self.progress
                 }
@@ -174,13 +176,12 @@ struct RadialProgressBar: View {
             if oldPercent < 100, newPercent >= 100, !self.isMini, !self.reduceMotion {
                 self.triggerFullBurst()
             }
-            // Transition glow state when crossing the 100% boundary in either direction
             if (oldPercent < 100) != (newPercent < 100) {
                 self.startChargingAnimations()
             }
             if self.showChargeNotch, !self.isMini, !self.reduceMotion,
-               oldPercent < Double(Constants.BatteryThresholds.chargeLimit),
-               newPercent >= Double(Constants.BatteryThresholds.chargeLimit)
+               oldPercent < self.chargeLimit,
+               newPercent >= self.chargeLimit
             {
                 self.notchGlowActive = true
                 withAnimation(.easeOut(duration: ChargingAnimation.notchGlowDuration)) {
@@ -189,6 +190,21 @@ struct RadialProgressBar: View {
             }
         }
         .accessibilityHidden(true)
+    }
+
+    @ViewBuilder
+    private func notchView(at fraction: Double, color: Color, glowActive: Bool) -> some View {
+        let notchAngle = fraction * 360.0
+        RoundedRectangle(cornerRadius: 1, style: .continuous)
+            .fill(Color.white.opacity(0.30))
+            .frame(width: 2, height: 6)
+            .offset(y: -(self.size.height / 2))
+            .rotationEffect(.degrees(notchAngle))
+            .shadow(
+                color: glowActive ? color.opacity(0.6) : .clear,
+                radius: 4
+            )
+            .allowsHitTesting(false)
     }
 
     private func startChargingAnimations() {
@@ -204,12 +220,13 @@ struct RadialProgressBar: View {
                 self.glowOpacity = ChargingAnimation.glowMaxOpacity
             }
             self.shimmerPhase = 0.0
-            withAnimation(.linear(duration: ChargingAnimation.shimmerPeriod).repeatForever(autoreverses: false)) {
-                self.shimmerPhase = 1.0
-            }
-            self.dotScale = ChargingAnimation.dotMinScale
-            withAnimation(.easeInOut(duration: ChargingAnimation.dotPulsePeriod).repeatForever(autoreverses: true)) {
-                self.dotScale = ChargingAnimation.dotMaxScale
+            Task { @MainActor in
+                withAnimation(
+                    .easeInOut(duration: ChargingAnimation.shimmerPeriod)
+                        .repeatForever(autoreverses: false)
+                ) {
+                    self.shimmerPhase = 1.0
+                }
             }
             self.trackBreathOpacity = ChargingAnimation.trackMinOpacity
             withAnimation(
@@ -222,17 +239,15 @@ struct RadialProgressBar: View {
                 self.glowOpacity = ChargingAnimation.glowStaticOpacity
             } else {
                 withAnimation(.easeInOut(duration: 0.6)) {
-                    self.glowOpacity = ChargingAnimation.glowMaxOpacity
+                    self.glowOpacity = ChargingAnimation.glowStaticOpacity
                 }
             }
-            self.dotScale = ChargingAnimation.dotMinScale
             self.trackBreathOpacity = ChargingAnimation.trackMinOpacity
             self.shimmerPhase = 0.0
         } else {
             withAnimation(.easeInOut(duration: 0.3)) {
                 self.glowOpacity = 0.0
             }
-            self.dotScale = ChargingAnimation.dotMinScale
             self.trackBreathOpacity = ChargingAnimation.trackMinOpacity
             self.shimmerPhase = 0.0
         }
@@ -373,12 +388,14 @@ struct RadialProgressContainer: View {
                     percent: self.currentPercent,
                     isCharging: self.isCharging,
                     showChargeNotch: self.env.settings.chargeEighty == .enabled
+                        && self.env.window.currentDevice == nil
                 )
 
                 ZStack(alignment: .center) {
                     Text("\(self.percent ?? 0)")
                         .foregroundColor(Color("BBTitle"))
                         .font(Typography.progressLarge)
+                        .contentTransition(.numericText())
                         .blur(radius: self.percent == nil ? 5.0 : (self.isHovered ? 4.0 : 0.0))
                         .opacity(self.percent == nil ? 0.0 : (self.isHovered ? 0.0 : 1.0))
 
