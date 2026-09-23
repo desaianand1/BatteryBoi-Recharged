@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 // MARK: - Settings Toggle Protocol
 
@@ -136,6 +137,76 @@ enum SettingsTheme: Int {
         case .dark: "dark"
         default: "system"
         }
+    }
+}
+
+// MARK: - Alert Threshold Tier
+
+enum AlertThresholdTier: String, CaseIterable {
+    case critical
+    case urgent
+    case standard
+
+    static func tier(for percent: Int) -> Self {
+        switch percent {
+        case 1 ... 3: .critical
+        case 4 ... 9: .urgent
+        default: .standard
+        }
+    }
+
+    var dotColor: Color {
+        switch self {
+        case .critical: SemanticColor.error
+        case .urgent: SemanticColor.warning
+        case .standard: Color("BBSubtitle")
+        }
+    }
+
+    var label: String {
+        switch self {
+        case .critical: "AlertTierCriticalLabel".localise()
+        case .urgent: "AlertTierUrgentLabel".localise()
+        case .standard: "AlertTierStandardLabel".localise()
+        }
+    }
+
+    static func subtitle(for percent: Int) -> String {
+        switch percent {
+        case 1 ... 3: "AlertSubtitle_Critical".localise()
+        case 4 ... 9: "AlertSubtitle_Urgent".localise()
+        case 10 ... 19: "AlertSubtitle_Standard_Low".localise()
+        default: "AlertSubtitle_Standard_Info".localise()
+        }
+    }
+
+    var priority: AlertPriority {
+        switch self {
+        case .critical: .critical
+        case .urgent: .high
+        case .standard: .medium
+        }
+    }
+}
+
+// MARK: - Alert Threshold Item
+
+struct AlertThresholdItem: Identifiable, Equatable {
+    let percent: Int
+    var id: Int {
+        self.percent
+    }
+
+    var tier: AlertThresholdTier {
+        AlertThresholdTier.tier(for: self.percent)
+    }
+
+    var isRemovable: Bool {
+        self.percent != 1
+    }
+
+    var subtitle: String {
+        AlertThresholdTier.subtitle(for: self.percent)
     }
 }
 

@@ -85,6 +85,7 @@ enum HUDAlertTypes: Equatable {
     case deviceRemoved
     case deviceOverheating
     case userEvent
+    case percentCustom(Int)
 
     var timeout: Bool {
         switch self {
@@ -97,6 +98,7 @@ enum HUDAlertTypes: Equatable {
         case .percentFive: true
         case .percentTen: true
         case .percentTwentyFive: true
+        case .percentCustom: true
         case .deviceConnected: true
         case .deviceRemoved: true
         case .deviceOverheating: true
@@ -110,6 +112,7 @@ enum HUDAlertTypes: Equatable {
         case .percentFive, .chargingComplete: .high
         case .chargingBegan, .chargingStopped, .percentTen,
              .percentTwentyFive, .deviceConnected, .deviceRemoved: .medium
+        case let .percentCustom(p): AlertThresholdTier.tier(for: p).priority
         case .userLaunched, .userEvent: .low
         case .userInitiated: .low
         }
@@ -120,13 +123,25 @@ enum HUDAlertTypes: Equatable {
         case .chargingBegan: .high
         case .chargingStopped: .low
         case .chargingComplete: .high
-        case .percentOne: .low
+        case .percentOne: .critical
         case .percentFive: .low
         case .percentTen: .low
         case .percentTwentyFive: .low
+        case let .percentCustom(p):
+            AlertThresholdTier.tier(for: p) == .critical ? .critical : .low
         case .deviceOverheating: .low
         case .userEvent: .low
         default: nil
+        }
+    }
+
+    static func alertType(for threshold: Int) -> Self {
+        switch threshold {
+        case 1: .percentOne
+        case 5: .percentFive
+        case 10: .percentTen
+        case 25: .percentTwentyFive
+        default: .percentCustom(threshold)
         }
     }
 }
@@ -269,6 +284,13 @@ struct FlashEvent: Equatable {
                 color: Color("BBSubtitle"),
                 priority: .medium,
                 duration: 4.0
+            )
+        case let .percentCustom(p):
+            Self(
+                text: AlertThresholdTier.subtitle(for: p),
+                color: AlertThresholdTier.tier(for: p).dotColor,
+                priority: AlertThresholdTier.tier(for: p).priority,
+                duration: Self.defaultDuration
             )
         default:
             nil

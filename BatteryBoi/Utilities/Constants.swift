@@ -54,14 +54,23 @@ nonisolated enum Constants {
 
     /// Battery-related thresholds.
     enum BatteryThresholds {
-        /// Percentage levels that trigger low battery alerts.
-        static let alerts: [Int] = [25, 10, 5, 1]
+        /// Default percentage levels that trigger low battery alerts.
+        static let defaultAlerts: [Int] = [25, 10, 5, 1]
 
         /// Default charge limit percentage for "charge to 80%" feature.
         static let chargeLimit: Int = 80
 
         /// Bluetooth battery must rise above this level to re-arm alerts (10-point gap above highest alert).
         static let bluetoothResetThreshold: Double = 50
+
+        static let chargeLimitMin: Int = 60
+        static let chargeLimitMax: Int = 100
+        static let chargeLimitStep: Int = 5
+
+        static let alertMin: Int = 5
+        static let alertMax: Int = 50
+        static let alertStep: Int = 5
+        static let alertCountMax: Int = 10
     }
 
     /// Battery service constants.

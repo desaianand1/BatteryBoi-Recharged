@@ -22,6 +22,9 @@ enum SystemDefaultsKeys: String {
 
     case onboardingCompleted = "sd_onboarding_completed"
     case keepAwakeDuration = "sd_keep_awake_duration"
+    case alertThresholds = "sd_alert_thresholds"
+    case chargeLimitPercent = "sd_charge_limit_percent"
+    case chargeLimitEnabled = "sd_charge_limit_enabled"
 
     var name: String {
         switch self {
@@ -44,6 +47,9 @@ enum SystemDefaultsKeys: String {
         case .usageTimestamp: "sd_usage_timestamp"
         case .onboardingCompleted: "Onboarding Completed"
         case .keepAwakeDuration: "Keep Awake Duration"
+        case .alertThresholds: "Alert Thresholds"
+        case .chargeLimitPercent: "Charge Limit Percent"
+        case .chargeLimitEnabled: "Charge Limit Enabled"
         }
     }
 }

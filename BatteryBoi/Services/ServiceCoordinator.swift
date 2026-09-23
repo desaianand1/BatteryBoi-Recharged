@@ -111,7 +111,7 @@ final class ServiceCoordinator {
 
             // Seed thresholds already crossed at observation start
             if self.battery.charging.state == .battery {
-                for threshold in Constants.BatteryThresholds.alerts where previousPercent <= Double(threshold) {
+                for threshold in self.settings.alertThresholds where previousPercent <= Double(threshold) {
                     self.notifiedBatteryThresholds.insert(threshold)
                 }
             }
@@ -232,23 +232,35 @@ final class ServiceCoordinator {
                 if key == .enabledPinned, self.settings.pinned == .enabled {
                     self.window.opacity = 1.0
                 }
+                if key == .alertThresholds {
+                    self.reseedThresholds()
+                }
             }
         }
         observationTasks.append(task)
     }
 
+    private func reseedThresholds() {
+        self.notifiedBatteryThresholds.removeAll()
+        if self.battery.charging.state == .battery {
+            let current = self.battery.percentage
+            for threshold in self.settings.alertThresholds where current <= Double(threshold) {
+                self.notifiedBatteryThresholds.insert(threshold)
+            }
+        }
+    }
+
     // MARK: - Alert Threshold Logic
 
-    private static let batteryAlertThresholds: [(Int, HUDAlertTypes)] = [
-        (25, .percentTwentyFive),
-        (10, .percentTen),
-        (5, .percentFive),
-        (1, .percentOne),
-    ]
+    private var batteryAlertThresholds: [(Int, HUDAlertTypes)] {
+        self.settings.alertThresholds
+            .sorted(by: >)
+            .map { ($0, HUDAlertTypes.alertType(for: $0)) }
+    }
 
     private func handlePercentageChange(to current: Double) {
         if self.battery.charging.state == .battery {
-            for (threshold, alertType) in Self.batteryAlertThresholds {
+            for (threshold, alertType) in self.batteryAlertThresholds {
                 if current <= Double(threshold), !notifiedBatteryThresholds.contains(threshold) {
                     notifiedBatteryThresholds.insert(threshold)
                     triggerAlert(alertType, device: nil)
@@ -263,9 +275,9 @@ final class ServiceCoordinator {
                 self.window.showFlash(.keepAwakeDisabledLowBattery)
             }
         } else {
-            if current >= 100, self.settings.chargeEighty == .disabled {
-                triggerAlert(.chargingComplete, device: nil)
-            } else if current >= 80, self.settings.chargeEighty == .enabled {
+            let limit = self.settings.chargeLimitEnabled
+                ? Double(self.settings.chargeLimitPercent) : 100.0
+            if current >= limit {
                 triggerAlert(.chargingComplete, device: nil)
             }
         }
@@ -337,7 +349,7 @@ final class ServiceCoordinator {
                 notifiedBluetoothThresholds[deviceId] = []
             }
 
-            for (threshold, alertType) in Self.batteryAlertThresholds {
+            for (threshold, alertType) in self.batteryAlertThresholds {
                 if percent <= Double(threshold),
                    !(notifiedBluetoothThresholds[deviceId]?.contains(threshold) ?? false)
                 {

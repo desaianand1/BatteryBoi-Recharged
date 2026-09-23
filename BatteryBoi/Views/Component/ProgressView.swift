@@ -62,7 +62,7 @@ struct RadialProgressBar: View {
     }
 
     private var showNotch: Bool {
-        self.showChargeNotch && !self.isMini && self.isCharging && self.percent < 100
+        self.showChargeNotch && !self.isMini && self.isCharging && self.percent < 100 && self.chargeLimit < 100
     }
 
     var body: some View {
@@ -387,8 +387,9 @@ struct RadialProgressContainer: View {
                     size: .init(width: 80, height: 80),
                     percent: self.currentPercent,
                     isCharging: self.isCharging,
-                    showChargeNotch: self.env.settings.chargeEighty == .enabled
-                        && self.env.window.currentDevice == nil
+                    showChargeNotch: self.env.settings.chargeLimitEnabled
+                        && self.env.window.currentDevice == nil,
+                    chargeLimit: Double(self.env.settings.chargeLimitPercent)
                 )
 
                 ZStack(alignment: .center) {

@@ -68,6 +68,7 @@
 		D89CCFEE2A9FF97900D9531A /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D89CCFED2A9FF97900D9531A /* AboutView.swift */; };
 		D8CDA7FD2AA249F800FAD41E /* highnote.wav in Resources */ = {isa = PBXBuildFile; fileRef = D8CDA7FB2AA249F800FAD41E /* highnote.wav */; };
 		D8CDA7FE2AA249F800FAD41E /* lownote.wav in Resources */ = {isa = PBXBuildFile; fileRef = D8CDA7FC2AA249F800FAD41E /* lownote.wav */; };
+		A1B2C3D40001000000000001 /* critical.wav in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D40001000000000002 /* critical.wav */; };
 		D8D9E5A02A7DE7AB00E295FA /* BatteryBoiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8D9E59F2A7DE7AB00E295FA /* BatteryBoiApp.swift */; };
 		D8D9E5A42A7DE7AE00E295FA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D8D9E5A32A7DE7AE00E295FA /* Assets.xcassets */; };
 		D8D9E5A72A7DE7AE00E295FA /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D8D9E5A62A7DE7AE00E295FA /* Preview Assets.xcassets */; };
@@ -80,6 +81,7 @@
 		E8B810E9A6D038AF988886EF /* OnboardingPermissionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B434599867D1109FB7DBBA7D /* OnboardingPermissionsView.swift */; };
 		B9853CC227E7499E948F4DBE /* CapsuleTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C1C148BA51B446A927398DD /* CapsuleTabBar.swift */; };
 		800B9058C22C4E13A8A18851 /* SettingsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9736B48BC8DC4EFEB85A99BE /* SettingsTabView.swift */; };
+		A1B2C3D40002000000000001 /* LowBatteryAlertsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D40002000000000002 /* LowBatteryAlertsView.swift */; };
 		FD9DC8AFB0E84DAA8C3B1407 /* DeviceCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968BEF4AB7A443B688E8C306 /* DeviceCardView.swift */; };
 		05600A3FEA1B45BF2A163FF3 /* MacBatteryDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D982D3F551608181F8D9C229 /* MacBatteryDashboardView.swift */; };
 /* End PBXBuildFile section */
@@ -180,6 +182,7 @@
 		D8CDA7F72AA2448D00FAD41E /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/LocalizableMain.strings"; sourceTree = "<group>"; };
 		D8CDA7FB2AA249F800FAD41E /* highnote.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = highnote.wav; sourceTree = "<group>"; };
 		D8CDA7FC2AA249F800FAD41E /* lownote.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = lownote.wav; sourceTree = "<group>"; };
+		A1B2C3D40001000000000002 /* critical.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = critical.wav; sourceTree = "<group>"; };
 		D8D9E59C2A7DE7AB00E295FA /* BatteryBoi - Recharged.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "BatteryBoi - Recharged.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D8D9E59F2A7DE7AB00E295FA /* BatteryBoiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryBoiApp.swift; sourceTree = "<group>"; };
 		D8D9E5A32A7DE7AE00E295FA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -196,6 +199,7 @@
 		FCB5E8335CB3CE7E7F3B5994 /* OnboardingPreferencesView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingPreferencesView.swift; sourceTree = "<group>"; };
 		2C1C148BA51B446A927398DD /* CapsuleTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapsuleTabBar.swift; sourceTree = "<group>"; };
 		9736B48BC8DC4EFEB85A99BE /* SettingsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTabView.swift; sourceTree = "<group>"; };
+		A1B2C3D40002000000000002 /* LowBatteryAlertsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LowBatteryAlertsView.swift; sourceTree = "<group>"; };
 		968BEF4AB7A443B688E8C306 /* DeviceCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceCardView.swift; sourceTree = "<group>"; };
 		D982D3F551608181F8D9C229 /* MacBatteryDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacBatteryDashboardView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -326,6 +330,7 @@
 		D8CDA7F82AA248AD00FAD41E /* SFX */ = {
 			isa = PBXGroup;
 			children = (
+				A1B2C3D40001000000000002 /* critical.wav */,
 				D8CDA7FB2AA249F800FAD41E /* highnote.wav */,
 				D8CDA7FC2AA249F800FAD41E /* lownote.wav */,
 			);
@@ -420,6 +425,7 @@
 				D851F8092ABA299F003FCA79 /* NavigationView.swift */,
 				2C1C148BA51B446A927398DD /* CapsuleTabBar.swift */,
 				9736B48BC8DC4EFEB85A99BE /* SettingsTabView.swift */,
+				A1B2C3D40002000000000002 /* LowBatteryAlertsView.swift */,
 				968BEF4AB7A443B688E8C306 /* DeviceCardView.swift */,
 				D982D3F551608181F8D9C229 /* MacBatteryDashboardView.swift */,
 				D540748087DD0FBD17E51AC2 /* OnboardingView.swift */,
@@ -564,6 +570,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D8D9E5A72A7DE7AE00E295FA /* Preview Assets.xcassets in Resources */,
+				A1B2C3D40001000000000001 /* critical.wav in Resources */,
 				D8CDA7FD2AA249F800FAD41E /* highnote.wav in Resources */,
 				D8CDA7FE2AA249F800FAD41E /* lownote.wav in Resources */,
 				D84F4E2B2A86E9E800668582 /* LocalizableMain.strings in Resources */,
@@ -627,6 +634,7 @@
 				D851F80A2ABA29A0003FCA79 /* NavigationView.swift in Sources */,
 				B9853CC227E7499E948F4DBE /* CapsuleTabBar.swift in Sources */,
 				800B9058C22C4E13A8A18851 /* SettingsTabView.swift in Sources */,
+				A1B2C3D40002000000000001 /* LowBatteryAlertsView.swift in Sources */,
 				FD9DC8AFB0E84DAA8C3B1407 /* DeviceCardView.swift in Sources */,
 				05600A3FEA1B45BF2A163FF3 /* MacBatteryDashboardView.swift in Sources */,
 				D8D9E5B32A7DFF3E00E295FA /* MenuView.swift in Sources */,

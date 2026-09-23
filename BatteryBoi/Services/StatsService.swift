@@ -512,6 +512,13 @@ final class StatsService: StatsServiceProtocol {
                 color: .gray,
                 effect: .none
             )
+        case let .percentCustom(p):
+            let tier = AlertThresholdTier.tier(for: p)
+            return StatsIcon(
+                name: tier == .critical ? "battery.0percent" : "battery.25percent",
+                color: tier.dotColor,
+                effect: tier == .critical ? .pulseByLayer : .none
+            )
         case .userLaunched, .userInitiated, .none:
             let tier = BatteryTier(percent: self.battery.percentage)
             let iconName = self.batteryIconName(for: self.battery.percentage)

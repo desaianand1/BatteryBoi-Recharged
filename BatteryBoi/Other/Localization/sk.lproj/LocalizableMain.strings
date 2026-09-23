@@ -152,3 +152,34 @@
 "SettingsEightySubtitle" = "Alert when battery reaches 80%";
 "SettingsEfficiencySubtitle" = "Reduce energy usage when on battery";
 "SettingsLoginRequiresApprovalSubtitle" = "Enable in System Settings";
+
+// Alerts Section
+"SettingsAlertsHeader" = "Alerts";
+"SettingsLowBatteryAlertsLabel" = "Low Battery Alerts";
+"SettingsAlertsDisclosureSubtitle" = "%d alerts · ";
+
+// Alert Tier Labels
+"AlertTierCriticalLabel" = "Critical";
+"AlertTierUrgentLabel" = "Urgent";
+"AlertTierStandardLabel" = "Standard";
+
+// Alert Subtitles
+"AlertSubtitle_Critical" = "Plug in immediately";
+"AlertSubtitle_Urgent" = "Plug in now";
+"AlertSubtitle_Standard_Low" = "Low battery — plug in soon";
+"AlertSubtitle_Standard_Info" = "Battery is getting low";
+
+// Alert Cards
+"SettingsAlertAlwaysOnLabel" = "Always on";
+"SettingsAlertTestLabel" = "Test";
+"SettingsAlertAddLabel" = "Add Alert";
+"SettingsAlertDescription" = "Alerts when battery drops below these levels. Urgency increases automatically.";
+"SettingsAlertMaxReached" = "Maximum alerts reached";
+"SettingsAlertDuplicate" = "Alert already exists at this level";
+
+// Charging Section
+"SettingsChargingHeader" = "Charging";
+"SettingsChargeLimitLabel" = "Charge Limit";
+"SettingsChargeLimitSubtitle" = "Charging pauses at %d%%";
+"SettingsChargeLimitInfoTitle" = "How Charge Limit Works";
+"SettingsChargeLimitInfoBody" = "When your battery reaches %d%%, charging pauses to extend battery lifespan.\n\nEven while plugged in, your Mac uses a small amount of battery power, so the level may drift down slightly before charging resumes. This is normal and reduces battery wear.\n\nCharging also pauses automatically if your Mac gets too hot.";

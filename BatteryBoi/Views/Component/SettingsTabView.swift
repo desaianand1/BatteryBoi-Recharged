@@ -209,12 +209,20 @@ struct SettingsActionRow: View {
     }
 }
 
+// MARK: - Settings Sub-View Navigation
+
+enum SettingsSubView: Equatable {
+    case main
+    case lowBatteryAlerts
+}
+
 // MARK: - Settings Sync Modifier
 
 struct SettingsForwardSyncModifier: ViewModifier {
     @Environment(AppEnvironment.self) private var env
     @Binding var soundEnabled: Bool
-    @Binding var chargeAlertEnabled: Bool
+    @Binding var chargeLimitEnabled: Bool
+    @Binding var chargeLimitPercent: Double
     @Binding var pinEnabled: Bool
     @Binding var launchAtLogin: Bool
     @Binding var powerSaveEnabled: Bool
@@ -236,9 +244,13 @@ struct SettingsForwardSyncModifier: ViewModifier {
                 guard self.isLoaded else { return }
                 self.settings.soundEffects = new ? .enabled : .disabled
             }
-            .onChange(of: self.chargeAlertEnabled) { _, new in
+            .onChange(of: self.chargeLimitEnabled) { _, new in
                 guard self.isLoaded else { return }
-                self.settings.charge = new ? .enabled : .disabled
+                self.settings.chargeLimitEnabled = new
+            }
+            .onChange(of: self.chargeLimitPercent) { _, new in
+                guard self.isLoaded else { return }
+                self.settings.chargeLimitPercent = Int(new)
             }
             .onChange(of: self.pinEnabled) { _, new in
                 guard self.isLoaded else { return }
@@ -272,12 +284,19 @@ struct SettingsReverseSyncSoundModifier: ViewModifier {
     }
 }
 
-struct SettingsReverseSyncChargeModifier: ViewModifier {
+struct SettingsReverseSyncChargeLimitModifier: ViewModifier {
     @Environment(AppEnvironment.self) private var env
-    @Binding var chargeAlertEnabled: Bool
+    @Binding var chargeLimitEnabled: Bool
+    @Binding var chargeLimitPercent: Double
 
     func body(content: Content) -> some View {
-        content.onChange(of: self.env.settings.charge) { _, new in self.chargeAlertEnabled = (new == .enabled) }
+        content
+            .onChange(of: self.env.settings.chargeLimitEnabled) { _, new in
+                self.chargeLimitEnabled = new
+            }
+            .onChange(of: self.env.settings.chargeLimitPercent) { _, new in
+                self.chargeLimitPercent = Double(new)
+            }
     }
 }
 
@@ -372,8 +391,11 @@ struct SettingsTabView: View {
         self.env.update
     }
 
+    @State private var settingsSubView: SettingsSubView = .main
     @State private var soundEnabled: Bool = false
-    @State private var chargeAlertEnabled: Bool = false
+    @State private var chargeLimitEnabled: Bool = false
+    @State private var chargeLimitPercent: Double = 80
+    @State private var showChargeLimitInfo: Bool = false
     @State private var pinEnabled: Bool = false
     @State private var launchAtLogin: Bool = false
     @State private var powerSaveEnabled: Bool = false
@@ -384,37 +406,55 @@ struct SettingsTabView: View {
     @State private var didLoad: Bool = false
 
     var body: some View {
-        self.settingsContent
-            .onAppear { self.loadSettings() }
-            .modifier(SettingsForwardSyncModifier(
-                soundEnabled: self.$soundEnabled,
-                chargeAlertEnabled: self.$chargeAlertEnabled,
-                pinEnabled: self.$pinEnabled,
-                launchAtLogin: self.$launchAtLogin,
-                powerSaveEnabled: self.$powerSaveEnabled,
-                selectedDisplay: self.$selectedDisplay,
-                selectedPosition: self.$selectedPosition,
-                isLoaded: self.$didLoad
-            ))
-            .modifier(SettingsReverseSyncSoundModifier(soundEnabled: self.$soundEnabled))
-            .modifier(SettingsReverseSyncChargeModifier(chargeAlertEnabled: self.$chargeAlertEnabled))
-            .modifier(SettingsReverseSyncPinModifier(pinEnabled: self.$pinEnabled))
-            .modifier(SettingsReverseSyncDisplayModifier(selectedDisplay: self.$selectedDisplay))
-            .modifier(KeepAwakeForwardSyncModifier(
-                keepAwakeEnabled: self.$keepAwakeEnabled,
-                keepAwakeDuration: self.$keepAwakeDuration,
-                isLoaded: self.$didLoad
-            ))
-            .modifier(KeepAwakeReverseSyncModifier(
-                keepAwakeEnabled: self.$keepAwakeEnabled,
-                keepAwakeDuration: self.$keepAwakeDuration
-            ))
+        Group {
+            switch self.settingsSubView {
+            case .main:
+                self.settingsContent
+                    .transition(self.reduceMotion ? .identity : .move(edge: .leading))
+            case .lowBatteryAlerts:
+                LowBatteryAlertsView {
+                    withAnimation(DesignAnimation.spring(reduceMotion: self.reduceMotion)) {
+                        self.settingsSubView = .main
+                    }
+                }
+                .transition(self.reduceMotion ? .identity : .move(edge: .trailing))
+            }
+        }
+        .onAppear { self.loadSettings() }
+        .modifier(SettingsForwardSyncModifier(
+            soundEnabled: self.$soundEnabled,
+            chargeLimitEnabled: self.$chargeLimitEnabled,
+            chargeLimitPercent: self.$chargeLimitPercent,
+            pinEnabled: self.$pinEnabled,
+            launchAtLogin: self.$launchAtLogin,
+            powerSaveEnabled: self.$powerSaveEnabled,
+            selectedDisplay: self.$selectedDisplay,
+            selectedPosition: self.$selectedPosition,
+            isLoaded: self.$didLoad
+        ))
+        .modifier(SettingsReverseSyncSoundModifier(soundEnabled: self.$soundEnabled))
+        .modifier(SettingsReverseSyncChargeLimitModifier(
+            chargeLimitEnabled: self.$chargeLimitEnabled,
+            chargeLimitPercent: self.$chargeLimitPercent
+        ))
+        .modifier(SettingsReverseSyncPinModifier(pinEnabled: self.$pinEnabled))
+        .modifier(SettingsReverseSyncDisplayModifier(selectedDisplay: self.$selectedDisplay))
+        .modifier(KeepAwakeForwardSyncModifier(
+            keepAwakeEnabled: self.$keepAwakeEnabled,
+            keepAwakeDuration: self.$keepAwakeDuration,
+            isLoaded: self.$didLoad
+        ))
+        .modifier(KeepAwakeReverseSyncModifier(
+            keepAwakeEnabled: self.$keepAwakeEnabled,
+            keepAwakeDuration: self.$keepAwakeDuration
+        ))
     }
 
     private var settingsContent: some View {
         VStack(spacing: Spacing.md) {
             self.displaySection
-            self.notificationsSection
+            self.alertsSection
+            self.chargingSection
             self.behaviorSection
             self.actionsSection
         }
@@ -446,22 +486,102 @@ struct SettingsTabView: View {
         }
     }
 
-    private var notificationsSection: some View {
-        SettingsSection(header: "SettingsNotificationsHeader".localise()) {
+    private var alertsDisclosureSubtitle: String {
+        let thresholds = self.env.settings.alertThresholds.sorted()
+        let percentList = thresholds.map { "\($0)%" }.joined(separator: ", ")
+        let count = thresholds.count
+        return "SettingsAlertsDisclosureSubtitle".localise([count]) + percentList
+    }
+
+    private var alertsSection: some View {
+        SettingsSection(header: "SettingsAlertsHeader".localise()) {
             SettingsToggleRow(
                 icon: "speaker.wave.2.fill",
                 title: "SettingsSoundEffectsLabel".localise(),
                 isOn: self.$soundEnabled
             )
             SettingsDivider()
-            SettingsToggleRow(
-                icon: "bolt.fill",
-                title: "SettingsEightyLabel".localise(),
-                isOn: self.$chargeAlertEnabled,
-                subtitle: "SettingsEightySubtitle".localise(),
-                accentColor: .orange
+            SettingsDisclosureRow(
+                icon: "battery.25percent",
+                title: "SettingsLowBatteryAlertsLabel".localise(),
+                subtitle: self.alertsDisclosureSubtitle,
+                action: {
+                    withAnimation(DesignAnimation.spring(reduceMotion: self.reduceMotion)) {
+                        self.settingsSubView = .lowBatteryAlerts
+                    }
+                }
             )
         }
+    }
+
+    private var chargingSection: some View {
+        SettingsSection(header: "SettingsChargingHeader".localise()) {
+            SettingsToggleRow(
+                icon: "battery.100percent.bolt",
+                title: "SettingsChargeLimitLabel".localise(),
+                isOn: self.$chargeLimitEnabled,
+                accentColor: .orange
+            )
+            if self.chargeLimitEnabled {
+                SettingsDivider()
+                VStack(spacing: Spacing.xs) {
+                    HStack {
+                        Slider(
+                            value: self.$chargeLimitPercent,
+                            in: 60 ... 100,
+                            step: 5
+                        )
+                        .tint(.orange)
+
+                        Text("\(Int(self.chargeLimitPercent))%")
+                            .font(Typography.heading)
+                            .foregroundStyle(Color("BBTitle"))
+                            .contentTransition(.numericText())
+                            .frame(width: 40, alignment: .trailing)
+                    }
+                    .padding(.horizontal, Spacing.md)
+
+                    HStack {
+                        Text("SettingsChargeLimitSubtitle".localise([Int(self.chargeLimitPercent)]))
+                            .font(Typography.caption)
+                            .foregroundStyle(Color("BBSubtitle"))
+
+                        Button {
+                            self.showChargeLimitInfo.toggle()
+                        } label: {
+                            Image(systemName: "info.circle")
+                                .font(.system(size: 10))
+                                .foregroundStyle(Color("BBSubtitle"))
+                        }
+                        .buttonStyle(.plain)
+                        .popover(isPresented: self.$showChargeLimitInfo, arrowEdge: .bottom) {
+                            self.chargeLimitInfoContent
+                        }
+
+                        Spacer()
+                    }
+                    .padding(.horizontal, Spacing.md)
+                }
+                .padding(.vertical, Spacing.smd)
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .animation(DesignAnimation.spring(reduceMotion: self.reduceMotion), value: self.chargeLimitEnabled)
+    }
+
+    private var chargeLimitInfoContent: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Text("SettingsChargeLimitInfoTitle".localise())
+                .font(Typography.heading)
+                .foregroundStyle(Color("BBTitle"))
+
+            Text("SettingsChargeLimitInfoBody".localise([Int(self.chargeLimitPercent)]))
+                .font(Typography.caption)
+                .foregroundStyle(Color("BBSubtitle"))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(Spacing.md)
+        .frame(width: 240)
     }
 
     private var behaviorSection: some View {
@@ -613,7 +733,8 @@ struct SettingsTabView: View {
         transaction.disablesAnimations = true
         withTransaction(transaction) {
             self.soundEnabled = self.settings.sfx == .enabled
-            self.chargeAlertEnabled = self.settings.charge == .enabled
+            self.chargeLimitEnabled = self.settings.chargeLimitEnabled
+            self.chargeLimitPercent = Double(self.settings.chargeLimitPercent)
             self.pinEnabled = self.settings.pinned == .enabled
             self.launchAtLogin = self.settings.autoLaunch == .enabled
             self.powerSaveEnabled = self.settings.enabledPowerSave

@@ -55,6 +55,15 @@ protocol SettingsServiceProtocol: AnyObject {
     /// Power save mode enabled
     var enabledPowerSave: Bool { get set }
 
+    /// Custom alert thresholds (sorted descending, always contains 1)
+    var alertThresholds: [Int] { get set }
+
+    /// Whether the charge limit feature is enabled
+    var chargeLimitEnabled: Bool { get set }
+
+    /// Charge limit percentage (clamped 60–100)
+    var chargeLimitPercent: Int { get set }
+
     // MARK: - Methods
 
     /// Toggle display type to the next option

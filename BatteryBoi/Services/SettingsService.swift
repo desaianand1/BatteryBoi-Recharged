@@ -23,6 +23,24 @@ final class SettingsService: SettingsServiceProtocol {
     var theme: SettingsTheme = .dark
     var pinned: SettingsPinned = .disabled
     var charge: SettingsCharged = .disabled
+    var alertThresholds: [Int] = Constants.BatteryThresholds.defaultAlerts {
+        didSet { self.persistAlertThresholds() }
+    }
+
+    var chargeLimitEnabled: Bool = false {
+        didSet { UserDefaults.save(.chargeLimitEnabled, value: self.chargeLimitEnabled) }
+    }
+
+    var chargeLimitPercent: Int = Constants.BatteryThresholds.chargeLimit {
+        didSet {
+            let clamped = self.clampChargeLimit(self.chargeLimitPercent)
+            if clamped != self.chargeLimitPercent {
+                self.chargeLimitPercent = clamped
+            } else {
+                UserDefaults.save(.chargeLimitPercent, value: clamped)
+            }
+        }
+    }
 
     // MARK: - Private Properties
 
@@ -52,8 +70,8 @@ final class SettingsService: SettingsServiceProtocol {
     }
 
     var chargeEighty: SettingsCharged {
-        get { enabledChargeEighty }
-        set { enabledChargeEighty = newValue }
+        get { self.chargeLimitEnabled ? .enabled : .disabled }
+        set { self.chargeLimitEnabled = (newValue == .enabled) }
     }
 
     var progressBar: Bool {
@@ -93,12 +111,21 @@ final class SettingsService: SettingsServiceProtocol {
 
         isDirectDistribution = !Self.isAppStoreDistribution()
 
+        self.migrateChargeEighty()
+        self.alertThresholds = self.loadAlertThresholds()
+        self.chargeLimitEnabled = UserDefaults.main
+            .object(forKey: SystemDefaultsKeys.chargeLimitEnabled.rawValue) as? Bool ?? false
+        self.chargeLimitPercent = self.clampChargeLimit(
+            UserDefaults.main.object(forKey: SystemDefaultsKeys.chargeLimitPercent.rawValue) as? Int
+                ?? Constants.BatteryThresholds.chargeLimit
+        )
+
         menu = settingsMenu
         display = enabledDisplay(false)
         theme = enabledTheme
         sfx = enabledSoundEffects
         pinned = enabledPinned
-        charge = enabledChargeEighty
+        charge = self.chargeLimitEnabled ? .enabled : .disabled
 
         startObserving()
     }
@@ -143,6 +170,18 @@ final class SettingsService: SettingsServiceProtocol {
                 case .enabledSoundEffects: sfx = enabledSoundEffects
                 case .enabledPinned: pinned = enabledPinned
                 case .enabledChargeEighty: charge = enabledChargeEighty
+                case .alertThresholds: self.alertThresholds = self.loadAlertThresholds()
+                case .chargeLimitEnabled:
+                    self.chargeLimitEnabled = UserDefaults.main.object(
+                        forKey: SystemDefaultsKeys.chargeLimitEnabled.rawValue
+                    ) as? Bool ?? false
+                    self.charge = self.chargeLimitEnabled ? .enabled : .disabled
+                case .chargeLimitPercent:
+                    self.chargeLimitPercent = self.clampChargeLimit(
+                        UserDefaults.main.object(
+                            forKey: SystemDefaultsKeys.chargeLimitPercent.rawValue
+                        ) as? Int ?? Constants.BatteryThresholds.chargeLimit
+                    )
                 default: break
                 }
             }
@@ -275,6 +314,57 @@ final class SettingsService: SettingsServiceProtocol {
 
             UserDefaults.save(.enabledTheme, value: newValue.rawValue)
         }
+    }
+
+    // MARK: - Alert Thresholds Storage
+
+    private func loadAlertThresholds() -> [Int] {
+        guard let data = UserDefaults.main.data(forKey: SystemDefaultsKeys.alertThresholds.rawValue),
+              let decoded = try? JSONDecoder().decode([Int].self, from: data)
+        else {
+            return Constants.BatteryThresholds.defaultAlerts
+        }
+        return self.sanitizeThresholds(decoded)
+    }
+
+    private func persistAlertThresholds() {
+        let sanitized = self.sanitizeThresholds(self.alertThresholds)
+        if let data = try? JSONEncoder().encode(sanitized) {
+            UserDefaults.save(.alertThresholds, value: data)
+        }
+    }
+
+    private func sanitizeThresholds(_ input: [Int]) -> [Int] {
+        var unique = Array(Set(input))
+        if !unique.contains(1) {
+            unique.append(1)
+        }
+        unique.sort(by: >)
+        if unique.count > Constants.BatteryThresholds.alertCountMax {
+            unique = Array(unique.prefix(Constants.BatteryThresholds.alertCountMax))
+            if !unique.contains(1) {
+                unique.append(1)
+            }
+        }
+        return unique
+    }
+
+    private func clampChargeLimit(_ value: Int) -> Int {
+        min(max(value, Constants.BatteryThresholds.chargeLimitMin), Constants.BatteryThresholds.chargeLimitMax)
+    }
+
+    // MARK: - Migration
+
+    private func migrateChargeEighty() {
+        let oldKey = SystemDefaultsKeys.enabledChargeEighty.rawValue
+        let newKey = SystemDefaultsKeys.chargeLimitEnabled.rawValue
+        guard UserDefaults.main.object(forKey: oldKey) != nil,
+              UserDefaults.main.object(forKey: newKey) == nil
+        else { return }
+
+        let wasEnabled = (UserDefaults.main.string(forKey: oldKey) == SettingsCharged.enabled.rawValue)
+        UserDefaults.save(.chargeLimitEnabled, value: wasEnabled)
+        UserDefaults.save(.chargeLimitPercent, value: Constants.BatteryThresholds.chargeLimit)
     }
 
     // MARK: - Charge Eighty
