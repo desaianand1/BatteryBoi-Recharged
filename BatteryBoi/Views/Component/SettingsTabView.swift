@@ -524,8 +524,39 @@ struct SettingsTabView: View {
             )
             if self.chargeLimitEnabled {
                 SettingsDivider()
-                VStack(spacing: Spacing.xs) {
-                    HStack {
+                VStack(spacing: Spacing.smd) {
+                    HStack(spacing: Spacing.sm) {
+                        Button {
+                            self.showChargeLimitInfo.toggle()
+                        } label: {
+                            Image(systemName: "info.circle.fill")
+                                .font(.system(size: 15))
+                                .foregroundStyle(Color("BBSubtitle").opacity(0.35))
+                        }
+                        .buttonStyle(HoverButtonStyle())
+                        .popover(isPresented: self.$showChargeLimitInfo, arrowEdge: .bottom) {
+                            self.chargeLimitInfoContent
+                        }
+
+                        Text("SettingsChargeLimitStopAt".localise())
+                            .font(Typography.heading)
+                            .foregroundStyle(Color("BBSubtitle"))
+
+                        Text("\(Int(self.chargeLimitPercent))%")
+                            .font(Typography.heading)
+                            .foregroundStyle(.orange)
+                            .contentTransition(.numericText())
+                            .padding(.horizontal, Spacing.xsm)
+                            .padding(.vertical, Spacing.xxs)
+                            .background(
+                                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                    .fill(Color.orange.opacity(0.12))
+                            )
+
+                        Spacer()
+                    }
+
+                    VStack(spacing: Spacing.xs) {
                         Slider(
                             value: self.$chargeLimitPercent,
                             in: 60 ... 100,
@@ -533,35 +564,24 @@ struct SettingsTabView: View {
                         )
                         .tint(.orange)
 
-                        Text("\(Int(self.chargeLimitPercent))%")
-                            .font(Typography.heading)
-                            .foregroundStyle(Color("BBTitle"))
-                            .contentTransition(.numericText())
-                            .frame(width: 40, alignment: .trailing)
-                    }
-                    .padding(.horizontal, Spacing.md)
-
-                    HStack {
-                        Text("SettingsChargeLimitSubtitle".localise([Int(self.chargeLimitPercent)]))
-                            .font(Typography.caption)
-                            .foregroundStyle(Color("BBSubtitle"))
-
-                        Button {
-                            self.showChargeLimitInfo.toggle()
-                        } label: {
-                            Image(systemName: "info.circle")
-                                .font(.system(size: 10))
-                                .foregroundStyle(Color("BBSubtitle"))
+                        HStack {
+                            Text("60%")
+                                .font(Typography.caption)
+                                .foregroundStyle(Color("BBSubtitle").opacity(0.4))
+                            Spacer()
+                            Text("100%")
+                                .font(Typography.caption)
+                                .foregroundStyle(Color("BBSubtitle").opacity(0.4))
                         }
-                        .buttonStyle(.plain)
-                        .popover(isPresented: self.$showChargeLimitInfo, arrowEdge: .bottom) {
-                            self.chargeLimitInfoContent
-                        }
-
-                        Spacer()
                     }
-                    .padding(.horizontal, Spacing.md)
+
+                    ChargeLimitContextBar(
+                        currentPercent: self.env.battery.percentage,
+                        chargeLimit: Int(self.chargeLimitPercent),
+                        isCharging: self.env.battery.charging.state == .charging
+                    )
                 }
+                .padding(.horizontal, Spacing.md)
                 .padding(.vertical, Spacing.smd)
                 .transition(.move(edge: .top).combined(with: .opacity))
             }
@@ -744,5 +764,134 @@ struct SettingsTabView: View {
             self.selectedPosition = self.window.position
             self.didLoad = true
         }
+    }
+}
+
+// MARK: - Charge Limit Context Bar
+
+private struct ChargeLimitContextBar: View {
+    let currentPercent: Double
+    let chargeLimit: Int
+    let isCharging: Bool
+
+    private let barHeight: CGFloat = 6
+    private let notchOvershoot: CGFloat = 4
+
+    private var tier: BatteryTier {
+        BatteryTier(percent: self.currentPercent)
+    }
+
+    private var normalizedCurrent: CGFloat {
+        max(0, min(CGFloat(self.currentPercent) / 100.0, 1.0))
+    }
+
+    private var normalizedLimit: CGFloat {
+        max(0, min(CGFloat(self.chargeLimit) / 100.0, 1.0))
+    }
+
+    private var isOverLimit: Bool {
+        self.currentPercent >= Double(self.chargeLimit)
+    }
+
+    var body: some View {
+        VStack(spacing: Spacing.xsm) {
+            GeometryReader { geo in
+                let barWidth = geo.size.width
+                let limitX = self.normalizedLimit * barWidth
+                let currentWidth = self.normalizedCurrent * barWidth
+                let notchHeight = self.barHeight + (self.notchOvershoot * 2)
+
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: self.barHeight / 2)
+                        .fill(BatteryTier.trackColor)
+                        .frame(height: self.barHeight)
+
+                    if self.currentPercent > 0 {
+                        if self.isOverLimit {
+                            RoundedRectangle(cornerRadius: self.barHeight / 2)
+                                .fill(LinearGradient(
+                                    colors: self.tier.gradientColors,
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                ))
+                                .frame(
+                                    width: max(self.barHeight, min(limitX, barWidth)),
+                                    height: self.barHeight
+                                )
+
+                            UnevenRoundedRectangle(
+                                topLeadingRadius: 0,
+                                bottomLeadingRadius: 0,
+                                bottomTrailingRadius: self.barHeight / 2,
+                                topTrailingRadius: self.barHeight / 2
+                            )
+                            .fill(Color.orange.opacity(0.25))
+                            .frame(
+                                width: max(0, currentWidth - limitX),
+                                height: self.barHeight
+                            )
+                            .offset(x: limitX)
+                        } else {
+                            RoundedRectangle(cornerRadius: self.barHeight / 2)
+                                .fill(LinearGradient(
+                                    colors: self.tier.gradientColors,
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                ))
+                                .frame(
+                                    width: max(self.barHeight, min(currentWidth, barWidth)),
+                                    height: self.barHeight
+                                )
+                        }
+                    }
+
+                    if self.chargeLimit < 100 {
+                        RoundedRectangle(cornerRadius: 1)
+                            .fill(Color.orange)
+                            .frame(width: 2.5, height: notchHeight)
+                            .shadow(color: .orange.opacity(0.4), radius: 3, x: 0, y: 0)
+                            .position(x: limitX, y: notchHeight / 2)
+                    }
+                }
+                .frame(height: notchHeight)
+            }
+            .frame(height: self.barHeight + (self.notchOvershoot * 2))
+
+            HStack(spacing: Spacing.xs) {
+                Circle()
+                    .fill(self.tier.dotColor)
+                    .frame(width: 6, height: 6)
+
+                Text("\(Int(self.currentPercent))%")
+                    .font(Typography.small)
+                    .foregroundStyle(Color("BBTitle"))
+                    .contentTransition(.numericText())
+
+                Text("·")
+                    .font(Typography.caption)
+                    .foregroundStyle(Color("BBSubtitle").opacity(0.4))
+
+                Text(self.isCharging
+                    ? "DashboardChargingLabel".localise()
+                    : "DashboardOnBatteryLabel".localise())
+                    .font(Typography.caption)
+                    .foregroundStyle(Color("BBSubtitle"))
+
+                Spacer()
+
+                if self.isOverLimit {
+                    Text("SettingsChargeLimitAboveLabel".localise())
+                        .font(Typography.caption)
+                        .foregroundStyle(Color.orange.opacity(0.7))
+                }
+            }
+        }
+        .padding(Spacing.sm)
+        .background(
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(Color.white.opacity(0.03))
+        )
+        .animation(.easeInOut(duration: 0.3), value: self.chargeLimit)
+        .animation(.easeInOut(duration: 0.5), value: self.currentPercent)
     }
 }

@@ -171,10 +171,14 @@
 "SettingsAlertDescription" = "Alerts when battery drops below these levels. Urgency increases automatically.";
 "SettingsAlertMaxReached" = "Maximum alerts reached";
 "SettingsAlertDuplicate" = "Alert already exists at this level";
+"SettingsAlertResetLabel" = "Reset to Defaults";
 
 // Charging Section
 "SettingsChargingHeader" = "Charging";
 "SettingsChargeLimitLabel" = "Charge Limit";
+"SettingsChargeLimitStopAt" = "Stop charging at";
 "SettingsChargeLimitSubtitle" = "Charging pauses at %d%%";
+"SettingsChargeLimitBriefDescription" = "Protects long-term battery health.";
+"SettingsChargeLimitAboveLabel" = "Above limit";
 "SettingsChargeLimitInfoTitle" = "How Charge Limit Works";
 "SettingsChargeLimitInfoBody" = "When your battery reaches %d%%, charging pauses to extend battery lifespan.\n\nEven while plugged in, your Mac uses a small amount of battery power, so the level may drift down slightly before charging resumes. This is normal and reduces battery wear.\n\nCharging also pauses automatically if your Mac gets too hot.";

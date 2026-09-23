@@ -11,8 +11,6 @@ struct LowBatteryAlertsView: View {
     @State private var thresholds: [Int] = []
     @State private var isAddingAlert: Bool = false
     @State private var newAlertValue: Int = 5
-    @State private var testPreview: AlertThresholdItem?
-    @State private var testPreviewTask: Task<Void, Never>?
 
     private var sortedItems: [AlertThresholdItem] {
         self.thresholds.sorted().map { AlertThresholdItem(percent: $0) }
@@ -20,6 +18,10 @@ struct LowBatteryAlertsView: View {
 
     private var canAddMore: Bool {
         self.thresholds.count < Constants.BatteryThresholds.alertCountMax
+    }
+
+    private var isDefault: Bool {
+        Set(self.thresholds) == Set(Constants.BatteryThresholds.defaultAlerts)
     }
 
     private var isDuplicate: Bool {
@@ -30,10 +32,10 @@ struct LowBatteryAlertsView: View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: Spacing.md) {
                 self.headerRow
-                self.testPreviewBanner
                 self.descriptionRow
                 self.alertCardsList
                 self.addAlertSection
+                self.resetButton
             }
             .padding(.bottom, Spacing.lg)
         }
@@ -68,30 +70,6 @@ struct LowBatteryAlertsView: View {
         .padding(.horizontal, Spacing.md)
     }
 
-    // MARK: - Test Preview Banner
-
-    @ViewBuilder
-    private var testPreviewBanner: some View {
-        if let preview = self.testPreview {
-            HStack(spacing: Spacing.sm) {
-                Circle()
-                    .fill(preview.tier.dotColor)
-                    .frame(width: 6, height: 6)
-
-                Text("\"\(preview.subtitle)\"")
-                    .font(Typography.caption)
-                    .foregroundStyle(Color("BBTitle"))
-            }
-            .padding(.horizontal, Spacing.smd)
-            .padding(.vertical, Spacing.xsm)
-            .background(
-                Capsule()
-                    .fill(preview.tier.dotColor.opacity(0.1))
-            )
-            .transition(.opacity)
-        }
-    }
-
     // MARK: - Description
 
     private var descriptionRow: some View {
@@ -111,7 +89,6 @@ struct LowBatteryAlertsView: View {
                 }
                 AlertCardRow(
                     item: item,
-                    onTest: { self.showTestPreview(for: item) },
                     onRemove: { self.removeThreshold(item.percent) }
                 )
                 .transition(.opacity.combined(with: .move(edge: .top)))
@@ -171,6 +148,7 @@ struct LowBatteryAlertsView: View {
             Text("\(self.newAlertValue)%")
                 .font(Typography.heading)
                 .foregroundStyle(Color("BBTitle"))
+                .contentTransition(.numericText())
                 .frame(width: 40, alignment: .leading)
 
             Stepper(
@@ -184,9 +162,13 @@ struct LowBatteryAlertsView: View {
             Spacer()
 
             if self.isDuplicate {
-                Text("SettingsAlertDuplicate".localise())
-                    .font(Typography.caption)
-                    .foregroundStyle(Color("BBSubtitle"))
+                HStack(spacing: Spacing.xxs) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 8))
+                    Text("SettingsAlertDuplicate".localise())
+                        .font(Typography.caption)
+                }
+                .foregroundStyle(SemanticColor.warning)
             }
 
             Button {
@@ -194,7 +176,8 @@ struct LowBatteryAlertsView: View {
             } label: {
                 Text("SettingsAlertAddLabel".localise())
                     .font(Typography.caption)
-                    .foregroundStyle(Color.accentColor)
+                    .fontWeight(.medium)
+                    .foregroundStyle(self.isDuplicate ? Color("BBSubtitle") : Color.accentColor)
             }
             .buttonStyle(.plain)
             .disabled(self.isDuplicate || !self.canAddMore)
@@ -206,12 +189,33 @@ struct LowBatteryAlertsView: View {
             } label: {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 14))
-                    .foregroundStyle(Color("BBSubtitle"))
+                    .foregroundStyle(Color("BBSubtitle").opacity(0.5))
             }
             .buttonStyle(.plain)
         }
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, Spacing.smd)
+    }
+
+    // MARK: - Reset Button
+
+    @ViewBuilder
+    private var resetButton: some View {
+        if !self.isDefault {
+            Button {
+                self.resetToDefaults()
+            } label: {
+                HStack(spacing: Spacing.xs) {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.system(size: 10, weight: .medium))
+                    Text("SettingsAlertResetLabel".localise())
+                        .font(Typography.caption)
+                }
+                .foregroundStyle(Color("BBSubtitle").opacity(0.6))
+            }
+            .buttonStyle(HoverButtonStyle())
+            .transition(.opacity)
+        }
     }
 
     // MARK: - Actions
@@ -235,19 +239,13 @@ struct LowBatteryAlertsView: View {
         HapticUtility.toggle()
     }
 
-    private func showTestPreview(for item: AlertThresholdItem) {
-        self.testPreviewTask?.cancel()
+    private func resetToDefaults() {
         withAnimation(DesignAnimation.spring(reduceMotion: self.reduceMotion)) {
-            self.testPreview = item
+            self.thresholds = Constants.BatteryThresholds.defaultAlerts
+            self.env.settings.alertThresholds = self.thresholds
+            self.isAddingAlert = false
         }
         HapticUtility.toggle()
-        self.testPreviewTask = Task {
-            try? await Task.sleep(for: .seconds(4))
-            guard !Task.isCancelled else { return }
-            withAnimation(DesignAnimation.easeOut(reduceMotion: self.reduceMotion)) {
-                self.testPreview = nil
-            }
-        }
     }
 
     private func advanceToNextAvailable() {
@@ -270,7 +268,6 @@ struct LowBatteryAlertsView: View {
 
 private struct AlertCardRow: View {
     let item: AlertThresholdItem
-    let onTest: () -> Void
     let onRemove: () -> Void
 
     var body: some View {
@@ -280,45 +277,39 @@ private struct AlertCardRow: View {
                 .frame(width: 8, height: 8)
 
             VStack(alignment: .leading, spacing: Spacing.xxs) {
-                HStack(spacing: Spacing.xs) {
+                HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
                     Text("\(self.item.percent)%")
                         .font(Typography.heading)
                         .foregroundStyle(Color("BBTitle"))
 
                     Text(self.item.tier.label)
                         .font(Typography.caption)
-                        .foregroundStyle(Color("BBSubtitle"))
+                        .foregroundStyle(self.item.tier.dotColor.opacity(0.8))
                 }
 
-                Text("\"\(self.item.subtitle)\"")
+                Text(self.item.subtitle)
                     .font(Typography.caption)
-                    .foregroundStyle(Color("BBSubtitle"))
+                    .foregroundStyle(Color("BBSubtitle").opacity(0.7))
             }
 
             Spacer()
 
             if self.item.isRemovable {
-                Button(action: self.onTest) {
-                    HStack(spacing: Spacing.xxs) {
-                        Image(systemName: "play.fill")
-                            .font(.system(size: 8))
-                        Text("SettingsAlertTestLabel".localise())
-                            .font(Typography.caption)
-                    }
-                    .foregroundStyle(Color.accentColor)
-                }
-                .buttonStyle(.plain)
-
                 Button(action: self.onRemove) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 14))
-                        .foregroundStyle(Color("BBSubtitle"))
+                    Image(systemName: "minus.circle")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color("BBSubtitle").opacity(0.4))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(HoverButtonStyle())
             } else {
                 Text("SettingsAlertAlwaysOnLabel".localise())
                     .font(Typography.caption)
-                    .foregroundStyle(Color("BBSubtitle"))
+                    .foregroundStyle(Color("BBSubtitle").opacity(0.5))
+                    .padding(.horizontal, Spacing.xsm)
+                    .padding(.vertical, Spacing.xxs)
+                    .background(
+                        Capsule().fill(Color("BBSubtitle").opacity(0.08))
+                    )
             }
         }
         .padding(.horizontal, Spacing.md)
