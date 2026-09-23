@@ -33,6 +33,9 @@ import Foundation
         var soundEffects: SettingsSoundEffects
         var bluetoothStatus: SettingsStateValue
         var enabledPowerSave: Bool
+        var alertThresholds: [Int]
+        var chargeLimitEnabled: Bool
+        var chargeLimitPercent: Int
 
         // MARK: - Test Helpers
 
@@ -55,7 +58,10 @@ import Foundation
             progressBar: Bool = true,
             soundEffects: SettingsSoundEffects = .enabled,
             bluetoothStatus: SettingsStateValue = .enabled,
-            enabledPowerSave: Bool = false
+            enabledPowerSave: Bool = false,
+            alertThresholds: [Int] = [25, 10, 5, 1],
+            chargeLimitEnabled: Bool = false,
+            chargeLimitPercent: Int = 80
         ) {
             self.menu = menu
             self.display = display
@@ -70,6 +76,9 @@ import Foundation
             self.soundEffects = soundEffects
             self.bluetoothStatus = bluetoothStatus
             self.enabledPowerSave = enabledPowerSave
+            self.alertThresholds = alertThresholds
+            self.chargeLimitEnabled = chargeLimitEnabled
+            self.chargeLimitPercent = chargeLimitPercent
         }
 
         // MARK: - Methods
