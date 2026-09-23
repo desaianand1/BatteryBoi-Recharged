@@ -19,6 +19,7 @@ struct HUDIcon: View {
                 .frame(width: Constants.Progress.miniSize, height: Constants.Progress.miniSize)
                 .foregroundColor(self.stats.statsIcon.color)
                 .applySymbolEffect(self.stats.statsIcon.effect)
+                .applySymbolReplaceTransition()
                 .offset(y: 1)
         }
         .frame(width: 50, height: 50)
@@ -56,10 +57,12 @@ struct HUDSummary: View {
                     .font(Typography.titleBold)
                     .foregroundColor(.white)
                     .lineLimit(2)
+                    .contentTransition(.interpolate)
 
                 ZStack(alignment: .leading) {
                     BoldStyledText(stats.subtitle)
                         .opacity(window.activeFlash == nil ? 1.0 : 0.0)
+                        .contentTransition(.interpolate)
 
                     if let flash = window.activeFlash {
                         Text(flash.text)
@@ -79,6 +82,10 @@ struct HUDSummary: View {
                 }
 
             }
+            .animation(
+                DesignAnimation.easeOut(duration: 0.3, reduceMotion: reduceMotion),
+                value: window.currentAlert
+            )
 
             Spacer()
 

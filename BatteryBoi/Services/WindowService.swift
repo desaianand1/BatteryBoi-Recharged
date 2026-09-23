@@ -278,15 +278,18 @@ final class WindowService: WindowServiceProtocol {
                     self.resetDismissTimer()
                 } else {
                     if self.settings.pinned == .disabled {
+                        let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
                         if self.state == .detailed {
                             if HUDInteractionPolicy.shouldAllowDismiss(
-                                trigger: .clickOutside, currentState: self.state, revealAge: revealAge
+                                trigger: .clickOutside, currentState: self.state,
+                                revealAge: revealAge, reduceMotion: reduceMotion
                             ) {
                                 self.windowSetState(.revealed)
                             }
                         } else if self.state.visible {
                             if HUDInteractionPolicy.shouldAllowDismiss(
-                                trigger: .clickOutside, currentState: self.state, revealAge: revealAge
+                                trigger: .clickOutside, currentState: self.state,
+                                revealAge: revealAge, reduceMotion: reduceMotion
                             ) {
                                 self.windowSetState(.dismissed)
                             }
@@ -461,8 +464,10 @@ final class WindowService: WindowServiceProtocol {
                 try await Task.sleep(for: .seconds(timeout))
                 guard let self, !Task.isCancelled, state.visible else { return }
                 let revealAge = Date().timeIntervalSince(self.lastOpenedTime)
+                let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
                 guard HUDInteractionPolicy.shouldAllowDismiss(
-                    trigger: .timeout, currentState: self.state, revealAge: revealAge
+                    trigger: .timeout, currentState: self.state,
+                    revealAge: revealAge, reduceMotion: reduceMotion
                 ) else {
                     self.scheduleDismissal(remaining: 2.0)
                     return
@@ -503,7 +508,6 @@ final class WindowService: WindowServiceProtocol {
     }
 
     func windowOpen(_ type: HUDAlertTypes, device: BluetoothObject?) {
-        // userInitiated bypasses the priority queue entirely
         if type != .userInitiated {
             if let current = currentAlert, current != type, type.priority < current.priority {
                 enqueueAlert(type, device: device)
@@ -511,7 +515,16 @@ final class WindowService: WindowServiceProtocol {
             }
         }
 
-        showAlert(type, device: device)
+        if state == .detailed {
+            enqueueAlert(type, device: device)
+            return
+        }
+
+        if state == .revealed, currentAlert != nil {
+            updateAlertInPlace(type, device: device)
+        } else {
+            showAlert(type, device: device)
+        }
     }
 
     private func showAlert(_ type: HUDAlertTypes, device: BluetoothObject?) {
@@ -553,6 +566,26 @@ final class WindowService: WindowServiceProtocol {
 
         lastOpenedTime = Date()
         windowSetState(.progress)
+    }
+
+    private var inPlaceDebounceTask: Task<Void, Never>?
+
+    private func updateAlertInPlace(_ type: HUDAlertTypes, device: BluetoothObject?) {
+        inPlaceDebounceTask?.cancel()
+        inPlaceDebounceTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(200))
+            guard let self, !Task.isCancelled else { return }
+
+            if self.currentAlert != type {
+                if let sfx = type.sfx {
+                    sfx.play(soundEffects: self.settings.soundEffects)
+                }
+            }
+
+            self.currentDevice = device
+            self.currentAlert = type
+            self.scheduleDismissal()
+        }
     }
 
     private func processAlertQueue() {

@@ -47,7 +47,7 @@ enum HUDInteractionPolicy {
             return .deliver
 
         case .detailed:
-            return .suppress
+            return .queue
 
         case .dismissed:
             if alert.priority >= .high {
@@ -62,9 +62,12 @@ enum HUDInteractionPolicy {
     static func shouldAllowDismiss(
         trigger: DismissTrigger,
         currentState: HUDState,
-        revealAge: TimeInterval
+        revealAge: TimeInterval,
+        reduceMotion: Bool = false
     ) -> Bool {
-        let revealProtected = revealAge < (RevealTiming.totalReveal + 0.5)
+        // Animations are instant with Reduce Motion — only a brief guard against races
+        let protectionWindow = reduceMotion ? 0.3 : (RevealTiming.totalReveal + 0.5)
+        let revealProtected = revealAge < protectionWindow
 
         switch trigger {
         case .timeout:

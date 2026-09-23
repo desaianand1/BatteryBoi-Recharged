@@ -41,19 +41,19 @@ struct AlertDeliveryPolicyTests {
     }
 
     @Test
-    func `detailed state always suppresses`() {
+    func `detailed state queues alerts to avoid interrupting interaction`() {
         let result = HUDInteractionPolicy.shouldDeliverAlert(
             .chargingBegan, currentState: .detailed, currentAlert: .userInitiated
         )
-        #expect(result == .suppress)
+        #expect(result == .queue)
     }
 
     @Test
-    func `detailed suppresses even critical alerts`() {
+    func `detailed queues even critical alerts`() {
         let result = HUDInteractionPolicy.shouldDeliverAlert(
             .percentOne, currentState: .detailed, currentAlert: nil
         )
-        #expect(result == .suppress)
+        #expect(result == .queue)
     }
 
     @Test
@@ -322,6 +322,39 @@ struct DismissPolicyTests {
         let boundaryAge = RevealTiming.totalReveal + 0.5
         let allowed = HUDInteractionPolicy.shouldAllowDismiss(
             trigger: .timeout, currentState: .revealed, revealAge: boundaryAge
+        )
+        #expect(allowed == true)
+    }
+
+    // MARK: - Reduce Motion
+
+    @Test
+    func `reduce motion shortens protection window`() {
+        let midRevealAge: TimeInterval = 1.0
+        let normalAllowed = HUDInteractionPolicy.shouldAllowDismiss(
+            trigger: .timeout, currentState: .revealed, revealAge: midRevealAge, reduceMotion: false
+        )
+        let reduceMotionAllowed = HUDInteractionPolicy.shouldAllowDismiss(
+            trigger: .timeout, currentState: .revealed, revealAge: midRevealAge, reduceMotion: true
+        )
+        #expect(normalAllowed == false)
+        #expect(reduceMotionAllowed == true)
+    }
+
+    @Test
+    func `reduce motion still protects during brief guard`() {
+        let veryEarlyAge: TimeInterval = 0.1
+        let allowed = HUDInteractionPolicy.shouldAllowDismiss(
+            trigger: .timeout, currentState: .revealed, revealAge: veryEarlyAge, reduceMotion: true
+        )
+        #expect(allowed == false)
+    }
+
+    @Test
+    func `reduce motion allows click outside after brief guard`() {
+        let afterGuard: TimeInterval = 0.5
+        let allowed = HUDInteractionPolicy.shouldAllowDismiss(
+            trigger: .clickOutside, currentState: .revealed, revealAge: afterGuard, reduceMotion: true
         )
         #expect(allowed == true)
     }
